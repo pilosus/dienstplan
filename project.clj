@@ -15,8 +15,12 @@
                  ;; Routing
                  [bidi "2.1.6"]
 
+                 ;; Alerts
+                 [io.sentry/sentry-clj "5.2.158"]
+
                  ;; JSON parsing
                  [cheshire "5.10.1"]]
+
   :plugins [[lein-cljfmt "0.8.0"]
             [lein-cloverage "1.2.2"]
             [lein-licenses "0.2.2"]]

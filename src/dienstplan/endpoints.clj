@@ -4,6 +4,7 @@
 (def routes
   ["/api/"
    {"healthcheck" :healthcheck
+    "exc" :error
     true :not-found}])
 
 (defmulti multi-handler
@@ -14,11 +15,15 @@
 (defmethod multi-handler :healthcheck
   [request]
   {:status 200
-   :headers {"content-type" "text-plain"}
-   :body "ok"})
+   :body {:status "ok"}})
 
 (defmethod multi-handler :not-found
   [request]
   {:status 404
-   :headers {"content-type" "text-plain"}
-   :body "Page not found"})
+   :body {:message "Page not found"}})
+
+
+;; FIXME for alerts testing purposes only, remove after the testing
+(defmethod multi-handler :error
+  [_]
+  (/ 1 0))
