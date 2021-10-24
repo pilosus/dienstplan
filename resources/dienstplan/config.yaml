@@ -1,0 +1,20 @@
+application:
+  name: "dienstplan"
+
+server:
+  port: 8080
+  loglevel: "DEBUG"
+
+slack:
+  token: !envvar SLACK__TOKEN
+
+alerts:
+  sentry_dsn: !envvar ALERTS__SLACK_DSN
+
+db:
+  type: "postgresql"
+  host: "localhost"
+  port: 5432
+  name: "dienstplan"
+  user: !envvar DB__USER
+  password: !envvar DB__PASSWORD

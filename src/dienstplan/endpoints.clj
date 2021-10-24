@@ -22,7 +22,6 @@
   {:status 404
    :body {:message "Page not found"}})
 
-
 ;; FIXME for alerts testing purposes only, remove after the testing
 (defmethod multi-handler :error
   [_]

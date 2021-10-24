@@ -35,9 +35,8 @@
       (catch clojure.lang.ExceptionInfo e
         (let [error-type (-> e ex-data :cause)
               messages (-> e ex-data :messages)]
-          (if (= error-type :validation )
-            {:status 400 :body {:errors messages}})
-          )))))
+          (if (= error-type :validation)
+            {:status 400 :body {:errors messages}}))))))
 
 (defn wrap-exception-fallback
   [handler]
