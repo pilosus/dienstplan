@@ -1,5 +1,7 @@
 (ns dienstplan.endpoints
-  (:gen-class))
+  (:gen-class)
+  (:require
+   [clojure.tools.logging :as log]))
 
 (def routes
   ["/api/"
@@ -25,4 +27,6 @@
 ;; FIXME for alerts testing purposes only, remove after the testing
 (defmethod multi-handler :error
   [_]
-  (/ 1 0))
+  (do
+    (log/error "Oooops!")
+    (/ 1 0)))

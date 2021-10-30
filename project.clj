@@ -17,6 +17,7 @@
 
                  ;; Logging
                  [org.clojure/tools.logging "1.1.0"]
+                 [ch.qos.logback/logback-classic "1.2.6"]
 
                  ;; Alerts
                  [io.sentry/sentry-clj "5.2.158"]

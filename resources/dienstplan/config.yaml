@@ -6,7 +6,7 @@ application:
 
 server:
   port: 8080
-  loglevel: "DEBUG"
+  loglevel: !envvar SERVER__LOGLEVEL
 
 slack:
   token: !envvar SLACK__TOKEN

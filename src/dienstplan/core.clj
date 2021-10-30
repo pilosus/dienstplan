@@ -12,6 +12,7 @@
    [sentry-clj.core :as sentry]
    [dienstplan.endpoints :as endpoints]
    [dienstplan.config :refer [config]]
+   [dienstplan.logging :as logging]
    [dienstplan.middlewares :as middlewares]))
 
 (defn wrap-handler
@@ -39,6 +40,9 @@
 
 ;; Entrypoint
 ;; TODO access logging
+
+(defstate logs
+  :start (logging/override-logging))
 
 (defstate alerts
   :start
