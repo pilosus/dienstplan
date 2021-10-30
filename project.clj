@@ -32,7 +32,8 @@
                  [cheshire "5.10.1"]]
   :plugins [[lein-cljfmt "0.8.0"]
             [lein-cloverage "1.2.2"]
-            [lein-licenses "0.2.2"]]
+            [lein-licenses "0.2.2"]
+            [lein-ancient "1.0.0-RC3"]]
   :main dienstplan.core
   :aot [dienstplan.core]
   :target-path "target/%s"

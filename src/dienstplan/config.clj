@@ -1,6 +1,7 @@
 (ns dienstplan.config
   (:gen-class)
   (:require
+   [mount.core :as mount :refer [defstate]]
    [clojure.tools.logging :as log]
    [yummy.config :refer [load-config]]
    [dienstplan.spec :as spec]))
@@ -19,8 +20,9 @@
   (log/error e "Config error" msg)
   (System/exit 1))
 
-;; FIXME use in mount
-(load-config {:path CONFIG_PATH
-              :spec ::spec/application-config
-              ;; FIXME change for prod once debugged
-              :die-fn die-fn-repl})
+(defstate config
+  "Configuration map"
+  :start
+  (load-config {:path CONFIG_PATH
+                :spec ::spec/application-config
+                :die-fn die-fn-prod}))

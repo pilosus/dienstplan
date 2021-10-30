@@ -2,6 +2,7 @@
   (:gen-class)
   (:require
    [bidi.bidi :as bidi]
+   [mount.core :as mount :refer [defstate]]
    [ring.adapter.jetty :refer [run-jetty]]
    [ring.middleware.params :refer [wrap-params]]
    [ring.middleware.keyword-params :refer [wrap-keyword-params]]
@@ -10,6 +11,7 @@
    [ring.middleware.session :refer [wrap-session]]
    [sentry-clj.core :as sentry]
    [dienstplan.endpoints :as endpoints]
+   [dienstplan.config :refer [config]]
    [dienstplan.middlewares :as middlewares]))
 
 (defn wrap-handler
@@ -36,12 +38,25 @@
       wrap-json-response))
 
 ;; Entrypoint
-
-;; FIXME move to system config
-(sentry/init! "")
-
 ;; TODO access logging
+
+(defstate alerts
+  :start
+  (let [dsn (get-in config [:alerts :sentry])
+        debug (boolean (Boolean/valueOf (get-in config [:application :debug])))
+        env (get-in config [:application :env])
+        app-name (get-in config [:application :name])
+        version (get-in config [:application :version])
+        release (str app-name ":" version)]
+    (sentry/init! dsn {:environment env :debug debug :release release}))
+  :stop (sentry/close!))
+
+(defstate server
+  :start
+  (let [port (get-in config [:server :port])]
+    (run-jetty app {:port port :join? true}))
+  :stop (.stop server))
 
 (defn -main
   [& args]
-  (run-jetty app {:port 8080 :join? true}))
+  (mount/start))

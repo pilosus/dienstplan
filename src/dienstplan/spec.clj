@@ -27,9 +27,17 @@
 ;; Application
 
 (s/def :application/name ::non-empty-str)
+(s/def :application/version ::non-empty-str)
+(s/def :application/env ::non-empty-str)
+(s/def :application/debug #{"true" "false"})
 
 (s/def ::application
-  (s/keys :req-un [:application/name]))
+  (s/keys
+   :req-un
+   [:application/name
+    :application/version
+    :application/env
+    :application/debug]))
 
 ;; Server
 
@@ -53,12 +61,12 @@
 
 ;; Alerts
 
-(s/def :alerts/sentry-dsn ::non-empty-str)
+(s/def :alerts/sentry ::str)
 
 (s/def ::alerts
   (s/keys
    :req-un
-   [:alerts/sentry-dsn]))
+   [:alerts/sentry]))
 
 ;; DB
 

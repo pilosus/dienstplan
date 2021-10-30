@@ -1,5 +1,8 @@
 application:
   name: "dienstplan"
+  version: !envvar APP__VERSION
+  env: !envvar APP__ENV
+  debug: !envvar APP__DEBUG
 
 server:
   port: 8080
@@ -9,7 +12,7 @@ slack:
   token: !envvar SLACK__TOKEN
 
 alerts:
-  sentry_dsn: !envvar ALERTS__SLACK_DSN
+  sentry: !envvar ALERTS__SLACK_DSN
 
 db:
   type: "postgresql"
