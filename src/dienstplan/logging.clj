@@ -4,7 +4,6 @@
    [clojure.pprint]
    [clojure.tools.logging :as log]))
 
-
 (defn ex-chain
   "Build exceptions chain from original one to the root"
   [^Exception e]
@@ -22,13 +21,13 @@
         (print indent)
         (clojure.pprint/pprint data)))))
 
-
 (defn override-logging
   "Apply system-wide use of pretty print for chain of exceptions for log/error"
   []
   (alter-var-root
    (var clojure.tools.logging/log*)
-   (fn [log*] ;; original log* function used in log/info, log/error, ... macros
+   ;; original log* function used in log/info, log/error, ... macros
+   (fn [log*]
      (fn [logger level throwable message]
        (if throwable
          (let [ex-out (with-out-str (ex-print throwable))
