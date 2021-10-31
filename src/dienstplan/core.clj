@@ -11,6 +11,7 @@
    [ring.middleware.session :refer [wrap-session]]
    [sentry-clj.core :as sentry]
    [dienstplan.endpoints :as endpoints]
+   [dienstplan.spec :as spec]
    [dienstplan.config :refer [config]]
    [dienstplan.logging :as logging]
    [dienstplan.middlewares :as middlewares]))
@@ -33,9 +34,10 @@
       wrap-json-params
       wrap-session
       wrap-cookies
-      middlewares/wrap-request-id
       middlewares/wrap-exception-validation
       middlewares/wrap-exception-fallback
+      middlewares/wrap-request-id
+      middlewares/wrap-access-log
       wrap-json-response))
 
 ;; Entrypoint
@@ -47,7 +49,7 @@
 (defstate alerts
   :start
   (let [dsn (get-in config [:alerts :sentry])
-        debug (boolean (Boolean/valueOf (get-in config [:application :debug])))
+        debug (spec/str->bool (get-in config [:application :debug]))
         env (get-in config [:application :env])
         app-name (get-in config [:application :name])
         version (get-in config [:application :version])

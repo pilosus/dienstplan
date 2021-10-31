@@ -3,7 +3,10 @@
   (:require
    [clojure.walk :refer [keywordize-keys stringify-keys]]
    [clojure.tools.logging :as log]
-   [sentry-clj.core :as sentry])
+   [clojure.string :as str]
+   [sentry-clj.core :as sentry]
+   [dienstplan.config :refer [config]]
+   [dienstplan.spec :as spec])
   (:import (java.util UUID)))
 
 ;; Middlewares
@@ -39,6 +42,29 @@
           (if (= error-type :validation)
             {:status 400 :body {:errors messages}}
             (throw e)))))))
+
+;; Access logs
+
+(def loglevel-str-to-kw
+  {"DEBUG" :debug
+   "INFO" :info
+   "WARN" :warn
+   "ERROR" :error
+   "FATAL" :fatal})
+
+(defn wrap-access-log
+  [handler]
+  (fn [request]
+    (let [enable-logging? (spec/str->bool (get-in config [:server :access-log]))
+          {:keys [query-string request-method uri]} request
+          loglevel-str (get-in config [:server :loglevel])
+          loglevel-kw (get loglevel-str-to-kw loglevel-str)
+          method (-> request-method name str/upper-case)
+          query-params (if query-string (str "?" query-string) "")
+          message (str method " " uri query-params)]
+      (when enable-logging?
+        (log/log loglevel-kw message))
+      (handler request))))
 
 ;; Unhandled error tracking
 
