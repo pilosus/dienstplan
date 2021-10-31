@@ -3,6 +3,14 @@
   (:require
    [clojure.spec.alpha :as s]))
 
+;;;;;;;;;;;;;;;;;;;;;
+;; Conform helpers ;;
+;;;;;;;;;;;;;;;;;;;;;
+
+(defn str->bool
+  [val]
+  (boolean (Boolean/valueOf val)))
+
 ;;;;;;;;;;;;;;;;;;
 ;; Common specs ;;
 ;;;;;;;;;;;;;;;;;;
@@ -12,6 +20,7 @@
 (s/def ::str string?)
 (s/def ::nillable-str (s/nilable ::str))
 (s/def ::non-empty-str (s/and ::str not-empty))
+(s/def ::boolean-str #{"true" "false"})
 
 ;; Domain-related
 
@@ -29,7 +38,7 @@
 (s/def :application/name ::non-empty-str)
 (s/def :application/version ::non-empty-str)
 (s/def :application/env ::non-empty-str)
-(s/def :application/debug #{"true" "false"})
+(s/def :application/debug ::boolean-str)
 
 (s/def ::application
   (s/keys
@@ -43,6 +52,7 @@
 
 (s/def :server/port ::ephemeral-port)
 (s/def :server/loglevel #{"DEBUG" "INFO" "WARN" "ERROR" "FATAL"})
+(s/def :server/access-log ::boolean-str)
 
 (s/def ::server
   (s/keys
