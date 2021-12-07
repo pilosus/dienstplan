@@ -13,7 +13,7 @@ slack:
   token: !envvar SLACK__TOKEN
 
 alerts:
-  sentry: !envvar ALERTS__SLACK_DSN
+  sentry: !envvar ALERTS__SENTRY_DSN
 
 db:
   type: "postgresql"

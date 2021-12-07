@@ -6,6 +6,7 @@
 (def routes
   ["/api/"
    {"healthcheck" :healthcheck
+    "command" :command
     "exc" :error
     true :not-found}])
 
@@ -30,3 +31,11 @@
   (do
     (log/error "Oooops!")
     (/ 1 0)))
+
+
+(defmethod multi-handler :command
+  [request]
+  (let [body {:response_type "in_channel"
+              :text "The bot is under construction"}
+        response {:status 200 :body body}]
+    response))
