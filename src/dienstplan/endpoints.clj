@@ -8,9 +8,7 @@
 (def routes
   ["/api/"
    {"healthcheck" :healthcheck
-    "command" {:post :command}
     "events" {:post :events}
-    "exc" :error
     true :not-found}])
 
 (defmulti multi-handler
@@ -28,36 +26,19 @@
   {:status 404
    :body {:message "Page not found"}})
 
-;; FIXME for alerts testing purposes only, remove after the testing
-(defmethod multi-handler :error
-  [_]
-  (do
-    (log/error "Oooops!")
-    (/ 1 0)))
-
-
-(defmethod multi-handler :command
-  [request]
-  (let
-      [{:keys [params]} request
-       l (log/info (str (type params) params))
-       body {:response_type "in_channel"
-             :text "The bot is under construction"}
-       response {:status 200 :body body}]
-    response))
-
-
 (defmethod multi-handler :events
   [request]
   (let
       [sign-key (get-in config [:slack :sign])
-       {:keys [params]} request
-       challenge (get params :challenge)
-       l (log/info request)
-       verified? (verify/request-trusted? request sign-key)
-       body (if challenge
-              {:challenge challenge}
-              {:response_type "in_channel"
-               :text "The bot is listening to your events"})
-       response {:status 200 :body body}]
+       challenge (get-in request [:params :challenge])
+       _ (log/info request)
+       verified? (verify/request-verified? request sign-key)
+       response
+       (cond
+         (not verified?) {:status 403 :body {:error "Forbidden"}}
+         challenge {:status 200 :body {:challenge challenge}}
+         :else
+         {:status 200
+          :body {:response_type "in_channel"
+                 :text "The bot is listening to your events"}})]
     response))
