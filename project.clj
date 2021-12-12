@@ -16,7 +16,7 @@
                  [bidi "2.1.6"]
 
                  ;; Logging
-                 [org.clojure/tools.logging "1.1.0"]
+                 [org.clojure/tools.logging "1.2.1"]
                  [ch.qos.logback/logback-classic "1.2.6"]
 
                  ;; Alerts
@@ -30,7 +30,10 @@
                  [mount "0.1.16"]
 
                  ;; JSON parsing
-                 [cheshire "5.10.1"]]
+                 [cheshire "5.10.1"]
+
+                 ;; Cryptography
+                 [buddy/buddy-core "1.10.1"]]
   :plugins [[lein-cljfmt "0.8.0"]
             [lein-cloverage "1.2.2"]
             [lein-licenses "0.2.2"]

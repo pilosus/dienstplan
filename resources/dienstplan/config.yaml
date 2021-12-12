@@ -11,6 +11,7 @@ server:
 
 slack:
   token: !envvar SLACK__TOKEN
+  sign: !envvar SLACK__SIGN
 
 alerts:
   sentry: !envvar ALERTS__SENTRY_DSN

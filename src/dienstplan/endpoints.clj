@@ -1,12 +1,15 @@
 (ns dienstplan.endpoints
   (:gen-class)
   (:require
+   [dienstplan.config :refer [config]]
+   [dienstplan.verify :as verify]
    [clojure.tools.logging :as log]))
 
 (def routes
   ["/api/"
    {"healthcheck" :healthcheck
-    "command" :command
+    "command" {:post :command}
+    "events" {:post :events}
     "exc" :error
     true :not-found}])
 
@@ -35,7 +38,26 @@
 
 (defmethod multi-handler :command
   [request]
-  (let [body {:response_type "in_channel"
-              :text "The bot is under construction"}
-        response {:status 200 :body body}]
+  (let
+      [{:keys [params]} request
+       l (log/info (str (type params) params))
+       body {:response_type "in_channel"
+             :text "The bot is under construction"}
+       response {:status 200 :body body}]
+    response))
+
+
+(defmethod multi-handler :events
+  [request]
+  (let
+      [sign-key (get-in config [:slack :sign])
+       {:keys [params]} request
+       challenge (get params :challenge)
+       l (log/info request)
+       verified? (verify/request-trusted? request sign-key)
+       body (if challenge
+              {:challenge challenge}
+              {:response_type "in_channel"
+               :text "The bot is listening to your events"})
+       response {:status 200 :body body}]
     response))
