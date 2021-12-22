@@ -63,11 +63,13 @@
 ;; Slack
 
 (s/def :slack/token ::non-empty-str)
+(s/def :slack/sign ::non-empty-str)
 
 (s/def ::slack
   (s/keys
    :req-un
-   [:slack/token]))
+   [:slack/token
+    :slack/sign]))
 
 ;; Alerts
 

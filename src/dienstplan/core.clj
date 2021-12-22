@@ -38,7 +38,8 @@
       middlewares/wrap-exception-fallback
       middlewares/wrap-request-id
       middlewares/wrap-access-log
-      wrap-json-response))
+      wrap-json-response
+      middlewares/wrap-raw-body))
 
 ;; Entrypoint
 ;; TODO access logging

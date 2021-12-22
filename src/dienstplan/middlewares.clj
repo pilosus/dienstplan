@@ -11,6 +11,24 @@
 
 ;; Middlewares
 
+(defn string->stream
+  "Convert string to InputStream"
+  ([s] (string->stream s "UTF-8"))
+  ([s encoding]
+   (-> s
+       (.getBytes encoding)
+       (java.io.ByteArrayInputStream.))))
+
+(defn wrap-raw-body
+  "Save original request body"
+  [handler]
+  (fn [request]
+    (let [raw-body (slurp (:body request))
+          request' (-> request
+                       (assoc :raw-body raw-body)
+                       (assoc :body (string->stream raw-body)))]
+      (handler request'))))
+
 (defn wrap-headers-kw
   [handler]
   (fn [request]
