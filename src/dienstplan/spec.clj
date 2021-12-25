@@ -149,3 +149,17 @@
    [:bot-cmd-common/user-id
     :bot-cmd-common/command
     :bot-cmd-help/args]))
+
+
+;;;;;;;;;;;;;;;;;;
+;; Bot Response ;;
+;;;;;;;;;;;;;;;;;;
+
+(s/def :bot-response/channel ::str)
+(s/def :bot-response/text ::str)
+
+(s/def ::bot-response
+  (s/keys
+   :req-un
+   [:bot-response/channel
+    :bot-response/text]))

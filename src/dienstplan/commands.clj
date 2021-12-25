@@ -89,20 +89,23 @@ Example:
   "(?s) is a pattern flag for dot matching all symbols including newlines"
   #"(?s)\<@(?<userid>[A-Z0-9]+)\>\s+(?<command>\w+)\s*(?<rest>.*)")
 
-(def commands #{:create :delete :rotate :show :help})
-
-(def commands->spec
-  {:create {:spec ::spec/bot-cmd-create :help help-cmd-create}
-   :rotate {:spec ::spec/bot-cmd-default :help help-cmd-rotate}
-   :delete {:spec ::spec/bot-cmd-default :help help-cmd-delete}
-   :show {:spec ::spec/bot-cmd-default :help help-cmd-show}
-   :help {:spec ::spec/bot-cmd-help :help help-cmd-help}})
+(def commands->data
+  {:create {:spec ::spec/bot-cmd-create
+            :help help-cmd-create}
+   :rotate {:spec ::spec/bot-cmd-default
+            :help help-cmd-rotate}
+   :delete {:spec ::spec/bot-cmd-default
+            :help help-cmd-delete}
+   :show {:spec ::spec/bot-cmd-default
+          :help help-cmd-show}
+   :help {:spec ::spec/bot-cmd-help
+          :help help-cmd-help}})
 
 ;; Helpers
 
 (defn keyword->command
   [kw]
-  (get commands kw))
+  (if (get commands->data kw) kw nil))
 
 (defn nilify
   [s]
@@ -202,6 +205,16 @@ Example:
 
 (defmethod parse-args :default [_] nil)
 
+;; Actions
+
+(defmulti command-exec
+  "Execute the command"
+  (fn [command-map] (:command command-map)))
+
+(defmethod command-exec :default [command-map]
+  ;; TODO
+  (str "Parsed command: " command-map))
+
 ;; Entry point
 
 (defn get-command
@@ -210,7 +223,7 @@ Example:
   (let [{:keys [text]} (get-event-app-mention request)
         parsed-command (parse-app-mention text)
         {:keys [user-id command]} parsed-command
-        {:keys [spec help]} (get commands->spec command)
+        {:keys [spec help]} (get commands->data command)
         args (parse-args parsed-command)
         command-map (if parsed-command
                   {:user-id user-id
@@ -222,3 +235,13 @@ Example:
                  (s/valid? spec command-map) command-map
                  :else (assoc command-map :error help))]
     result))
+
+(defn get-response
+  "Get response for app mention request"
+  [request]
+  (let [command-map (get-command request)
+        error (:error command-map)
+        text (or error (command-exec (:command command-map)))
+        response {:channel "1" ;; FIXME
+                  :text text}]
+    response))
