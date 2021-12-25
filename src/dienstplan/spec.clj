@@ -105,7 +105,17 @@
 ;; Bot Commands ;;
 ;;;;;;;;;;;;;;;;;;
 
-(s/def :bot-cmd-common/user-id ::str)
+(s/def :bot-cmd-context/channel ::str)
+(s/def :bot-cmd-context/ts ::str)
+(s/def :bot-cmd-context/team ::str)
+
+(s/def :bot-cmd-common/context
+  (s/keys
+   :req-un
+   [:bot-cmd-context/channel
+    :bot-cmd-context/ts
+    :bot-cmd-context/team]))
+
 (s/def :bot-cmd-common/command ::kw)
 
 (s/def :bot-cmd-args/name ::nillable-str)
@@ -120,7 +130,7 @@
 (s/def ::bot-cmd-default
   (s/keys
    :req-un
-   [:bot-cmd-common/user-id
+   [:bot-cmd-common/context
     :bot-cmd-common/command
     :bot-cmd-default/args]))
 
@@ -134,7 +144,7 @@
 (s/def ::bot-cmd-create
   (s/keys
    :req-un
-   [:bot-cmd-common/user-id
+   [:bot-cmd-common/context
     :bot-cmd-common/command
     :bot-cmd-create/args]))
 
@@ -146,7 +156,7 @@
 (s/def ::bot-cmd-help
   (s/keys
    :req-un
-   [:bot-cmd-common/user-id
+   [:bot-cmd-common/context
     :bot-cmd-common/command
     :bot-cmd-help/args]))
 

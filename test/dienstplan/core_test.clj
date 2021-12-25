@@ -1,7 +1,3 @@
 (ns dienstplan.core-test
   (:require [clojure.test :refer :all]
             [dienstplan.core :refer :all]))
-
-(deftest a-test
-  (testing "FIXME, I fail."
-    (is (= 0 1))))

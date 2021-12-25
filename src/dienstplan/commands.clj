@@ -83,11 +83,11 @@ Example:
   "Usage:
 @dienstplan help")
 
-(def regex-user-mention #"(?s)\<@(?<userid>[A-Z0-9]+)\>")
+(def regex-user-mention #"(?s)(?<userid>\<@[A-Z0-9]+\>)")
 
 (def regex-app-mention
   "(?s) is a pattern flag for dot matching all symbols including newlines"
-  #"(?s)\<@(?<userid>[A-Z0-9]+)\>\s+(?<command>\w+)\s*(?<rest>.*)")
+  #"(?s)(?<userid>\<@[A-Z0-9]+\>)\s+(?<command>\w+)\s*(?<rest>.*)")
 
 (def commands->data
   {:create {:spec ::spec/bot-cmd-create
@@ -115,6 +115,7 @@ Example:
   [s]
   (or s ""))
 
+;; TODO use s/conform
 (defn get-event-app-mention
   [request]
   (let [event (get-in request [:params :event])
@@ -138,8 +139,7 @@ Example:
         matcher (re-matcher regex-app-mention text)
         result
         (if (.matches matcher)
-          {:user-id (->> (.group matcher "userid") nilify)
-           :command
+          {:command
            (->>
             (.group matcher "command")
             nilify
@@ -220,28 +220,31 @@ Example:
 (defn get-command
   "Get parsed command map from app_mention request"
   [request]
-  (let [{:keys [text]} (get-event-app-mention request)
+  (let [{:keys [text channel team ts]} (get-event-app-mention request)
+        context {:channel channel :team team :ts ts}
         parsed-command (parse-app-mention text)
-        {:keys [user-id command]} parsed-command
+        {:keys [command]} parsed-command
         {:keys [spec help]} (get commands->data command)
         args (parse-args parsed-command)
-        command-map (if parsed-command
-                  {:user-id user-id
-                   :command command
-                   :args args}
-                  nil)
-        result (cond
-                 (nil? spec) {:error help-msg}
-                 (s/valid? spec command-map) command-map
-                 :else (assoc command-map :error help))]
+        command-map
+        (if parsed-command
+          {:context context
+           :command command
+           :args args}
+          nil)
+        result
+        (cond
+          (nil? parsed-command) {:context context :error help-msg}
+          (not (s/valid? spec command-map)) (assoc command-map :error help)
+          :else command-map)]
     result))
 
 (defn get-response
   "Get response for app mention request"
   [request]
   (let [command-map (get-command request)
+        channel (get-in command-map [:context :channel])
         error (:error command-map)
         text (or error (command-exec (:command command-map)))
-        response {:channel "1" ;; FIXME
-                  :text text}]
+        response {:channel channel :text text}]
     response))

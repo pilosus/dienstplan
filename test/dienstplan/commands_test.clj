@@ -6,21 +6,17 @@
 (def params-parse-app-mention
   [["this is a text" nil "No command found"]
    ["<@U02HXENLLPN> create backend-rota <@U1KF3FG75> <@U01NT7XLST0> <@U01P02NDVSN>\nOn-call backend engineer's duty \n- Check <#C02PJGR5LLB>\n- Check Sentry alerts\n- Check Grafana metrics"
-    {:user-id "U02HXENLLPN" :command :create :rest "backend-rota <@U1KF3FG75> <@U01NT7XLST0> <@U01P02NDVSN>\nOn-call backend engineer's duty \n- Check <#C02PJGR5LLB>\n- Check Sentry alerts\n- Check Grafana metrics"}
+    {:command :create :rest "backend-rota <@U1KF3FG75> <@U01NT7XLST0> <@U01P02NDVSN>\nOn-call backend engineer's duty \n- Check <#C02PJGR5LLB>\n- Check Sentry alerts\n- Check Grafana metrics"}
     "All parts parsed"]
    ["  <@U123> rotate "
-    {:user-id "U123" :command :rotate :rest nil}
-    "User id and command parsed"]
+    {:command :rotate :rest nil}
+    "No args parsed"]
    ["  <@U123> command"
-    {:user-id "U123" :command nil :rest nil}
-    "User id and command parsed, command is unknown, fallback to nil"]
+    {:command nil :rest nil}
+    "Command is unknown, fallback to nil"]
    ["  <@U123> " nil "No command specified"]
    [" command args" nil "No user id specified"]
-   [nil nil "nil text"]
-   ;; https://api.slack.com/changelog/2017-09-the-one-about-usernames
-   ["<@U123> show my arguments"
-    {:user-id "U123" :command :show :rest "my arguments"}
-    "Deprecated user mentioning syntax is recognized"]])
+   [nil nil "nil text"]])
 
 (deftest test-parse-app-mention
   (testing "Parse app mention text response"
@@ -30,10 +26,10 @@
 
 (def params-get-user-mentions
   [["single user <@U123> mentioned"
-    ["U123"]
+    ["<@U123>"]
     "Single user"]
    ["run command for users <@U123>, <@U345> and <@U678> please"
-    ["U123" "U345" "U678"]
+    ["<@U123>" "<@U345>" "<@U678>"]
     "Multiple users mentioned"]
    [nil nil "Nil"]
    ["" nil "Blank string"]])
@@ -49,7 +45,7 @@
 (def params-parse-args
   [[{:user-id "U02HXENLLPN" :command :create :rest "backend-rota <@U1KF3FG75> <@U01NT7XLST0> <@U01P02NDVSN>\nOn-call backend engineer's duty \n- Check <#C02PJGR5LLB>\n- Check Sentry alerts\n- Check Grafana metrics"}
     {:name "backend-rota"
-     :users ["U1KF3FG75" "U01NT7XLST0" "U01P02NDVSN"]
+     :users ["<@U1KF3FG75>" "<@U01NT7XLST0>" "<@U01P02NDVSN>"]
      :description "On-call backend engineer's duty \n- Check <#C02PJGR5LLB>\n- Check Sentry alerts\n- Check Grafana metrics"}
     "Create"]
    [{:user-id "U123" :command :help :rest nil}
@@ -170,18 +166,24 @@
 
 (def params-test-get-command
   [[request-app-mention
-    {:user-id "U123"
+    {:context
+     {:ts "1640250011.000100"
+      :team "T123"
+      :channel "C123"}
      :command :create
      :args
      {:name "backend-rota"
-      :users ["U435" "U567" "U789"]
+      :users ["<@U435>" "<@U567>" "<@U789>"]
       :description "Do what thou wilt shall be the whole of the Law"}}
     "Create command"]
    [{:params {:event {:text "  <@UNX01> show backend-rota"
                       :ts "1640250011.000100"
                       :team "T123"
                       :channel "C123"}}}
-    {:user-id "UNX01"
+    {:context
+     {:ts "1640250011.000100"
+      :team "T123"
+      :channel "C123"}
      :command :show
      :args {:name "backend-rota"}}
     "Show command"]
@@ -189,7 +191,10 @@
                       :ts "1640250011.000100"
                       :team "T123"
                       :channel "C123"}}}
-    {:user-id "UNX01"
+    {:context
+     {:ts "1640250011.000100"
+      :team "T123"
+      :channel "C123"}
      :command :show
      :args nil
      :error cmd/help-cmd-show}
@@ -198,7 +203,11 @@
                       :ts "1640250011.000100"
                       :team "T123"
                       :channel "C123"}}}
-    {:error cmd/help-msg}
+    {:context
+     {:ts "1640250011.000100"
+      :team "T123"
+      :channel "C123"}
+     :error cmd/help-msg}
     "Broken text 2"]])
 
 (deftest test-get-command
