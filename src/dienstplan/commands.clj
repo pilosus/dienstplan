@@ -1,11 +1,18 @@
 (ns dienstplan.commands
   (:gen-class)
   (:require
-   [dienstplan.spec :as spec]
+   [cheshire.core :as json]
+   [clj-http.client :as http]
    [clojure.spec.alpha :as s]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [clojure.tools.logging :as log]
+   [dienstplan.spec :as spec]
+   [dienstplan.config :refer [config]]))
 
 ;; Const
+
+(def slack-api-post-msg
+  "https://slack.com/api/chat.postMessage")
 
 (def help-msg
   "To start interacting with the bot, mention its username, provide a command and its arguments as follows:
@@ -207,17 +214,17 @@ Example:
 
 ;; Actions
 
-(defmulti command-exec
+(defmulti command-exec!
   "Execute the command"
   (fn [command-map] (:command command-map)))
 
-(defmethod command-exec :default [command-map]
+(defmethod command-exec! :default [command-map]
   ;; TODO
   (str "Parsed command: " command-map))
 
 ;; Entry point
 
-(defn get-command
+(defn get-command-map
   "Get parsed command map from app_mention request"
   [request]
   (let [{:keys [text channel team ts]} (get-event-app-mention request)
@@ -239,12 +246,37 @@ Example:
           :else command-map)]
     result))
 
-(defn get-response
+(defn get-command-response
   "Get response for app mention request"
   [request]
-  (let [command-map (get-command request)
+  (let [command-map (get-command-map request)
         channel (get-in command-map [:context :channel])
         error (:error command-map)
-        text (or error (command-exec (:command command-map)))
+        text (or error (command-exec! command-map))
         response {:channel channel :text text}]
     response))
+
+(defn send-command-response
+  [request]
+  (let [body-map (get-command-response request)
+        body-json (json/generate-string body-map)
+        token (str "Bearer " (get-in config [:slack :token]))
+        params
+        {:headers
+         {"Authorization" token
+          "Content-type" "application/json; charset=utf-8"}
+         :body body-json
+         :max-redirects 2
+         :socket-timeout 1000 ;; ms
+         :connection-timeout 1000}
+        response-raw (http/post slack-api-post-msg params)
+        response-body (:body response-raw)
+        response-status (:status response-raw)
+        response-data (json/parse-string response-body)
+        response-ok? (get response-data "ok")
+        log-level (if response-ok? :debug :error)
+        log-msg (str "Post message to Slack: status " response-status " "
+                     "body " response-data)]
+    (do
+      (log/log log-level log-msg)
+      body-map)))

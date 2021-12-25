@@ -214,4 +214,4 @@
   (testing "Get parsed command map"
     (doseq [[request expected description] params-test-get-command]
       (testing description
-        (is (= expected (cmd/get-command request)))))))
+        (is (= expected (cmd/get-command-map request)))))))
