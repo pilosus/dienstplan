@@ -17,6 +17,7 @@
 
 ;; Basics
 
+(s/def ::kw keyword?)
 (s/def ::str string?)
 (s/def ::nillable-str (s/nilable ::str))
 (s/def ::non-empty-str (s/and ::str not-empty))
@@ -98,3 +99,53 @@
     :db/name
     :db/user
     :db/password]))
+
+
+;;;;;;;;;;;;;;;;;;
+;; Bot Commands ;;
+;;;;;;;;;;;;;;;;;;
+
+(s/def :bot-cmd-common/user-id ::str)
+(s/def :bot-cmd-common/command ::kw)
+
+(s/def :bot-cmd-args/name ::nillable-str)
+(s/def :bot-cmd-args/description ::nillable-str)
+(s/def :bot-cmd-args/users (s/nilable (s/+ string?)))
+
+(s/def :bot-cmd-default/args
+  (s/keys
+   :req-un
+   [:bot-cmd-args/name]))
+
+(s/def ::bot-cmd-default
+  (s/keys
+   :req-un
+   [:bot-cmd-common/user-id
+    :bot-cmd-common/command
+    :bot-cmd-default/args]))
+
+(s/def :bot-cmd-create/args
+  (s/keys
+   :req-un
+   [:bot-cmd-args/name
+    :bot-cmd-args/users
+    :bot-cmd-args/description]))
+
+(s/def ::bot-cmd-create
+  (s/keys
+   :req-un
+   [:bot-cmd-common/user-id
+    :bot-cmd-common/command
+    :bot-cmd-create/args]))
+
+(s/def :bot-cmd-help/args
+  (s/keys
+   :req-un
+   [:bot-cmd-args/description]))
+
+(s/def ::bot-cmd-help
+  (s/keys
+   :req-un
+   [:bot-cmd-common/user-id
+    :bot-cmd-common/command
+    :bot-cmd-help/args]))
