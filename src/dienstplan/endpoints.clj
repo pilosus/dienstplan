@@ -1,6 +1,7 @@
 (ns dienstplan.endpoints
   (:gen-class)
   (:require
+   [dienstplan.commands :as cmd]
    [dienstplan.config :refer [config]]
    [dienstplan.verify :as verify]
    [clojure.tools.logging :as log]))
@@ -37,8 +38,5 @@
        (cond
          (not verified?) {:status 403 :body {:error "Forbidden"}}
          challenge {:status 200 :body {:challenge challenge}}
-         :else
-         {:status 200
-          :body {:response_type "in_channel"
-                 :text "The bot is listening to your events"}})]
+         :else {:status 200 :body (cmd/send-command-response request)})]
     response))

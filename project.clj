@@ -29,6 +29,9 @@
                  [exoscale/yummy "0.2.11"]
                  [mount "0.1.16"]
 
+                 ;; HTTP client
+                 [clj-http "3.12.3"]
+
                  ;; JSON parsing
                  [cheshire "5.10.1"]
 
