@@ -241,7 +241,7 @@ Example:
           nil)
         result
         (cond
-          (nil? parsed-command) {:context context :error help-msg}
+          (nil? command) {:context context :error help-msg}
           (not (s/valid? spec command-map)) (assoc command-map :error help)
           :else command-map)]
     result))

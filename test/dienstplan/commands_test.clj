@@ -187,6 +187,29 @@
      :command :show
      :args {:name "backend-rota"}}
     "Show command"]
+   [{:params {:event {:text "  <@UNX01> unrecognized-command some args go here"
+                      :ts "1640250011.000100"
+                      :team "T123"
+                      :channel "C123"}}}
+    {:context
+     {:ts "1640250011.000100"
+      :team "T123"
+      :channel "C123"}
+     :error cmd/help-msg}
+    "Unrecognized command"]
+   [{:params {:event {:text "<@UNX01> create name <@U123> <@U456> desc"
+                      :team "T123"
+                      :channel "C123"}}}
+    {:context
+     {:ts nil
+      :team "T123"
+      :channel "C123"}
+     :command :create
+     :args {:name "name"
+            :users ["<@U123>" "<@U456>"]
+            :description "desc"}
+     :error cmd/help-cmd-create}
+    "Failed spec: wrong context keys"]
    [{:params {:event {:text "  <@UNX01> show"
                       :ts "1640250011.000100"
                       :team "T123"
@@ -198,7 +221,7 @@
      :command :show
      :args nil
      :error cmd/help-cmd-show}
-    "Broken text 1"]
+    "No args provided for show command"]
    [{:params {:event {:text "broken text"
                       :ts "1640250011.000100"
                       :team "T123"
@@ -208,7 +231,7 @@
       :team "T123"
       :channel "C123"}
      :error cmd/help-msg}
-    "Broken text 2"]])
+    "No groups matched with regex in the text"]])
 
 (deftest test-get-command
   (testing "Get parsed command map"
