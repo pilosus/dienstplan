@@ -256,6 +256,8 @@ Example:
         response {:channel channel :text text}]
     response))
 
+;; TODO create a mount http connection pool
+;; https://github.com/dakrone/clj-http#persistent-connections
 (defn send-command-response
   [request]
   (let [body-map (get-command-response request)

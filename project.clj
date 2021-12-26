@@ -35,6 +35,11 @@
                  ;; JSON parsing
                  [cheshire "5.10.1"]
 
+                 ;; DB
+                 [org.clojure/java.jdbc "0.7.12"]
+                 [org.postgresql/postgresql "42.2.20.jre7"]
+                 [hikari-cp "2.13.0"]
+
                  ;; Cryptography
                  [buddy/buddy-core "1.10.1"]]
   :plugins [[lein-cljfmt "0.8.0"]

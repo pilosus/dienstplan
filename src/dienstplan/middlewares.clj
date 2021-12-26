@@ -3,6 +3,7 @@
   (:require
    [clojure.walk :refer [keywordize-keys stringify-keys]]
    [clojure.tools.logging :as log]
+   [clojure.spec.alpha :as s]
    [clojure.string :as str]
    [sentry-clj.core :as sentry]
    [dienstplan.config :refer [config]]
@@ -73,7 +74,8 @@
 (defn wrap-access-log
   [handler]
   (fn [request]
-    (let [enable-logging? (spec/str->bool (get-in config [:server :access-log]))
+    (let [enable-logging?
+          (s/conform ::spec/->bool (get-in config [:server :access-log]))
           {:keys [query-string request-method uri]} request
           loglevel-str (get-in config [:server :loglevel])
           loglevel-kw (get loglevel-str-to-kw loglevel-str)
