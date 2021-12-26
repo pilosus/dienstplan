@@ -5,7 +5,7 @@ application:
   debug: !envvar APP__DEBUG
 
 server:
-  port: 8080
+  port: !envvar [SERVER__PORT, 8080]
   loglevel: !envvar SERVER__LOGLEVEL
   access-log: "true"
 
@@ -17,9 +17,12 @@ alerts:
   sentry: !envvar ALERTS__SENTRY_DSN
 
 db:
-  type: "postgresql"
-  host: "localhost"
-  port: 5432
-  name: "dienstplan"
-  user: !envvar DB__USER
+  adapter: "postgresql"
+  server-name: !envvar DB__SERVER_NAME
+  port-number: !envvar [DB__PORT_NUMBER, 5432]
+  database-name: !envvar DB__DATABASE_NAME
+  username: !envvar DB__USERNAME
   password: !envvar DB__PASSWORD
+  minimum-idle: 10
+  maximum-pool-size: 20
+  connection-timeout: 10000

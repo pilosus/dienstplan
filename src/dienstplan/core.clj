@@ -9,12 +9,14 @@
    [ring.middleware.cookies :refer [wrap-cookies]]
    [ring.middleware.json :refer [wrap-json-response wrap-json-params]]
    [ring.middleware.session :refer [wrap-session]]
+   [hikari-cp.core :as cp]
    [sentry-clj.core :as sentry]
    [dienstplan.endpoints :as endpoints]
    [dienstplan.spec :as spec]
    [dienstplan.config :refer [config]]
    [dienstplan.logging :as logging]
-   [dienstplan.middlewares :as middlewares]))
+   [dienstplan.middlewares :as middlewares]
+   [clojure.spec.alpha :as s]))
 
 (defn wrap-handler
   [handler]
@@ -41,8 +43,7 @@
       wrap-json-response
       middlewares/wrap-raw-body))
 
-;; Entrypoint
-;; TODO access logging
+;; System config
 
 (defstate logs
   :start (logging/override-logging))
@@ -50,7 +51,7 @@
 (defstate alerts
   :start
   (let [dsn (get-in config [:alerts :sentry])
-        debug (spec/str->bool (get-in config [:application :debug]))
+        debug (s/conform ::spec/->bool (get-in config [:application :debug]))
         env (get-in config [:application :env])
         app-name (get-in config [:application :name])
         version (get-in config [:application :version])
@@ -58,9 +59,17 @@
     (sentry/init! dsn {:environment env :debug debug :release release}))
   :stop (sentry/close!))
 
+(defstate db
+  :start
+  (let [db-opts (:db config)
+        datasource (cp/make-datasource db-opts)]
+    {:datasource datasource})
+  :stop
+  (-> db :datasource cp/close-datasource))
+
 (defstate server
   :start
-  (let [port (get-in config [:server :port])]
+  (let [port (s/conform ::spec/->int (get-in config [:server :port]))]
     (run-jetty app {:port port :join? true}))
   :stop (.stop server))
 

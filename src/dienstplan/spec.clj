@@ -7,9 +7,38 @@
 ;; Conform helpers ;;
 ;;;;;;;;;;;;;;;;;;;;;
 
-(defn str->bool
-  [val]
-  (boolean (Boolean/valueOf val)))
+(defmacro with-conformer
+  [[bind] & body]
+  `(s/conformer
+    (fn [~bind]
+      (try
+        ~@body
+        (catch Exception e#
+          ::s/invalid)))))
+
+(def ->bool
+  (with-conformer [val]
+    (boolean (Boolean/valueOf val))))
+
+(s/def ::->bool ->bool)
+
+(def ->int
+  (with-conformer [val]
+    (Integer/parseInt val)))
+
+(s/def ::->int ->int)
+;;(s/conform ::->int "123")
+
+(def ->uuid
+  (with-conformer [val]
+    (java.util.UUID/fromString val)))
+
+(s/def ::->uuid
+  (s/and
+   string?
+   not-empty
+   ->uuid))
+;;(s/conform ::->uuid "a2ab7fdb-b3f7-4aa6-bde5-7c37a0a39d71")
 
 ;;;;;;;;;;;;;;;;;;
 ;; Common specs ;;
@@ -25,7 +54,9 @@
 
 ;; Domain-related
 
-(s/def ::ephemeral-port (s/int-in 1024 (inc 65535)))
+(s/def ::ephemeral-port (s/and ::->int (s/int-in 1024 (inc 65535))))
+(s/def ::pool-size nat-int?)
+(s/def ::timeout nat-int?)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Application Configuration ;;
@@ -83,22 +114,29 @@
 
 ;; DB
 
-(s/def :db/type #{"postgresql"})
-(s/def :db/host ::non-empty-str)
-(s/def :db/port ::ephemeral-port)
-(s/def :db/name ::non-empty-str)
-(s/def :db/user ::non-empty-str)
+(s/def :db/adapter #{"postgresql"})
+(s/def :db/server-name ::non-empty-str)
+(s/def :db/port-number ::ephemeral-port)
+(s/def :db/database-name ::non-empty-str)
+(s/def :db/username ::non-empty-str)
 (s/def :db/password ::non-empty-str)
+(s/def :db/minimum-idle ::pool-size)
+(s/def :db/maximum-pool-size ::pool-size)
+(s/def :db/connection-timeout ::timeout)
 
 (s/def ::db
   (s/keys
    :req-un
-   [:db/type
-    :db/host
-    :db/port
-    :db/name
-    :db/user
-    :db/password]))
+   [:db/adapter
+    :db/server-name
+    :db/port-number
+    :db/database-name
+    :db/username
+    :db/password
+    :db/minimum-idle
+    :db/maximum-pool-size
+    :db/connection-timeout]))
+
 
 
 ;;;;;;;;;;;;;;;;;;
