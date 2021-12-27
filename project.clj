@@ -39,6 +39,7 @@
                  [org.clojure/java.jdbc "0.7.12"]
                  [org.postgresql/postgresql "42.2.20.jre7"]
                  [hikari-cp "2.13.0"]
+                 [dev.weavejester/ragtime "0.9.0"]
 
                  ;; Cryptography
                  [buddy/buddy-core "1.10.1"]]
@@ -49,4 +50,6 @@
   :main dienstplan.core
   :aot [dienstplan.core]
   :target-path "target/%s"
-  :repl-options {:init-ns dienstplan.core})
+  :repl-options {:init-ns dienstplan.core}
+  :aliases {"migrate"  ["run" "-m" "dienstplan.db/migrate"]
+            "rollback" ["run" "-m" "dienstplan.db/rollback"]})
