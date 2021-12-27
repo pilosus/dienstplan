@@ -9,14 +9,15 @@
    [ring.middleware.cookies :refer [wrap-cookies]]
    [ring.middleware.json :refer [wrap-json-response wrap-json-params]]
    [ring.middleware.session :refer [wrap-session]]
-   [hikari-cp.core :as cp]
    [sentry-clj.core :as sentry]
    [dienstplan.endpoints :as endpoints]
    [dienstplan.spec :as spec]
    [dienstplan.config :refer [config]]
    [dienstplan.logging :as logging]
    [dienstplan.middlewares :as middlewares]
-   [clojure.spec.alpha :as s]))
+   [clojure.spec.alpha :as s]
+
+))
 
 (defn wrap-handler
   [handler]
@@ -58,14 +59,6 @@
         release (str app-name ":" version)]
     (sentry/init! dsn {:environment env :debug debug :release release}))
   :stop (sentry/close!))
-
-(defstate db
-  :start
-  (let [db-opts (:db config)
-        datasource (cp/make-datasource db-opts)]
-    {:datasource datasource})
-  :stop
-  (-> db :datasource cp/close-datasource))
 
 (defstate server
   :start

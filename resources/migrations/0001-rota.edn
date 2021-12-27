@@ -1,0 +1,10 @@
+{:up ["CREATE TABLE IF NOT EXISTS rota (id serial PRIMARY KEY,
+  channel VARCHAR (255) NOT NULL,
+  name VARCHAR (255) NOT NULL,
+  description TEXT,
+  created_on TIMESTAMP DEFAULT (NOW() AT TIME ZONE 'UTC') NOT NULL,
+  updated_on TIMESTAMP DEFAULT (NOW() AT TIME ZONE 'UTC') NOT NULL,
+  meta jsonb);"
+      "CREATE UNIQUE INDEX idx_rota_channel_name ON rota (channel, name);"]
+ :down ["DROP INDEX idx_rota_channel_name;"
+        "DROP TABLE rota;"]}
