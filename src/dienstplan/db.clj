@@ -3,12 +3,14 @@
   (:require
    [cheshire.core :as json]
    [clojure.java.jdbc :as jdbc]
+   [clojure.string :as string]
    [clojure.tools.logging :as log]
    [dienstplan.config :refer [config]]
    [hikari-cp.core :as cp]
    [mount.core :as mount :refer [defstate]]
    [ragtime.jdbc :as ragtime-jdbc]
-   [ragtime.repl :as ragtime-repl])
+   [ragtime.repl :as ragtime-repl]
+   )
   (:import
    (org.postgresql.util PGobject
                         PSQLException)))
@@ -71,9 +73,19 @@
 
 (defn rota-insert!
   [params]
-  (try
-    (jdbc/insert! db :rota params)
-    (catch PSQLException e
-      (do
-        (log/error e)
-        {:error {:reason :duplicate :message (.getMessage e)}}))))
+  (jdbc/with-db-transaction [conn db]
+    (let [result
+          (try
+            (let [rota-insert
+                  (jdbc/insert! conn :rota (:rota params) {:return-keys ["id"]})
+                  rota-id (:id (first rota-insert))
+                  mention-params (map #(assoc % :rota_id rota-id) (:mention params))
+                  _ (jdbc/insert-multi! conn :mention mention-params)]
+              {:ok true})
+            (catch PSQLException e
+              (let [message (.getMessage e)
+                    duplicate? (string/includes? (.toLowerCase message) "duplicate key")
+                    reason (cond duplicate? :duplicate :else :other)
+                    error {:error {:reason reason :message message}}]
+                error)))]
+      result)))

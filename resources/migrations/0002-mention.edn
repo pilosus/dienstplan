@@ -1,0 +1,12 @@
+{:up ["CREATE TABLE IF NOT EXISTS mention (id serial PRIMARY KEY,
+  rota_id INT NOT NULL,
+  name VARCHAR (255) NOT NULL,
+  duty BOOLEAN DEFAULT FALSE,
+  CONSTRAINT fk_rota
+    FOREIGN KEY(rota_id)
+      REFERENCES rota(id)
+      ON DELETE CASCADE
+);"
+      "CREATE INDEX idx_mention_rota_id ON mention (rota_id);"]
+ :down ["DROP INDEX idx_mention_rota_id;"
+        "DROP TABLE mention;"]}
