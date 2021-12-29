@@ -29,7 +29,9 @@
 
 (defn get-migration-config []
   (do
-    (mount/start)
+    (mount/start
+     #'dienstplan.config/config
+     #'dienstplan.db/db)
     {:datastore  (ragtime-jdbc/sql-database db)
      :migrations (ragtime-jdbc/load-resources "migrations")}))
 

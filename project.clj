@@ -6,6 +6,7 @@
   :dependencies [
                  ;; Clojure
                  [org.clojure/clojure "1.10.3"]
+                 [org.clojure/tools.cli "1.0.206"]
 
                  ;; Web Framework
                  [ring/ring-core "1.9.4"]
