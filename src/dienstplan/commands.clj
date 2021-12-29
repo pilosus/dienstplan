@@ -6,8 +6,10 @@
    [clojure.spec.alpha :as s]
    [clojure.string :as str]
    [clojure.tools.logging :as log]
+   [dienstplan.config :refer [config]]
+   [dienstplan.db :as db]
    [dienstplan.spec :as spec]
-   [dienstplan.config :refer [config]]))
+))
 
 ;; Const
 
@@ -217,6 +219,51 @@ Example:
 (defmulti command-exec!
   "Execute the command"
   (fn [command-map] (:command command-map)))
+
+
+(defn- users->mentions
+  [users]
+  (->> users
+       (reduce #(conj %1 {:name %2}) [])
+       (map-indexed
+        (fn [idx v]
+          (assoc v :duty (if (= idx 0) true false))))))
+
+(defmethod command-exec! :create [command-map]
+  (let [now (new java.sql.Timestamp (System/currentTimeMillis))
+        channel (get-in command-map [:context :channel])
+        name (get-in command-map [:args :name])
+        users (get-in command-map [:args :users])
+        mentions (users->mentions users)
+        rota-params {:channel channel
+                     :name name
+                     :description (get-in command-map [:args :description])
+                     :created_on now
+                     :updated_on now
+                     :meta command-map}
+        mention-params mentions
+        params {:rota rota-params :mention mention-params}
+        inserted (db/rota-insert! params)
+        error (:error inserted)
+        error-msg (:message error)
+        duplicate? (= (:reason error) :duplicate)
+        result
+        (cond
+          duplicate?
+          (format
+           "Rotation %s for channel %s %s"
+           name channel "already exists")
+          error
+          (do
+            (log/error error-msg)
+            (format
+            "Cannot create rotation %s for channel %s: %s"
+            name channel error-msg))
+          :else
+          (format
+           "Rotation %s for channel %s %s"
+           name channel "created successfully"))]
+    result))
 
 (defmethod command-exec! :default [command-map]
   ;; TODO

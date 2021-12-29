@@ -2,22 +2,20 @@
   (:gen-class)
   (:require
    [bidi.bidi :as bidi]
-   [mount.core :as mount :refer [defstate]]
-   [ring.adapter.jetty :refer [run-jetty]]
-   [ring.middleware.params :refer [wrap-params]]
-   [ring.middleware.keyword-params :refer [wrap-keyword-params]]
-   [ring.middleware.cookies :refer [wrap-cookies]]
-   [ring.middleware.json :refer [wrap-json-response wrap-json-params]]
-   [ring.middleware.session :refer [wrap-session]]
-   [sentry-clj.core :as sentry]
-   [dienstplan.endpoints :as endpoints]
-   [dienstplan.spec :as spec]
+   [clojure.spec.alpha :as s]
    [dienstplan.config :refer [config]]
+   [dienstplan.endpoints :as endpoints]
    [dienstplan.logging :as logging]
    [dienstplan.middlewares :as middlewares]
-   [clojure.spec.alpha :as s]
-
-))
+   [dienstplan.spec :as spec]
+   [mount.core :as mount :refer [defstate]]
+   [ring.adapter.jetty :refer [run-jetty]]
+   [ring.middleware.cookies :refer [wrap-cookies]]
+   [ring.middleware.json :refer [wrap-json-response wrap-json-params]]
+   [ring.middleware.keyword-params :refer [wrap-keyword-params]]
+   [ring.middleware.params :refer [wrap-params]]
+   [ring.middleware.session :refer [wrap-session]]
+   [sentry-clj.core :as sentry]))
 
 (defn wrap-handler
   [handler]

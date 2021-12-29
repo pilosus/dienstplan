@@ -1,10 +1,13 @@
 (ns dienstplan.endpoints
   (:gen-class)
   (:require
+   [clojure.spec.alpha :as s]
+   [clojure.tools.logging :as log]
    [dienstplan.commands :as cmd]
    [dienstplan.config :refer [config]]
+   [dienstplan.spec :as spec]
    [dienstplan.verify :as verify]
-   [clojure.tools.logging :as log]))
+))
 
 (def routes
   ["/api/"
@@ -30,10 +33,11 @@
 (defmethod multi-handler :events
   [request]
   (let
-      [sign-key (get-in config [:slack :sign])
+      [debug (s/conform ::spec/->bool (get-in config [:application :debug]))
+       sign-key (get-in config [:slack :sign])
        challenge (get-in request [:params :challenge])
        _ (log/info request)
-       verified? (verify/request-verified? request sign-key)
+       verified? (or debug (verify/request-verified? request sign-key))
        response
        (cond
          (not verified?) {:status 403 :body {:error "Forbidden"}}
