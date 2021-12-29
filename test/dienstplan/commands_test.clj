@@ -8,6 +8,9 @@
    ["<@U02HXENLLPN> create backend-rota <@U1KF3FG75> <@U01NT7XLST0> <@U01P02NDVSN>\nOn-call backend engineer's duty \n- Check <#C02PJGR5LLB>\n- Check Sentry alerts\n- Check Grafana metrics"
     {:command :create :rest "backend-rota <@U1KF3FG75> <@U01NT7XLST0> <@U01P02NDVSN>\nOn-call backend engineer's duty \n- Check <#C02PJGR5LLB>\n- Check Sentry alerts\n- Check Grafana metrics"}
     "All parts parsed"]
+   ["<@U001>\u00a0create backend rotation\u00a0<@U123>\u00a0<@U456>\u00a0<@U789>\u00a0On-call backend engineer's duty:\n- Check support questions\n- Check alerts\n- Check metrics"
+    {:command :create :rest "backend rotation\u00a0<@U123>\u00a0<@U456>\u00a0<@U789>\u00a0On-call backend engineer's duty:\n- Check support questions\n- Check alerts\n- Check metrics"}
+    "Unicode whitespaces"]
    ["  <@U123> rotate "
     {:command :rotate :rest nil}
     "No args parsed"]
@@ -181,6 +184,19 @@
       :users ["<@U435>" "<@U567>" "<@U789>"]
       :description "Do what thou wilt shall be the whole of the Law"}}
     "Create command"]
+   [{:params {:event {:text "<@U001>\u00a0create backend rotation\u00a0<@U123>\u00a0<@U456>\u00a0<@U789>\u00a0On-call backend engineer's duty:\n- Check support questions\n- Check alerts\n- Check metrics"
+                      :ts "1640250011.000100"
+                      :team "T123"
+                      :channel "C123"}}}
+    {:context
+     {:ts "1640250011.000100"
+      :team "T123"
+      :channel "C123"}
+     :command :create
+     :args {:name "backend rotation"
+            :users ["<@U123>" "<@U456>" "<@U789>"]
+            :description "On-call backend engineer's duty:\n- Check support questions\n- Check alerts\n- Check metrics"}}
+    "Unicode chars"]
    [{:params {:event {:text "  <@UNX01> show backend-rota"
                       :ts "1640250011.000100"
                       :team "T123"
