@@ -96,7 +96,7 @@ Example:
 
 (def regex-app-mention
   "(?s) is a pattern flag for dot matching all symbols including newlines"
-  #"(?s)(?<userid>\<@[A-Z0-9]+\>)\s+(?<command>\w+)\s*(?<rest>.*)")
+  #"(?s)(?<userid>\<@[A-Z0-9]+\>)[\u00A0|\u2007|\u202F|\s]+(?<command>\w+)[\u00A0|\u2007|\u202F|\s]*(?<rest>.*)")
 
 (def commands->data
   {:create {:spec ::spec/bot-cmd-create
@@ -125,11 +125,11 @@ Example:
   (or s ""))
 
 (defn str-trim
+  "Trim a string with extra three whitespace chars unsupported by \s"
   [s]
   (-> s
-      str/trim
-      (str/replace #"^\p{Z}*" "")
-      (str/replace #"\p{Z}*$" "")))
+      (str/replace #"^[\u00A0|\u2007|\u202F|\s]*" "")
+      (str/replace #"[\u00A0|\u2007|\u202F|\s]*$" "")))
 
 ;; TODO use s/conform
 (defn get-event-app-mention
