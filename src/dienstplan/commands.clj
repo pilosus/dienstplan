@@ -124,6 +124,13 @@ Example:
   [s]
   (or s ""))
 
+(defn str-trim
+  [s]
+  (-> s
+      str/trim
+      (str/replace #"^\p{Z}*" "")
+      (str/replace #"\p{Z}*$" "")))
+
 ;; TODO use s/conform
 (defn get-event-app-mention
   [request]
@@ -186,8 +193,10 @@ Example:
 (defmethod parse-args :create [app-mention]
   (let [args (get-command-args app-mention)
         splitted (str/split args regex-user-mention)
-        name (->> (first splitted) str/trim)
-        description (->> (last splitted) str/trim)
+        name (->
+              (first splitted)
+              str-trim)
+        description (->> (last splitted) str-trim)
         users (parse-user-mentions args)]
     {:name name
      :users users
