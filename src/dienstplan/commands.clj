@@ -125,7 +125,7 @@ Example:
   (or s ""))
 
 (defn str-trim
-  "Trim a string with extra three whitespace chars unsupported by \s"
+  "Trim a string with extra three whitespace chars unsupported by Java regex"
   [s]
   (-> s
       (str/replace #"^[\u00A0|\u2007|\u202F|\s]*" "")
