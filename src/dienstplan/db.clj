@@ -4,7 +4,6 @@
    [cheshire.core :as json]
    [clojure.java.jdbc :as jdbc]
    [clojure.string :as string]
-   [clojure.tools.logging :as log]
    [dienstplan.config :refer [config]]
    [hikari-cp.core :as cp]
    [mount.core :as mount :refer [defstate]]
@@ -68,10 +67,20 @@
 ;; Business layer
 
 (defn rota-get
-  [command-map]
-  (let [channel (get-in command-map [:context :channel])
-        name (get-in command-map [:args :name])]
-    (jdbc/query db ["SELECT * FROM rota WHERE channel = ? AND name = ?" channel name])))
+  [channel name]
+  (jdbc/query
+     db
+     ["SELECT
+         r.description,
+         m.name AS duty
+       FROM rota AS r
+       JOIN mention AS m ON m.rota_id = r.id
+       WHERE
+         1 = 1
+         AND r.channel = ?
+         AND r.name = ?
+         AND m.duty IS TRUE"
+      channel name]))
 
 (defn rota-insert!
   [params]
