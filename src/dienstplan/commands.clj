@@ -269,30 +269,44 @@ Example:
         (fn [idx v]
           (assoc v :duty (if (= idx 0) true false))))))
 
-(defmethod command-exec! :who [command-map]
+(defn- get-channel-rotation [command-map]
   (let [channel (get-in command-map [:context :channel])
-        name (get-in command-map [:args :name])
-        rota (first (db/rota-get channel name))
+        rotation (get-in command-map [:args :name])]
+    {:channel channel :rotation rotation}))
+
+(defmethod command-exec! :who [command-map]
+  (let [{:keys [channel rotation]} (get-channel-rotation command-map)
+        rota (first (db/duty-get channel rotation))
         {:keys [duty description]} rota
         text
         (if duty
           (format
            "Hey %s, you are an on-call person for `%s` rotation.\n%s"
-           duty name description)
+           duty rotation description)
           (format
            "Rotation `%s` not found in channel %s"
-           name (slack-mention-channel channel)))]
+           rotation (slack-mention-channel channel)))]
+    text))
+
+(defmethod command-exec! :delete [command-map]
+  (let [{:keys [channel rotation]} (get-channel-rotation command-map)
+        deleted? (> (first (db/rota-delete! channel rotation)) 0)
+        text
+        (if deleted?
+          (format "Rotation `%s` has been deleted" rotation)
+          (format
+           "Rotation `%s` not found in channel %s"
+           rotation (slack-mention-channel channel)))]
     text))
 
 (defmethod command-exec! :create [command-map]
   (let [now (new java.sql.Timestamp (System/currentTimeMillis))
-        channel (get-in command-map [:context :channel])
+        {:keys [channel rotation]} (get-channel-rotation command-map)
         channel-formatted (slack-mention-channel channel)
-        name (get-in command-map [:args :name])
         users (get-in command-map [:args :users])
         mentions (users->mention-table-rows users)
         rota-params {:channel channel
-                     :name name
+                     :name rotation
                      :description (get-in command-map [:args :description])
                      :created_on now
                      :updated_on now
@@ -308,17 +322,17 @@ Example:
           duplicate?
           (format
            "Rotation `%s` for channel %s %s"
-           name channel-formatted "already exists")
+           rotation channel-formatted "already exists")
           error
           (do
             (log/error error-msg)
             (format
             "Cannot create rotation `%s` for channel %s: %s"
-            name channel-formatted error-msg))
+            rotation channel-formatted error-msg))
           :else
           (format
            "Rotation `%s` for channel %s %s"
-           name channel-formatted "created successfully"))]
+           rotation channel-formatted "created successfully"))]
     result))
 
 (defmethod command-exec! :default [_] help-msg)
