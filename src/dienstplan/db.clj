@@ -66,11 +66,12 @@
 
 ;; Business layer
 
-(defn rota-get
-  [channel name]
+(defn duty-get
+  [channel rotation]
   (jdbc/query
      db
      ["SELECT
+         r.id AS rota_id,
          r.description,
          m.name AS duty
        FROM rota AS r
@@ -80,7 +81,11 @@
          AND r.channel = ?
          AND r.name = ?
          AND m.duty IS TRUE"
-      channel name]))
+      channel rotation]))
+
+(defn rota-delete!
+  [channel rotation]
+  (jdbc/delete! db :rota ["channel = ? AND name = ?" channel rotation]))
 
 (defn rota-insert!
   [params]
