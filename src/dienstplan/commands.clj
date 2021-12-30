@@ -24,16 +24,16 @@
 Commands:
 
 1. Create a rotation
-@dienstplan create <name> <list of users> <description>
+@dienstplan create <rotation name> <list of users> <description>
 
 2. Rotate: take the next user on the rotation list
-@dienstplan rotate <name>
+@dienstplan rotate <rotation name>
 
 3. Show who is duty
-@dienstplan show <name>
+@dienstplan who <rotation name>
 
 4. Delete a rotation
-@dienstplan delete <name>
+@dienstplan delete <rotation name>
 
 5. Show help message
 @dienstplan help
@@ -54,11 +54,11 @@ Now let's use Slack reminder to rotate weekly:
 
 Let's also show current duty engineer with a reminder:
 
-/remind @channel @dienstplan show backend-rota every Tuesday, Wednesday, Thursday, Friday at 9AM UTC")
+/remind @channel @dienstplan who backend-rota every Tuesday, Wednesday, Thursday, Friday at 9AM UTC")
 
 (def help-cmd-create
   "Usage:
-@dienstplan create <name> <list of users> <description>
+@dienstplan create <rotation name> <list of users> <description>
 
 Example:
 @dienstplan create backend-rota @user1 @user2 @user3
@@ -69,21 +69,21 @@ On-call backend engineer's duty:
 
 (def help-cmd-rotate
   "Usage:
-@dienstplan rotate <name>
+@dienstplan rotate <rotation name>
 
 Example:
 @dienstplan rotate backend-rota")
 
-(def help-cmd-show
+(def help-cmd-who
   "Usage:
-@dienstplan show <name>
+@dienstplan who <rotation name>
 
 Example:
-@dienstplan show backend-rota")
+@dienstplan who backend-rota")
 
 (def help-cmd-delete
   "Usage:
-@dienstplan delete <name>
+@dienstplan delete <rotation name>
 
 Example:
 @dienstplan delete backend-rota")
@@ -105,8 +105,8 @@ Example:
             :help help-cmd-rotate}
    :delete {:spec ::spec/bot-cmd-default
             :help help-cmd-delete}
-   :show {:spec ::spec/bot-cmd-default
-          :help help-cmd-show}
+   :who {:spec ::spec/bot-cmd-default
+          :help help-cmd-who}
    :help {:spec ::spec/bot-cmd-help
           :help help-cmd-help}})
 
@@ -215,7 +215,7 @@ Example:
 (defmethod parse-args :delete [app-mention]
   (parse-args-default app-mention))
 
-(defmethod parse-args :show [app-mention]
+(defmethod parse-args :who [app-mention]
   (parse-args-default app-mention))
 
 (defmethod parse-args :help [_]
