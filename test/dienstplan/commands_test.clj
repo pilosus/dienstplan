@@ -65,9 +65,9 @@
    [{:user-id "U123" :command :rotate :rest " backend-rota "}
     {:name "backend-rota"}
     "Rotate"]
-   [{:user-id "U123" :command :show :rest " backend-rota "}
+   [{:user-id "U123" :command :who :rest " backend-rota "}
     {:name "backend-rota"}
-    "Show"]
+    "Who"]
    [{:user-id "U123" :command :something :rest " backend-rota "}
     nil
     "Unrecognized command"]])
@@ -197,7 +197,7 @@
             :users ["<@U123>" "<@U456>" "<@U789>"]
             :description "On-call backend engineer's duty:\n- Check support questions\n- Check alerts\n- Check metrics"}}
     "Unicode chars"]
-   [{:params {:event {:text "  <@UNX01> show backend-rota"
+   [{:params {:event {:text "  <@UNX01> who backend-rota"
                       :ts "1640250011.000100"
                       :team "T123"
                       :channel "C123"}}}
@@ -205,9 +205,9 @@
      {:ts "1640250011.000100"
       :team "T123"
       :channel "C123"}
-     :command :show
+     :command :who
      :args {:name "backend-rota"}}
-    "Show command"]
+    "Who command"]
    [{:params {:event {:text "  <@UNX01> unrecognized-command some args go here"
                       :ts "1640250011.000100"
                       :team "T123"
@@ -231,7 +231,7 @@
             :description "desc"}
      :error cmd/help-cmd-create}
     "Failed spec: wrong context keys"]
-   [{:params {:event {:text "  <@UNX01> show"
+   [{:params {:event {:text "  <@UNX01> who"
                       :ts "1640250011.000100"
                       :team "T123"
                       :channel "C123"}}}
@@ -239,10 +239,10 @@
      {:ts "1640250011.000100"
       :team "T123"
       :channel "C123"}
-     :command :show
+     :command :who
      :args nil
-     :error cmd/help-cmd-show}
-    "No args provided for show command"]
+     :error cmd/help-cmd-who}
+    "No args provided for who command"]
    [{:params {:event {:text "broken text"
                       :ts "1640250011.000100"
                       :team "T123"

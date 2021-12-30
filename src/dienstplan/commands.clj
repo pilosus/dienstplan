@@ -19,71 +19,94 @@
 (def help-msg
   "To start interacting with the bot, mention its username, provide a command and its arguments as follows:
 
+```
 @dienstplan <command> [<options>]
+```
 
 Commands:
 
 1. Create a rotation
-@dienstplan create <name> <list of users> <description>
+```
+@dienstplan create <rotation name> <list of users> <duties description>
+```
 
 2. Rotate: take the next user on the rotation list
-@dienstplan rotate <name>
+```
+@dienstplan rotate <rotation name>
+```
 
 3. Show who is duty
-@dienstplan show <name>
+```
+@dienstplan who <rotation name>
+```
 
 4. Delete a rotation
-@dienstplan delete <name>
+```
+@dienstplan delete <rotation name>
+```
 
 5. Show help message
+```
 @dienstplan help
+```
 
 Example:
 
 Let's create a rotation with dienstplan:
 
+```
 @dienstplan create backend-rota @user1 @user2 @user3
-On-call backend engineer's duty:
-- Check support questions
-- Check alerts
-- Check metrics
+Backend engineer's duties:
+- Process support team questions queue
+- Resolve service alerts
+- Check service health metrics
+- Casual code refactoring
+- Follow the boy scout rule: always leave the campground cleaner than you found it
+```
 
 Now let's use Slack reminder to rotate weekly:
 
+```
 /remind @channel @dienstplan rotate backend-rota every Monday at 9AM UTC
+```
 
 Let's also show current duty engineer with a reminder:
 
-/remind @channel @dienstplan show backend-rota every Tuesday, Wednesday, Thursday, Friday at 9AM UTC")
+```
+/remind @channel @dienstplan who backend-rota every Tuesday, Wednesday, Thursday, Friday at 9AM UTC
+```
+")
 
 (def help-cmd-create
   "Usage:
-@dienstplan create <name> <list of users> <description>
+@dienstplan create <rotation name> <list of users> <duties description>
 
 Example:
 @dienstplan create backend-rota @user1 @user2 @user3
-On-call backend engineer's duty:
-- Check support questions
-- Check alerts
-- Check metrics")
+Backend engineer's duties:
+- Process support team questions queue
+- Resolve service alerts
+- Check service health metrics
+- Casual code refactoring
+- Follow the boy scout rule: always leave the campground cleaner than you found it")
 
 (def help-cmd-rotate
   "Usage:
-@dienstplan rotate <name>
+@dienstplan rotate <rotation name>
 
 Example:
 @dienstplan rotate backend-rota")
 
-(def help-cmd-show
+(def help-cmd-who
   "Usage:
-@dienstplan show <name>
+@dienstplan who <rotation name>
 
 Example:
-@dienstplan show backend-rota")
+@dienstplan who backend-rota")
 
 (def help-cmd-delete
   "Usage:
-@dienstplan delete <name>
+@dienstplan delete <rotation name>
 
 Example:
 @dienstplan delete backend-rota")
@@ -93,6 +116,8 @@ Example:
 @dienstplan help")
 
 (def regex-user-mention #"(?s)(?<userid>\<@[A-Z0-9]+\>)")
+
+(def regex-channel-mention #"(?s)(?<channelid>\<#[A-Z0-9]+\>)")
 
 (def regex-app-mention
   "(?s) is a pattern flag for dot matching all symbols including newlines"
@@ -105,8 +130,8 @@ Example:
             :help help-cmd-rotate}
    :delete {:spec ::spec/bot-cmd-default
             :help help-cmd-delete}
-   :show {:spec ::spec/bot-cmd-default
-          :help help-cmd-show}
+   :who {:spec ::spec/bot-cmd-default
+          :help help-cmd-who}
    :help {:spec ::spec/bot-cmd-help
           :help help-cmd-help}})
 
@@ -130,6 +155,13 @@ Example:
   (-> s
       (str/replace #"^[\u00A0|\u2007|\u202F|\s]*" "")
       (str/replace #"[\u00A0|\u2007|\u202F|\s]*$" "")))
+
+(defn slack-mention-channel
+  "Make channel name formatted for Slack API"
+  [channel]
+  (if (re-matches regex-channel-mention channel)
+    channel
+    (format "<#%s>" channel)))
 
 ;; TODO use s/conform
 (defn get-event-app-mention
@@ -215,7 +247,7 @@ Example:
 (defmethod parse-args :delete [app-mention]
   (parse-args-default app-mention))
 
-(defmethod parse-args :show [app-mention]
+(defmethod parse-args :who [app-mention]
   (parse-args-default app-mention))
 
 (defmethod parse-args :help [_]
@@ -229,8 +261,7 @@ Example:
   "Execute the command"
   (fn [command-map] (:command command-map)))
 
-
-(defn- users->mentions
+(defn- users->mention-table-rows
   [users]
   (->> users
        (reduce #(conj %1 {:name %2}) [])
@@ -238,12 +269,28 @@ Example:
         (fn [idx v]
           (assoc v :duty (if (= idx 0) true false))))))
 
+(defmethod command-exec! :who [command-map]
+  (let [channel (get-in command-map [:context :channel])
+        name (get-in command-map [:args :name])
+        rota (first (db/rota-get channel name))
+        {:keys [duty description]} rota
+        text
+        (if duty
+          (format
+           "Hey %s, you are an on-call person for `%s` rotation.\n%s"
+           duty name description)
+          (format
+           "Rotation `%s` not found in channel %s"
+           name (slack-mention-channel channel)))]
+    text))
+
 (defmethod command-exec! :create [command-map]
   (let [now (new java.sql.Timestamp (System/currentTimeMillis))
         channel (get-in command-map [:context :channel])
+        channel-formatted (slack-mention-channel channel)
         name (get-in command-map [:args :name])
         users (get-in command-map [:args :users])
-        mentions (users->mentions users)
+        mentions (users->mention-table-rows users)
         rota-params {:channel channel
                      :name name
                      :description (get-in command-map [:args :description])
@@ -260,23 +307,21 @@ Example:
         (cond
           duplicate?
           (format
-           "Rotation %s for channel %s %s"
-           name channel "already exists")
+           "Rotation `%s` for channel %s %s"
+           name channel-formatted "already exists")
           error
           (do
             (log/error error-msg)
             (format
-            "Cannot create rotation %s for channel %s: %s"
-            name channel error-msg))
+            "Cannot create rotation `%s` for channel %s: %s"
+            name channel-formatted error-msg))
           :else
           (format
-           "Rotation %s for channel %s %s"
-           name channel "created successfully"))]
+           "Rotation `%s` for channel %s %s"
+           name channel-formatted "created successfully"))]
     result))
 
-(defmethod command-exec! :default [command-map]
-  ;; TODO
-  (str "Parsed command: " command-map))
+(defmethod command-exec! :default [_] help-msg)
 
 ;; Entry point
 
