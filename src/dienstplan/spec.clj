@@ -198,6 +198,12 @@
     :bot-cmd-common/command
     :bot-cmd-help/args]))
 
+(s/def ::bot-cmd-list
+  (s/keys
+   :req-un
+   [:bot-cmd-common/context
+    :bot-cmd-common/command]))
+
 
 ;;;;;;;;;;;;;;;;;;
 ;; Bot Response ;;

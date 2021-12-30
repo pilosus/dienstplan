@@ -83,6 +83,21 @@
          AND m.duty IS TRUE"
       channel rotation]))
 
+(defn rota-list-get
+  [channel]
+  (jdbc/query
+     db
+     ["SELECT
+         r.name,
+         r.created_on
+       FROM rota AS r
+       WHERE
+         1 = 1
+         AND r.channel = ?
+       ORDER BY r.created_on DESC
+       LIMIT 500"
+      channel]))
+
 (defn rota-delete!
   [channel rotation]
   (jdbc/delete! db :rota ["channel = ? AND name = ?" channel rotation]))

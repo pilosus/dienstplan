@@ -208,6 +208,17 @@
      :command :who
      :args {:name "backend-rota"}}
     "Who command"]
+   [{:params {:event {:text "<@UNX01> list"
+                      :ts "1640250011.000100"
+                      :team "T123"
+                      :channel "C123"}}}
+    {:context
+     {:ts "1640250011.000100"
+      :team "T123"
+      :channel "C123"}
+     :command :list
+     :args nil}
+    "List command"]
    [{:params {:event {:text "  <@UNX01> unrecognized-command some args go here"
                       :ts "1640250011.000100"
                       :team "T123"

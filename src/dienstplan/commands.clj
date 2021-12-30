@@ -45,7 +45,12 @@ Commands:
 @dienstplan delete <rotation name>
 ```
 
-5. Show help message
+5. List channel's rotations
+```
+@dienstplan list
+```
+
+6. Show help message
 ```
 @dienstplan help
 ```
@@ -111,6 +116,10 @@ Example:
 Example:
 @dienstplan delete backend-rota")
 
+(def help-cmd-list
+  "Usage:
+@dienstplan list")
+
 (def help-cmd-help
   "Usage:
 @dienstplan help")
@@ -132,6 +141,8 @@ Example:
             :help help-cmd-delete}
    :who {:spec ::spec/bot-cmd-default
           :help help-cmd-who}
+   :list {:spec ::spec/bot-cmd-list
+          :help help-cmd-list}
    :help {:spec ::spec/bot-cmd-help
           :help help-cmd-help}})
 
@@ -334,6 +345,22 @@ Example:
            "Rotation `%s` for channel %s %s"
            rotation channel-formatted "created successfully"))]
     result))
+
+(defmethod command-exec! :list [command-map]
+  (let [{:keys [channel _]} (get-channel-rotation command-map)
+        channel-formatted (slack-mention-channel channel)
+        rotations (db/rota-list-get channel)
+        rota-list
+        (->>
+         rotations
+         (map #(format "- `%s` [%s]" (:name %) (:created_on %)))
+         (str/join \newline)
+         nilify)
+        text
+        (if rota-list
+          (format "Rotations created in channel %s:\n%s" channel-formatted rota-list)
+          (format "No rotations found in channel %s" channel-formatted))]
+    text))
 
 (defmethod command-exec! :default [_] help-msg)
 
