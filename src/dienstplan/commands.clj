@@ -72,13 +72,13 @@ Backend engineer's duties:
 Now let's use Slack reminder to rotate weekly:
 
 ```
-/remind @channel @dienstplan rotate backend-rota every Monday at 9AM UTC
+/remind #my-channel to \"@dienstplan rotate backend-rota\" every Monday at 9AM UTC
 ```
 
 Let's also show current duty engineer with a reminder:
 
 ```
-/remind @channel @dienstplan who backend-rota every Tuesday, Wednesday, Thursday, Friday at 9AM UTC
+/remind #my-channel to \"@dienstplan who backend-rota\" every Monday, Tuesday, Wednesday, Thursday, Friday at 10AM UTC
 ```
 ")
 
@@ -130,7 +130,7 @@ Example:
 
 (def regex-app-mention
   "(?s) is a pattern flag for dot matching all symbols including newlines"
-  #"(?s)(?<userid>\<@[A-Z0-9]+\>)[\u00A0|\u2007|\u202F|\s]+(?<command>\w+)[\u00A0|\u2007|\u202F|\s]*(?<rest>.*)")
+  #"^[^<@]*(?s)(?<userid><@[^>]+>)[\u00A0|\u2007|\u202F|\s]+(?<command>\w+)[\u00A0|\u2007|\u202F|\s]*(?<rest>.*)")
 
 (def commands->data
   {:create {:spec ::spec/bot-cmd-create
@@ -164,8 +164,15 @@ Example:
   "Trim a string with extra three whitespace chars unsupported by Java regex"
   [s]
   (-> s
-      (str/replace #"^[\u00A0|\u2007|\u202F|\s]*" "")
-      (str/replace #"[\u00A0|\u2007|\u202F|\s]*$" "")))
+      (str/replace #"^[\u00A0|\u2007|\u202F|\s|\.]*" "")
+      (str/replace #"[\u00A0|\u2007|\u202F|\s|\.]*$" "")))
+
+(defn text-trim
+  ""
+  [s]
+  (-> s
+      (str/replace #"[,!?\-\.]*$" "")
+      str/trim))
 
 (defn slack-mention-channel
   "Make channel name formatted for Slack API"
@@ -184,6 +191,10 @@ Example:
      :ts ts
      :text text}))
 
+(defn get-now-ts
+  []
+  (new java.sql.Timestamp (System/currentTimeMillis)))
+
 ;; Parse app mention response
 
 (defn parse-app-mention
@@ -194,7 +205,7 @@ Example:
         (->>
          raw-text
          stringify
-         str/trim)
+         text-trim)
         matcher (re-matcher regex-app-mention text)
         result
         (if (.matches matcher)
@@ -311,7 +322,7 @@ Example:
     text))
 
 (defmethod command-exec! :create [command-map]
-  (let [now (new java.sql.Timestamp (System/currentTimeMillis))
+  (let [now (get-now-ts)
         {:keys [channel rotation]} (get-channel-rotation command-map)
         channel-formatted (slack-mention-channel channel)
         users (get-in command-map [:args :users])
@@ -362,6 +373,25 @@ Example:
           (format "No rotations found in channel %s" channel-formatted))]
     text))
 
+(defmethod command-exec! :rotate [command-map]
+  (let [{:keys [channel rotation]} (get-channel-rotation command-map)
+        channel-formatted (slack-mention-channel channel)
+        {:keys [users-count users-updated]}
+        (db/rotate-duty! channel rotation (get-now-ts))
+        text
+        (cond
+          (= users-count users-updated)
+          (format "Users in rotation `%s` of channel %s have been rotated"
+                  rotation channel-formatted)
+          :else
+          (do
+            (log/error
+             (format "Updated %s/%s for rotation %s of channel %s"
+                     users-updated users-count rotation channel))
+            (format "Failed to rotate users in rotation `%s` of channel %s"
+                    rotation channel-formatted)))]
+    text))
+
 (defmethod command-exec! :default [_] help-msg)
 
 ;; Entry point
@@ -392,6 +422,7 @@ Example:
   "Get response for app mention request"
   [request]
   (let [command-map (get-command-map request)
+        _ (log/info (format "Parsed command: %s" command-map))
         channel (get-in command-map [:context :channel])
         error (:error command-map)
         text (or error (command-exec! command-map))

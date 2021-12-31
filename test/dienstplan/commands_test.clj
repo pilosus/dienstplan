@@ -263,7 +263,18 @@
       :team "T123"
       :channel "C123"}
      :error cmd/help-msg}
-    "No groups matched with regex in the text"]])
+    "No groups matched with regex in the text"]
+   [{:params {:event {:text "Reminder: <@U02HXENLLPN|dienstplan> rotate backend-rota."
+                      :ts "1640250011.000100"
+                      :team "T123"
+                      :channel "C123"}}}
+    {:context
+     {:ts "1640250011.000100"
+      :team "T123"
+      :channel "C123"}
+     :command :rotate
+     :args {:name "backend-rota"}}
+    "Real life rotate from reminder"]])
 
 (deftest test-get-command
   (testing "Get parsed command map"
