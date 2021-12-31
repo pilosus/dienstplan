@@ -72,13 +72,13 @@ Backend engineer's duties:
 Now let's use Slack reminder to rotate weekly:
 
 ```
-/remind @channel @dienstplan rotate backend-rota every Monday at 9AM UTC
+/remind #my-channel to \"@dienstplan rotate backend-rota\" every Monday at 9AM UTC
 ```
 
 Let's also show current duty engineer with a reminder:
 
 ```
-/remind @channel @dienstplan who backend-rota every Tuesday, Wednesday, Thursday, Friday at 9AM UTC
+/remind #my-channel to \"@dienstplan who backend-rota\" every Monday, Tuesday, Wednesday, Thursday, Friday at 10AM UTC
 ```
 ")
 
@@ -130,7 +130,7 @@ Example:
 
 (def regex-app-mention
   "(?s) is a pattern flag for dot matching all symbols including newlines"
-  #"(?s)(?<userid>\<@[A-Z0-9]+\>)[\u00A0|\u2007|\u202F|\s]+(?<command>\w+)[\u00A0|\u2007|\u202F|\s]*(?<rest>.*)")
+  #"^[^<@]*(?s)(?<userid><@[^>]+>)[\u00A0|\u2007|\u202F|\s]+(?<command>\w+)[\u00A0|\u2007|\u202F|\s]*(?<rest>.*)")
 
 (def commands->data
   {:create {:spec ::spec/bot-cmd-create
@@ -164,8 +164,15 @@ Example:
   "Trim a string with extra three whitespace chars unsupported by Java regex"
   [s]
   (-> s
-      (str/replace #"^[\u00A0|\u2007|\u202F|\s]*" "")
-      (str/replace #"[\u00A0|\u2007|\u202F|\s]*$" "")))
+      (str/replace #"^[\u00A0|\u2007|\u202F|\s|\.]*" "")
+      (str/replace #"[\u00A0|\u2007|\u202F|\s|\.]*$" "")))
+
+(defn text-trim
+  ""
+  [s]
+  (-> s
+      (str/replace #"[,!?\-\.]*$" "")
+      str/trim))
 
 (defn slack-mention-channel
   "Make channel name formatted for Slack API"
@@ -198,7 +205,7 @@ Example:
         (->>
          raw-text
          stringify
-         str/trim)
+         text-trim)
         matcher (re-matcher regex-app-mention text)
         result
         (if (.matches matcher)
@@ -415,6 +422,7 @@ Example:
   "Get response for app mention request"
   [request]
   (let [command-map (get-command-map request)
+        _ (log/info (format "Parsed command: %s" command-map))
         channel (get-in command-map [:context :channel])
         error (:error command-map)
         text (or error (command-exec! command-map))

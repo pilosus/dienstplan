@@ -195,8 +195,7 @@
   (s/keys
    :req-un
    [:bot-cmd-common/context
-    :bot-cmd-common/command
-    :bot-cmd-help/args]))
+    :bot-cmd-common/command]))
 
 (s/def ::bot-cmd-list
   (s/keys
