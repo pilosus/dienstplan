@@ -184,6 +184,10 @@ Example:
      :ts ts
      :text text}))
 
+(defn get-now-ts
+  []
+  (new java.sql.Timestamp (System/currentTimeMillis)))
+
 ;; Parse app mention response
 
 (defn parse-app-mention
@@ -311,7 +315,7 @@ Example:
     text))
 
 (defmethod command-exec! :create [command-map]
-  (let [now (new java.sql.Timestamp (System/currentTimeMillis))
+  (let [now (get-now-ts)
         {:keys [channel rotation]} (get-channel-rotation command-map)
         channel-formatted (slack-mention-channel channel)
         users (get-in command-map [:args :users])
@@ -360,6 +364,18 @@ Example:
         (if rota-list
           (format "Rotations created in channel %s:\n%s" channel-formatted rota-list)
           (format "No rotations found in channel %s" channel-formatted))]
+    text))
+
+(defmethod command-exec! :rotate [command-map]
+  (let [{:keys [channel rotation]} (get-channel-rotation command-map)
+        channel-formatted (slack-mention-channel channel)
+        update (db/rotate-duty! channel rotation (get-now-ts))
+        text
+        (if (= update :error)
+          (format "Failed to rotate users in rotation `%s` of channel %s"
+                  rotation channel-formatted)
+          (format "Users in rotation `%s` of channel %s have been rotated"
+                  rotation channel-formatted))]
     text))
 
 (defmethod command-exec! :default [_] help-msg)
