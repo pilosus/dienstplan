@@ -369,13 +369,20 @@ Example:
 (defmethod command-exec! :rotate [command-map]
   (let [{:keys [channel rotation]} (get-channel-rotation command-map)
         channel-formatted (slack-mention-channel channel)
-        update (db/rotate-duty! channel rotation (get-now-ts))
+        {:keys [users-count users-updated]}
+        (db/rotate-duty! channel rotation (get-now-ts))
         text
-        (if (= update :error)
-          (format "Failed to rotate users in rotation `%s` of channel %s"
-                  rotation channel-formatted)
+        (cond
+          (= users-count users-updated)
           (format "Users in rotation `%s` of channel %s have been rotated"
-                  rotation channel-formatted))]
+                  rotation channel-formatted)
+          :else
+          (do
+            (log/error
+             (format "Updated %s/%s for rotation %s of channel %s"
+                     users-updated users-count rotation channel))
+            (format "Failed to rotate users in rotation `%s` of channel %s"
+                    rotation channel-formatted)))]
     text))
 
 (defmethod command-exec! :default [_] help-msg)

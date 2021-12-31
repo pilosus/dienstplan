@@ -137,9 +137,7 @@
           :else (mod (+ current-duty-idx 1) (count users)))
         result
         (if (contains? #{:list-empty :idx-not-found} next-duty-idx)
-          (do
-            (log/error (format "Cannot rotate users: %s" users))
-            users)
+          users
           (into []
                 (map-indexed
                  #(if (= %1 next-duty-idx)
@@ -150,33 +148,44 @@
 (defn rotate-duty!
   [channel rotation ts]
   (jdbc/with-db-transaction [conn db]
-    (let [users
-          (into
-           []
-           (jdbc/query
-            conn
-            ["SELECT
-                   m.id,
-                   m.rota_id,
-                   m.name AS user,
-                   m.duty
-                 FROM rota AS r
-                 JOIN mention AS m ON r.id = m.rota_id
-                 WHERE
-                   1 = 1
-                   AND r.channel = ?
-                   AND r.name = ?
-                 ORDER BY r.id ASC
-                 FOR UPDATE"
-             channel rotation]))
-          rotated (rotate-users users)]
-      (do
-        (doseq [user rotated]
-          (log/info (jdbc/update!
-                     conn :mention
-                     {:duty (:duty user)}
-                     ["id = ?" (:id user)])))
-        (log/info (jdbc/update!
-                   conn :rota
-                   {:updated_on ts}
-                   ["id = ?" (:rota_id (first users))]))))))
+    (let
+        [users
+         (into
+          []
+          (jdbc/query
+           conn
+           ["SELECT
+              m.id,
+              m.rota_id,
+              m.name AS user,
+              m.duty
+            FROM rota AS r
+            JOIN mention AS m ON r.id = m.rota_id
+            WHERE
+              1 = 1
+              AND r.channel = ?
+              AND r.name = ?
+            ORDER BY r.id ASC
+            FOR UPDATE"
+            channel rotation]))
+         users-count (count users)
+         rotated (rotate-users users)
+         rota_id (first users)
+         users-updated
+         (reduce
+          +
+          (map
+           (fn [user]
+             (first
+              (jdbc/update!
+               conn :mention
+               {:duty (:duty user)}
+               ["id = ?" (:id user)])))
+           rotated))
+         _
+         (when rota_id
+           (jdbc/update!
+            conn :rota
+            {:updated_on ts}
+            ["id = ?" (:rota_id rota_id)]))]
+      {:users-count users-count :users-updated users-updated})))
