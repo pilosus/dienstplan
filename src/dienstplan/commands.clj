@@ -282,7 +282,8 @@ Example:
   "Execute the command"
   (fn [command-map] (:command command-map)))
 
-(defn- users->mention-table-rows
+(defn users->mention-table-rows
+  "Add :duty true to the first element of the users list"
   [users]
   (->> users
        (reduce #(conj %1 {:name %2}) [])
@@ -342,8 +343,8 @@ Example:
         (cond
           duplicate?
           (format
-           "Rotation `%s` for channel %s %s"
-           rotation channel-formatted "already exists")
+           "Rotation `%s` for channel %s already exists"
+           rotation channel-formatted)
           error
           (do
             (log/error error-msg)
@@ -352,8 +353,8 @@ Example:
              rotation channel-formatted error-msg))
           :else
           (format
-           "Rotation `%s` for channel %s %s"
-           rotation channel-formatted "created successfully"))]
+           "Rotation `%s` for channel %s created successfully"
+           rotation channel-formatted))]
     result))
 
 (defmethod command-exec! :list [command-map]

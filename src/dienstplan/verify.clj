@@ -11,22 +11,26 @@
 (def VERSION "v0")
 (def REPLAY_ATTACK_THRESHOLD_SECONDS (* 60 5))
 
-(defn get-hmac
+(defn get-current-ts []
+  (quot (System/currentTimeMillis) 1000))
+
+(defn calculate-signature
   [sig-str sig-key]
-  (-> (mac/hash sig-str {:key sig-key :alg :hmac+sha256})
-      (codecs/bytes->hex)))
+  (let [hmac (-> (mac/hash sig-str {:key sig-key :alg :hmac+sha256})
+                 (codecs/bytes->hex))
+        signature (format "%s=%s" VERSION hmac)]
+    signature))
 
 (defn request-verified?
   [request sig-key]
   (let [body (:raw-body request)
         headers (get request :headers)
         ts (Integer/parseInt (get headers :x-slack-request-timestamp))
-        now (quot (System/currentTimeMillis) 1000)
+        now (get-current-ts)
         replay-attack? (> (- now ts) REPLAY_ATTACK_THRESHOLD_SECONDS)
         recieved-sig (get headers :x-slack-signature)
         sig-str (format "%s:%s:%s" VERSION ts body)
-        hmac (get-hmac sig-str sig-key)
-        calculated-sig (format "%s=%s" VERSION hmac)]
+        calculated-sig (calculate-signature sig-str sig-key)]
     (cond
       replay-attack?
       (do

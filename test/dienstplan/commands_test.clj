@@ -1,7 +1,9 @@
 (ns dienstplan.commands-test
   (:require
    [clojure.test :refer [deftest is testing]]
-   [dienstplan.commands :as cmd]))
+   [dienstplan.commands :as cmd]
+   [dienstplan.db :as db]
+   [clj-http.client :as http]))
 
 (def params-parse-app-mention
   [["this is a text" nil "No command found"]
@@ -278,3 +280,146 @@
     (doseq [[request expected description] params-test-get-command]
       (testing description
         (is (= expected (cmd/get-command-map request)))))))
+
+(deftest test-get-command-response
+  (testing "Get response to be sent to the channel"
+    (doseq [[request expected description] params-test-get-command]
+      (testing description
+        (with-redefs [cmd/command-exec! (constantly "okay")
+                      http/post (constantly {:status 200 :body "{\"test\": 1}"})]
+          (let [expected' (if (:error expected)
+                            {:channel (get-in expected [:context :channel])
+                             :text (:error expected)}
+                            {:channel (get-in expected [:context :channel])
+                             :text "okay"})]
+            (do
+              (is (= expected'
+                     (cmd/get-command-response request)))
+              (is (= expected'
+                     (cmd/send-command-response request))))))))))
+
+(def params-slack-mention-channel
+  [["C123" "<#C123>" "Make channel name mentionable"]
+   ["<#C456>" "<#C456>" "Do nothing"]])
+
+(deftest test-slack-mention-channel
+  (testing "Test slack channel mention formatting"
+    (doseq [[text expected description] params-slack-mention-channel]
+      (testing description
+        (is (= expected (cmd/slack-mention-channel text)))))))
+
+(def params-users->mention-table-rows
+  [[["user1" "user2"]
+    [{:name "user1" :duty true} {:name "user2" :duty false}]
+    "Normal list"]
+   [[] [] "Empty list"]
+   [nil [] "Empty nil list"]])
+
+(deftest test-users->mention-table-rows
+  (testing "Test extending user list with duty key"
+    (doseq [[users expected description] params-users->mention-table-rows]
+      (testing description
+        (is (= expected (cmd/users->mention-table-rows users)))))))
+
+(def params-command-exec!-who
+  [[{:context {:channel "channel"} :command :who :args {:name "rota"}}
+    [{:duty "user1" :description "Do what thou wilt shall be the whole of the Law"}]
+    "Hey user1, you are an on-call person for `rota` rotation.\nDo what thou wilt shall be the whole of the Law"
+    "Rota found"]
+   [{:context {:channel "channel"} :command :who :args {:name "rota"}}
+    []
+    "Rotation `rota` not found in channel <#channel>"
+    "Rota not found"]])
+
+(deftest test-command-exec!-who
+  (testing "Test command-exec! who"
+    (doseq [[command duty expected description] params-command-exec!-who]
+      (testing description
+        (with-redefs [db/duty-get (constantly duty)]
+          (is (= expected (cmd/command-exec! command))))))))
+
+(def params-command-exec!-delete
+  [[{:context {:channel "channel"} :command :delete :args {:name "rota"}}
+    [1]
+    "Rotation `rota` has been deleted"
+    "Deleted"]
+   [{:context {:channel "channel"} :command :delete :args {:name "rota"}}
+    [0]
+    "Rotation `rota` not found in channel <#channel>"
+    "Rotation not found"]])
+
+(deftest test-command-exec!-delete
+  (testing "Test command-exec! delete"
+    (doseq [[command deleted expected description] params-command-exec!-delete]
+      (testing description
+        (with-redefs [db/rota-delete! (constantly deleted)]
+          (is (= expected (cmd/command-exec! command))))))))
+
+(def params-command-exec!-create
+  [[{:context {:channel "channel"} :command :create :args {:name "rota" :description "todo"}}
+    {}
+    "Rotation `rota` for channel <#channel> created successfully"
+    "Created"]
+   [{:context {:channel "channel"} :command :create :args {:name "rota" :description "todo"}}
+    {:error {:reason :duplicate}}
+    "Rotation `rota` for channel <#channel> already exists"
+    "Duplicate"]
+   [{:context {:channel "channel"} :command :create :args {:name "rota" :description "todo"}}
+    {:error {:reason :other :message "Connection to the database closed unexpectedly"}}
+    "Cannot create rotation `rota` for channel <#channel>: Connection to the database closed unexpectedly"
+    "Other error"]])
+
+(deftest test-command-exec!-create
+  (testing "Test command-exec! create"
+    (doseq [[command inserted expected description] params-command-exec!-create]
+      (testing description
+        (with-redefs [db/rota-insert! (constantly inserted)]
+          (is (= expected (cmd/command-exec! command))))))))
+
+(def params-command-exec!-list
+  [[{:context {:channel "channel"} :command :list}
+    [{:name "rota 1" :created_on "2021-01-30"} {:name "rota 2" :created_on "2021-11-15"}]
+    "Rotations created in channel <#channel>:\n- `rota 1` [2021-01-30]\n- `rota 2` [2021-11-15]"
+    "Rotations found"]
+   [{:context {:channel "channel"} :command :list}
+    []
+    "No rotations found in channel <#channel>"
+    "No rotations found"]])
+
+(deftest test-command-exec!-list
+  (testing "Test command-exec! list"
+    (doseq [[command rota-list expected description] params-command-exec!-list]
+      (testing description
+        (with-redefs [db/rota-list-get (constantly rota-list)]
+          (is (= expected (cmd/command-exec! command))))))))
+
+(def params-command-exec!-rotate
+  [[{:context {:channel "channel"} :command :rotate :args {:name "rota"}}
+    {:users-count 3 :users-updated 3}
+    "Users in rotation `rota` of channel <#channel> have been rotated"
+    "Rotated"]
+   [{:context {:channel "channel"} :command :rotate :args {:name "rota"}}
+    {:users-count 3 :users-updated 0}
+    "Failed to rotate users in rotation `rota` of channel <#channel>"
+    "Failed to rotate users"]])
+
+(deftest test-command-exec!-rotate
+  (testing "Test command-exec! rotate"
+    (doseq [[command rotation expected description] params-command-exec!-rotate]
+      (testing description
+        (with-redefs [db/rotate-duty! (constantly rotation)]
+          (is (= expected (cmd/command-exec! command))))))))
+
+(def params-command-exec!-default
+  [[{:context {:channel "channel"} :command :help}
+    cmd/help-msg
+    "Help command"]
+   [{:context {:channel "channel"} :command :whatever :args {:name "rota"}}
+    cmd/help-msg
+    "Whatever command"]])
+
+(deftest test-command-exec!-default
+  (testing "Test command-exec! default arg"
+    (doseq [[command expected description] params-command-exec!-default]
+      (testing description
+        (is (= expected (cmd/command-exec! command)))))))
