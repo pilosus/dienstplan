@@ -3,7 +3,6 @@
    [clojure.test :refer [deftest is testing]]
    [dienstplan.db :as db]))
 
-
 (def params-rotate-users
   [[[] [] "Empty list"]
    [[{:duty false} {:duty false}]
@@ -83,8 +82,7 @@
      {:id 17, :rota_id 10, :user "e", :duty false}
      {:id 20, :rota_id 10, :user "f", :duty false}
      {:id 22, :rota_id 10, :user "g", :duty false}]
-    "Auto-correct multiple duty true"]
-])
+    "Auto-correct multiple duty true"]])
 
 (deftest test-rotate-users
   (testing "Rotate list of user maps"

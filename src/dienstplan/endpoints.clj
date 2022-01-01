@@ -6,8 +6,7 @@
    [dienstplan.commands :as cmd]
    [dienstplan.config :refer [config]]
    [dienstplan.spec :as spec]
-   [dienstplan.verify :as verify]
-))
+   [dienstplan.verify :as verify]))
 
 (def routes
   ["/api/"
@@ -33,14 +32,14 @@
 (defmethod multi-handler :events
   [request]
   (let
-      [debug (s/conform ::spec/->bool (get-in config [:application :debug]))
-       sign-key (get-in config [:slack :sign])
-       challenge (get-in request [:params :challenge])
-       _ (log/info request)
-       verified? (or debug (verify/request-verified? request sign-key))
-       response
-       (cond
-         (not verified?) {:status 403 :body {:error "Forbidden"}}
-         challenge {:status 200 :body {:challenge challenge}}
-         :else {:status 200 :body (cmd/send-command-response request)})]
+   [debug (s/conform ::spec/->bool (get-in config [:application :debug]))
+    sign-key (get-in config [:slack :sign])
+    challenge (get-in request [:params :challenge])
+    _ (log/info request)
+    verified? (or debug (verify/request-verified? request sign-key))
+    response
+    (cond
+      (not verified?) {:status 403 :body {:error "Forbidden"}}
+      challenge {:status 200 :body {:challenge challenge}}
+      :else {:status 200 :body (cmd/send-command-response request)})]
     response))

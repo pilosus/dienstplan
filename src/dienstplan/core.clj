@@ -18,8 +18,7 @@
    [ring.middleware.keyword-params :refer [wrap-keyword-params]]
    [ring.middleware.params :refer [wrap-params]]
    [ring.middleware.session :refer [wrap-session]]
-   [sentry-clj.core :as sentry]
-))
+   [sentry-clj.core :as sentry]))
 
 (defn wrap-handler
   [handler]

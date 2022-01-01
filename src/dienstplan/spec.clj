@@ -137,8 +137,6 @@
     :db/maximum-pool-size
     :db/connection-timeout]))
 
-
-
 ;;;;;;;;;;;;;;;;;;
 ;; Bot Commands ;;
 ;;;;;;;;;;;;;;;;;;
@@ -202,7 +200,6 @@
    :req-un
    [:bot-cmd-common/context
     :bot-cmd-common/command]))
-
 
 ;;;;;;;;;;;;;;;;;;
 ;; Bot Response ;;

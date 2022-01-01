@@ -43,8 +43,6 @@
       (testing description
         (is (= expected (cmd/parse-user-mentions text)))))))
 
-
-
 (def params-parse-args
   [[{:user-id "U02HXENLLPN" :command :create :rest "backend-rota <@U1KF3FG75> <@U01NT7XLST0> <@U01P02NDVSN>\nOn-call backend engineer's duty \n- Check <#C02PJGR5LLB>\n- Check Sentry alerts\n- Check Grafana metrics"}
     {:name "backend-rota"
@@ -77,7 +75,6 @@
     (doseq [[args expected description] params-parse-args]
       (testing description
         (is (= expected (cmd/parse-args args)))))))
-
 
 (def request-app-mention
   {:request-id "1469a826-8221-498d-a8ac-39621f36a9c6"
@@ -160,11 +157,11 @@
 
 (def params-get-event-app-mention
   [[request-app-mention
-   {:channel "C123"
-    :team "T123"
-    :ts "1640250011.000100"
-    :text "<@U123> create backend-rota <@U435> <@U567> and <@U789> Do what thou wilt shall be the whole of the Law"}
-   "real world request"]])
+    {:channel "C123"
+     :team "T123"
+     :ts "1640250011.000100"
+     :text "<@U123> create backend-rota <@U435> <@U567> and <@U789> Do what thou wilt shall be the whole of the Law"}
+    "real world request"]])
 
 (deftest test-get-event-app-mention
   (testing "Get valuable params from the app_mention slack bot request"

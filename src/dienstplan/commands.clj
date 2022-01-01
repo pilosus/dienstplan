@@ -8,8 +8,7 @@
    [clojure.tools.logging :as log]
    [dienstplan.config :refer [config]]
    [dienstplan.db :as db]
-   [dienstplan.spec :as spec]
-))
+   [dienstplan.spec :as spec]))
 
 ;; Const
 
@@ -140,7 +139,7 @@ Example:
    :delete {:spec ::spec/bot-cmd-default
             :help help-cmd-delete}
    :who {:spec ::spec/bot-cmd-default
-          :help help-cmd-who}
+         :help help-cmd-who}
    :list {:spec ::spec/bot-cmd-list
           :help help-cmd-list}
    :help {:spec ::spec/bot-cmd-help
@@ -349,8 +348,8 @@ Example:
           (do
             (log/error error-msg)
             (format
-            "Cannot create rotation `%s` for channel %s: %s"
-            rotation channel-formatted error-msg))
+             "Cannot create rotation `%s` for channel %s: %s"
+             rotation channel-formatted error-msg))
           :else
           (format
            "Rotation `%s` for channel %s %s"
@@ -453,7 +452,6 @@ Example:
         log-msg
         (format
          "Post message to Slack: status %s body %s"
-         response-status response-data)]
-    (do
-      (log/log log-level log-msg)
-      body-map)))
+         response-status response-data)
+        _ (log/log log-level log-msg)]
+    body-map))

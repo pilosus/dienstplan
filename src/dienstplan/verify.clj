@@ -6,8 +6,7 @@
   (:require
    [buddy.core.codecs :as codecs]
    [buddy.core.mac :as mac]
-   [clojure.tools.logging :as log]
-))
+   [clojure.tools.logging :as log]))
 
 (def VERSION "v0")
 (def REPLAY_ATTACK_THRESHOLD_SECONDS (* 60 5))
