@@ -6,11 +6,11 @@
    [clojure.string :as string]
    [clojure.tools.cli :refer [parse-opts]]
    [dienstplan.config :refer [config]]
+   [dienstplan.db :as db]
    [dienstplan.endpoints :as endpoints]
    [dienstplan.logging :as logging]
    [dienstplan.middlewares :as middlewares]
    [dienstplan.spec :as spec]
-   [dienstplan.db :as db]
    [mount.core :as mount :refer [defstate]]
    [ring.adapter.jetty :refer [run-jetty]]
    [ring.middleware.cookies :refer [wrap-cookies]]
@@ -58,7 +58,7 @@
         env (get-in config [:application :env])
         app-name (get-in config [:application :name])
         version (get-in config [:application :version])
-        release (str app-name ":" version)]
+        release (format "%s:%s" app-name version)]
     (sentry/init! dsn {:environment env :debug debug :release release}))
   :stop (sentry/close!))
 
@@ -85,7 +85,7 @@
   [options-summary]
   (->> ["dienstplan is a slack bot for duty rotations"
         ""
-        "Usage: diesntplan [options] action"
+        "Usage: diesntplan [options]"
         ""
         "Options:"
         options-summary]
@@ -120,4 +120,3 @@
         :server (mount/start)
         :migrate (db/migrate)
         :rollback (db/rollback)))))
-  ;;(mount/start)

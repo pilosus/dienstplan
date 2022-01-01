@@ -57,7 +57,7 @@ Commands:
 
 Example:
 
-Let's create a rotation with dienstplan:
+Let's create a rotation using dienstplan:
 
 ```
 @dienstplan create backend-rota @user1 @user2 @user3
@@ -75,7 +75,7 @@ Now let's use Slack reminder to rotate weekly:
 /remind #my-channel to \"@dienstplan rotate backend-rota\" every Monday at 9AM UTC
 ```
 
-Let's also show current duty engineer with a reminder:
+Let's also show a current duty engineer with a reminder:
 
 ```
 /remind #my-channel to \"@dienstplan who backend-rota\" every Monday, Tuesday, Wednesday, Thursday, Friday at 10AM UTC
@@ -450,8 +450,10 @@ Example:
         response-data (json/parse-string response-body)
         response-ok? (get response-data "ok")
         log-level (if response-ok? :debug :error)
-        log-msg (str "Post message to Slack: status " response-status " "
-                     "body " response-data)]
+        log-msg
+        (format
+         "Post message to Slack: status %s body %s"
+         response-status response-data)]
     (do
       (log/log log-level log-msg)
       body-map)))

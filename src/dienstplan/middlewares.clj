@@ -81,7 +81,7 @@
           loglevel-kw (get loglevel-str-to-kw loglevel-str)
           method (-> request-method name str/upper-case)
           query-params (if query-string (str "?" query-string) "")
-          message (str method " " uri query-params)]
+          message (format "%s %s%s" method uri query-params)]
       (when enable-logging?
         (log/log loglevel-kw message))
       (handler request))))

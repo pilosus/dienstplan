@@ -21,12 +21,12 @@
 ;; Endpoints
 
 (defmethod multi-handler :healthcheck
-  [request]
+  [_]
   {:status 200
    :body {:status "ok"}})
 
 (defmethod multi-handler :not-found
-  [request]
+  [_]
   {:status 404
    :body {:message "Page not found"}})
 
