@@ -21,13 +21,13 @@ Rotation iterates over the list of users mentioned, one by one, starting from th
 Now let's use Slack `/remind` command to rotate users weekly:
 
 ```
-/remind #my-channel to \"@dienstplan rotate backend-rota\" every Monday at 9AM UTC
+/remind #my-channel to "@dienstplan rotate backend-rota" every Monday at 9AM UTC
 ```
 
 Let's also show a current duty engineer with a reminder:
 
 ```
-/remind #my-channel to \"@dienstplan who backend-rota\" every Monday, Tuesday, Wednesday, Thursday, Friday at 10AM UTC
+/remind #my-channel to "@dienstplan who backend-rota" every Monday, Tuesday, Wednesday, Thursday, Friday at 10AM UTC
 ```
 
 Once the reminder with the rotation command pops up you see a confirmation:
@@ -105,7 +105,7 @@ Commands:
 - Use channel mention (`#my-channel`, but neither `@channel` nor `@user`) when creating a reminder with the `/remind` command, e.g.:
 
 ```
-/remind #my-channel to \"@dienstplan rotate backend-rota\" in 3 hours
+/remind #my-channel to "@dienstplan rotate backend-rota" in 3 hours
 ```
 
 ### Don't

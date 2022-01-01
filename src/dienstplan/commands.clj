@@ -393,18 +393,20 @@ Example:
         channel-formatted (slack-mention-channel channel)
         {:keys [users-count users-updated]}
         (db/rotate-duty! channel rotation (get-now-ts))
+        _ (log/info
+           (format "Updated %s/%s for rotation %s of channel %s"
+                   users-updated users-count rotation channel))
         text
         (cond
+          (= users-count 0)
+          (format "No users found in rotation `%s` of channel %s"
+                  rotation channel-formatted)
           (= users-count users-updated)
           (format "Users in rotation `%s` of channel %s have been rotated"
                   rotation channel-formatted)
           :else
-          (do
-            (log/error
-             (format "Updated %s/%s for rotation %s of channel %s"
-                     users-updated users-count rotation channel))
-            (format "Failed to rotate users in rotation `%s` of channel %s"
-                    rotation channel-formatted)))]
+          (format "Failed to rotate users in rotation `%s` of channel %s"
+                  rotation channel-formatted))]
     text))
 
 (defmethod command-exec! :default [_] help-msg)
