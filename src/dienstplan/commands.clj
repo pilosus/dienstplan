@@ -1,3 +1,18 @@
+;; Copyright (c) 2021-2022 Vitaly Samigullin and contributors. All rights reserved.
+;;
+;; This program and the accompanying materials are made available under the
+;; terms of the Eclipse Public License 2.0 which is available at
+;; http://www.eclipse.org/legal/epl-2.0.
+;;
+;; This Source Code may also be made available under the following Secondary
+;; Licenses when the conditions for such availability set forth in the Eclipse
+;; Public License, v. 2.0 are satisfied: GNU General Public License as published by
+;; the Free Software Foundation, either version 2 of the License, or (at your
+;; option) any later version, with the GNU Classpath Exception which is available
+;; at https://www.gnu.org/software/classpath/license.html.
+;;
+;; SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
+
 (ns dienstplan.commands
   (:gen-class)
   (:require
@@ -8,8 +23,7 @@
    [clojure.tools.logging :as log]
    [dienstplan.config :refer [config]]
    [dienstplan.db :as db]
-   [dienstplan.spec :as spec]
-))
+   [dienstplan.spec :as spec]))
 
 ;; Const
 
@@ -57,7 +71,7 @@ Commands:
 
 Example:
 
-Let's create a rotation with dienstplan:
+Let's create a rotation using dienstplan:
 
 ```
 @dienstplan create backend-rota @user1 @user2 @user3
@@ -75,7 +89,7 @@ Now let's use Slack reminder to rotate weekly:
 /remind #my-channel to \"@dienstplan rotate backend-rota\" every Monday at 9AM UTC
 ```
 
-Let's also show current duty engineer with a reminder:
+Let's also show a current duty engineer with a reminder:
 
 ```
 /remind #my-channel to \"@dienstplan who backend-rota\" every Monday, Tuesday, Wednesday, Thursday, Friday at 10AM UTC
@@ -140,7 +154,7 @@ Example:
    :delete {:spec ::spec/bot-cmd-default
             :help help-cmd-delete}
    :who {:spec ::spec/bot-cmd-default
-          :help help-cmd-who}
+         :help help-cmd-who}
    :list {:spec ::spec/bot-cmd-list
           :help help-cmd-list}
    :help {:spec ::spec/bot-cmd-help
@@ -283,7 +297,8 @@ Example:
   "Execute the command"
   (fn [command-map] (:command command-map)))
 
-(defn- users->mention-table-rows
+(defn users->mention-table-rows
+  "Add :duty true to the first element of the users list"
   [users]
   (->> users
        (reduce #(conj %1 {:name %2}) [])
@@ -343,18 +358,18 @@ Example:
         (cond
           duplicate?
           (format
-           "Rotation `%s` for channel %s %s"
-           rotation channel-formatted "already exists")
+           "Rotation `%s` for channel %s already exists"
+           rotation channel-formatted)
           error
           (do
             (log/error error-msg)
             (format
-            "Cannot create rotation `%s` for channel %s: %s"
-            rotation channel-formatted error-msg))
+             "Cannot create rotation `%s` for channel %s: %s"
+             rotation channel-formatted error-msg))
           :else
           (format
-           "Rotation `%s` for channel %s %s"
-           rotation channel-formatted "created successfully"))]
+           "Rotation `%s` for channel %s created successfully"
+           rotation channel-formatted))]
     result))
 
 (defmethod command-exec! :list [command-map]
@@ -378,18 +393,20 @@ Example:
         channel-formatted (slack-mention-channel channel)
         {:keys [users-count users-updated]}
         (db/rotate-duty! channel rotation (get-now-ts))
+        _ (log/info
+           (format "Updated %s/%s for rotation %s of channel %s"
+                   users-updated users-count rotation channel))
         text
         (cond
+          (= users-count 0)
+          (format "No users found in rotation `%s` of channel %s"
+                  rotation channel-formatted)
           (= users-count users-updated)
           (format "Users in rotation `%s` of channel %s have been rotated"
                   rotation channel-formatted)
           :else
-          (do
-            (log/error
-             (format "Updated %s/%s for rotation %s of channel %s"
-                     users-updated users-count rotation channel))
-            (format "Failed to rotate users in rotation `%s` of channel %s"
-                    rotation channel-formatted)))]
+          (format "Failed to rotate users in rotation `%s` of channel %s"
+                  rotation channel-formatted))]
     text))
 
 (defmethod command-exec! :default [_] help-msg)
@@ -450,8 +467,9 @@ Example:
         response-data (json/parse-string response-body)
         response-ok? (get response-data "ok")
         log-level (if response-ok? :debug :error)
-        log-msg (str "Post message to Slack: status " response-status " "
-                     "body " response-data)]
-    (do
-      (log/log log-level log-msg)
-      body-map)))
+        log-msg
+        (format
+         "Post message to Slack: status %s body %s"
+         response-status response-data)
+        _ (log/log log-level log-msg)]
+    body-map))

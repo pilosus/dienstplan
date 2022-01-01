@@ -1,16 +1,29 @@
+;; Copyright (c) 2021-2022 Vitaly Samigullin and contributors. All rights reserved.
+;;
+;; This program and the accompanying materials are made available under the
+;; terms of the Eclipse Public License 2.0 which is available at
+;; http://www.eclipse.org/legal/epl-2.0.
+;;
+;; This Source Code may also be made available under the following Secondary
+;; Licenses when the conditions for such availability set forth in the Eclipse
+;; Public License, v. 2.0 are satisfied: GNU General Public License as published by
+;; the Free Software Foundation, either version 2 of the License, or (at your
+;; option) any later version, with the GNU Classpath Exception which is available
+;; at https://www.gnu.org/software/classpath/license.html.
+;;
+;; SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
+
 (ns dienstplan.db
   (:gen-class)
   (:require
    [cheshire.core :as json]
    [clojure.java.jdbc :as jdbc]
    [clojure.string :as string]
-   [clojure.tools.logging :as log]
    [dienstplan.config :refer [config]]
    [hikari-cp.core :as cp]
    [mount.core :as mount :refer [defstate]]
    [ragtime.jdbc :as ragtime-jdbc]
-   [ragtime.repl :as ragtime-repl]
-   )
+   [ragtime.repl :as ragtime-repl])
   (:import
    (org.postgresql.util PGobject
                         PSQLException)))
@@ -47,7 +60,7 @@
 (defn value-to-json-pgobject [value]
   (doto (PGobject.)
     (.setType "jsonb")
-      (.setValue (json/generate-string value))))
+    (.setValue (json/generate-string value))))
 
 (extend-protocol jdbc/ISQLValue
   clojure.lang.IPersistentMap
@@ -70,8 +83,8 @@
 (defn duty-get
   [channel rotation]
   (jdbc/query
-     db
-     ["SELECT
+   db
+   ["SELECT
          r.id AS rota_id,
          r.description,
          m.name AS duty
@@ -82,13 +95,13 @@
          AND r.channel = ?
          AND r.name = ?
          AND m.duty IS TRUE"
-      channel rotation]))
+    channel rotation]))
 
 (defn rota-list-get
   [channel]
   (jdbc/query
-     db
-     ["SELECT
+   db
+   ["SELECT
          r.name,
          r.created_on
        FROM rota AS r
@@ -97,7 +110,7 @@
          AND r.channel = ?
        ORDER BY r.created_on DESC
        LIMIT 500"
-      channel]))
+    channel]))
 
 (defn rota-delete!
   [channel rotation]
@@ -149,12 +162,12 @@
   [channel rotation ts]
   (jdbc/with-db-transaction [conn db]
     (let
-        [users
-         (into
-          []
-          (jdbc/query
-           conn
-           ["SELECT
+     [users
+      (into
+       []
+       (jdbc/query
+        conn
+        ["SELECT
               m.id,
               m.rota_id,
               m.name AS user,
@@ -167,25 +180,25 @@
               AND r.name = ?
             ORDER BY r.id ASC
             FOR UPDATE"
-            channel rotation]))
-         users-count (count users)
-         rotated (rotate-users users)
-         rota_id (first users)
-         users-updated
-         (reduce
-          +
-          (map
-           (fn [user]
-             (first
-              (jdbc/update!
-               conn :mention
-               {:duty (:duty user)}
-               ["id = ?" (:id user)])))
-           rotated))
-         _
-         (when rota_id
+         channel rotation]))
+      users-count (count users)
+      rotated (rotate-users users)
+      rota_id (first users)
+      users-updated
+      (reduce
+       +
+       (map
+        (fn [user]
+          (first
            (jdbc/update!
-            conn :rota
-            {:updated_on ts}
-            ["id = ?" (:rota_id rota_id)]))]
+            conn :mention
+            {:duty (:duty user)}
+            ["id = ?" (:id user)])))
+        rotated))
+      _
+      (when rota_id
+        (jdbc/update!
+         conn :rota
+         {:updated_on ts}
+         ["id = ?" (:rota_id rota_id)]))]
       {:users-count users-count :users-updated users-updated})))
