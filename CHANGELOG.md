@@ -6,29 +6,14 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
-### Added
+## 0.1.1 - 2022-01-02
 
-For new features.
+## Added
+- GitHub workflows for pull requests and master branch merges:
+  linters, tests, coverage report
 
-### Changed
-
-For changes in existing functionality.
-
-### Deprecated
-
-For soon-to-be removed features.
-
-### Removed
-
-For now removed features.
-
-### Fixed
-
-For any bug fixes.
-
-### Security
-
-In case of vulnerabilities.
+## Fixed
+- CHANGELOG.md file links
 
 ## 0.1.0 - 2022-01-01
 
@@ -40,5 +25,6 @@ In case of vulnerabilities.
 ### Added
 - Bot app MVP
 
-[Unreleased]: https://sourcehost.site/your-name/dienstplan/compare/0.1.0...HEAD
-[0.1.0]: https://sourcehost.site/your-name/dienstplan/compare/0.0.0...0.1.0
+[Unreleased]: https://github.com/pilosus/dienstplan/compare/0.1.1...HEAD
+[0.1.1]: https://github.com/pilosus/dienstplan/compare/0.1.0...0.1.1
+[0.1.0]: https://github.com/pilosus/dienstplan/compare/0.0.0...0.1.0

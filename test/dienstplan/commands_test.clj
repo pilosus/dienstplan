@@ -301,7 +301,7 @@
     (doseq [[request expected description] params-test-get-command]
       (testing description
         (with-redefs [cmd/command-exec! (constantly "okay")
-                      http/post (constantly {:status 200 :body "{\"test\": 1}"})]
+                      http/post (constantly {:status 200 :body "{\"ok\": true}"})]
           (let [expected' (if (:error expected)
                             {:channel (get-in expected [:context :channel])
                              :text (:error expected)}
