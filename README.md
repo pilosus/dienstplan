@@ -143,7 +143,7 @@ The app relies on a bunch of environment variables (envs) to operate:
 - Get [leiningen](https://leiningen.org/) to compile the app
 - Clone the GitHub repository
 - In the repo directory complile a standalone `jar` file with `lein uberjar`
-- Run the app (fix app version as per `project.clj` file):
+- Run the app (**NB** fix the app version as per `project.clj` file):
 
 ```
 APP__VERSION="0.1.0" \
@@ -160,6 +160,47 @@ DB__DATABASE_NAME="your-postgresql-db-name" \
 DB__USERNAME="your-postgresql-db-username" \
 DB__PASSWORD="your-postgresql-db-passwords" \
 java -jar /path/to/repo/target/uberjar/dienstplan-0.1.0-standalone.jar
+```
+- Apply database migrations with the `--mode migrate` option or rollback with `--mode rollback`, e.g.:
+
+```
+java -jar /path/to/repo/target/uberjar/dienstplan-0.1.0-standalone.jar --mode migrate
+```
+
+Alternatively, use containerized app version as follows:
+
+```
+docker pull pilosus/dienstplan
+
+docker run \
+  -e APP__VERSION="0.1.0" \
+  -e APP__ENV="production" \
+  -e APP__DEBUG=false \
+  -e SLACK__TOKEN="xoxb-Your-Bot-User-OAuth-Token" \
+  -e SLACK__SIGN="Your-Signing-Secret" \
+  -e ALERTS__SENTRY_DSN="https://your_token@something.sentry.io/project" \
+  -e SERVER__PORT=8080 \
+  -e SERVER__LOGLEVEL=INFO \
+  -e DB__SERVER_NAME=your-postgresql.example.com \
+  -e DB__PORT_NUMBER=5432 \
+  -e DB__DATABASE_NAME="your-postgresql-db-name" \
+  -e DB__USERNAME="your-postgresql-db-username" \
+  -e DB__PASSWORD="your-postgresql-db-passwords" \
+  -it --rm pilosus/dienstplan \
+  java -jar app.jar --mode server
+  # use --mode migrate or --mode rollback for DB migration control
+```
+
+Docker compose is also supported with:
+
+```
+docker-compose up
+```
+
+or use `Makefile` to ease building, running services and applying DB migrations:
+
+```
+make all
 ```
 
 ### Server Setup & App Deploy Scripts

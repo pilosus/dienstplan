@@ -1,0 +1,17 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:14-bullseye
+    volumes:
+      - "./db-data:/var/lib/postgresql/data"
+    env_file:
+      - .env
+
+  dienstplan:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    env_file:
+      - .env
