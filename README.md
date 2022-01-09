@@ -1,7 +1,7 @@
 # dienstplan
 
 [![codecov](https://codecov.io/gh/pilosus/dienstplan/branch/main/graph/badge.svg?token=2ouqzEwhLc)](https://codecov.io/gh/pilosus/dienstplan)
-![Docker Image Version (latest semver)](https://img.shields.io/docker/v/pilosus/dienstplan)
+![Docker Image Version (latest semver)](https://img.shields.io/docker/v/pilosus/dienstplan?label=docker%20image)
 
 Slack bot for duty rotations.
 
