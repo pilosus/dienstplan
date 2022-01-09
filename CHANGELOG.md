@@ -6,6 +6,9 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
+### Added
+- README badges
+
 ## [0.1.3] - 2022-01-09
 
 ### Added
