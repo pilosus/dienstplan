@@ -16,13 +16,11 @@
 (ns dienstplan.middlewares
   (:gen-class)
   (:require
-   [clojure.walk :refer [keywordize-keys stringify-keys]]
+   [clojure.string :as string]
    [clojure.tools.logging :as log]
-   [clojure.spec.alpha :as s]
-   [clojure.string :as str]
-   [sentry-clj.core :as sentry]
+   [clojure.walk :refer [keywordize-keys stringify-keys]]
    [dienstplan.config :refer [config]]
-   [dienstplan.spec :as spec])
+   [sentry-clj.core :as sentry])
   (:import (java.util UUID)))
 
 ;; Middlewares
@@ -89,12 +87,11 @@
 (defn wrap-access-log
   [handler]
   (fn [request]
-    (let [enable-logging?
-          (s/conform ::spec/->bool (get-in config [:server :access-log]))
+    (let [enable-logging? (get-in config [:server :access-log])
           {:keys [query-string request-method uri]} request
           loglevel-str (get-in config [:server :loglevel])
           loglevel-kw (get loglevel-str-to-kw loglevel-str)
-          method (-> request-method name str/upper-case)
+          method (-> request-method name string/upper-case)
           query-params (if query-string (str "?" query-string) "")
           message (format "%s %s%s" method uri query-params)]
       (when enable-logging?

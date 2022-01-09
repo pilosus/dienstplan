@@ -65,13 +65,15 @@
 (s/def ::str string?)
 (s/def ::nillable-str (s/nilable ::str))
 (s/def ::non-empty-str (s/and ::str not-empty))
-(s/def ::boolean-str #{"true" "false"})
+(s/def ::boolean-str (s/and #{"true" "false"} ::->bool))
 
 ;; Domain-related
+(def timeout-max-ms (* 65535 1000))
+(def pool-size-max 300)
 
 (s/def ::ephemeral-port (s/and ::->int (s/int-in 1024 (inc 65535))))
-(s/def ::pool-size nat-int?)
-(s/def ::timeout nat-int?)
+(s/def ::pool-size (s/and ::->int (s/int-in 1 (inc pool-size-max))))
+(s/def ::timeout (s/and ::->int (s/int-in 1000 (inc timeout-max-ms))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Application Configuration ;;
@@ -105,7 +107,8 @@
   (s/keys
    :req-un
    [:server/port
-    :server/loglevel]))
+    :server/loglevel
+    :server/access-log]))
 
 ;; Slack
 

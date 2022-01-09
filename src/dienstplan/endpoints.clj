@@ -16,18 +16,15 @@
 (ns dienstplan.endpoints
   (:gen-class)
   (:require
-   [clojure.spec.alpha :as s]
    [clojure.tools.logging :as log]
    [dienstplan.commands :as cmd]
    [dienstplan.config :refer [config]]
-   [dienstplan.spec :as spec]
    [dienstplan.verify :as verify]))
 
 (def routes
-  ["/api/"
-   {"healthcheck" :healthcheck
-    "events" {:post :events}
-    true :not-found}])
+  ["/" {"api/" {"healthcheck" :healthcheck
+                "events" {:post :events}}
+        true :not-found}])
 
 (defmulti multi-handler
   :handler)
@@ -47,7 +44,7 @@
 (defmethod multi-handler :events
   [request]
   (let
-   [debug (s/conform ::spec/->bool (get-in config [:application :debug]))
+   [debug (get-in config [:application :debug])
     sign-key (get-in config [:slack :sign])
     challenge (get-in request [:params :challenge])
     _ (log/info request)

@@ -16,10 +16,11 @@
 (ns dienstplan.config
   (:gen-class)
   (:require
-   [mount.core :as mount :refer [defstate]]
+   [clojure.spec.alpha :as s]
    [clojure.tools.logging :as log]
-   [yummy.config :refer [load-config]]
-   [dienstplan.spec :as spec]))
+   [dienstplan.spec :as spec]
+   [mount.core :as mount :refer [defstate]]
+   [yummy.config :refer [load-config]]))
 
 (def CONFIG_PATH "resources/dienstplan/config.yaml")
 
@@ -38,6 +39,7 @@
 (defstate config
   "Configuration map"
   :start
-  (load-config {:path CONFIG_PATH
-                :spec ::spec/application-config
-                :die-fn die-fn-prod}))
+  (->> (load-config {:path CONFIG_PATH
+                     :spec ::spec/application-config
+                     :die-fn die-fn-prod})
+       (s/conform ::spec/application-config)))
