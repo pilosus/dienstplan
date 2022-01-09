@@ -131,12 +131,16 @@ The app relies on a bunch of environment variables (envs) to operate:
 - `SLACK__SIGN` - Slack Signing Secret key
 - `ALERTS__SENTRY_DSN` - Sentry config string
 - `SERVER__PORT` [default `8080`] - Jetty application server port
-- `SERVER__LOGLEVEL` [default `INFO`]- App log level
+- `SERVER__LOGLEVEL` [default `INFO`] - Server log level
+- `SERVER__ACCESS_LOG` [default `true`] - Server basic access logging
 - `DB__SERVER_NAME` - PostgreSQL server host name
 - `DB__PORT_NUMBER` [default `5432`] - PostgreSQL server port number
 - `DB__DATABASE_NAME` - PostgreSQL server database name
 - `DB__USERNAME` - PostgreSQL server user name
 - `DB__PASSWORD` - PostgreSQL server password
+- `DB__POOL_MIN_IDLE` [default `10`] - PostgreSQL connection pool's min number of idle connections
+- `DB__POOL_MAX_SIZE` [default `20`] - PostgreSQL connection pool's max number of connections
+- `DB__TIMEOUT_MS_CONNECTION` [default `10000`] - PostgreSQL connection timeout in milliseconds
 
 ### Up & Running
 
@@ -146,8 +150,6 @@ The app relies on a bunch of environment variables (envs) to operate:
 - Run the app (**NB** fix the app version as per `project.clj` file):
 
 ```
-APP__VERSION="0.1.0" \
-APP__ENV="production" \
 APP__DEBUG=false \
 SLACK__TOKEN="xoxb-Your-Bot-User-OAuth-Token" \
 SLACK__SIGN="Your-Signing-Secret" \

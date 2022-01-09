@@ -195,7 +195,6 @@ Example:
     channel
     (format "<#%s>" channel)))
 
-;; TODO use s/conform
 (defn get-event-app-mention
   [request]
   (let [event (get-in request [:params :event])

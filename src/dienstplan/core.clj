@@ -17,7 +17,6 @@
   (:gen-class)
   (:require
    [bidi.bidi :as bidi]
-   [clojure.spec.alpha :as s]
    [clojure.string :as string]
    [clojure.tools.cli :refer [parse-opts]]
    [dienstplan.config :refer [config]]
@@ -25,7 +24,6 @@
    [dienstplan.endpoints :as endpoints]
    [dienstplan.logging :as logging]
    [dienstplan.middlewares :as middlewares]
-   [dienstplan.spec :as spec]
    [mount.core :as mount :refer [defstate]]
    [ring.adapter.jetty :refer [run-jetty]]
    [ring.middleware.cookies :refer [wrap-cookies]]
@@ -68,7 +66,7 @@
 (defstate alerts
   :start
   (let [dsn (get-in config [:alerts :sentry])
-        debug (s/conform ::spec/->bool (get-in config [:application :debug]))
+        debug (get-in config [:application :debug])
         env (get-in config [:application :env])
         app-name (get-in config [:application :name])
         version (get-in config [:application :version])
@@ -78,7 +76,7 @@
 
 (defstate server
   :start
-  (let [port (s/conform ::spec/->int (get-in config [:server :port]))]
+  (let [port (get-in config [:server :port])]
     (run-jetty app {:port port :join? true}))
   :stop (.stop server))
 
