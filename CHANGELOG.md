@@ -8,6 +8,7 @@ file. This change log follows the conventions of
 
 ### Added
 - README badges
+- Envs from 0.1.3 added to `Dockerfile` and Docker Compose's `.env`
 
 ## [0.1.3] - 2022-01-09
 
