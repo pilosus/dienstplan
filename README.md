@@ -17,6 +17,8 @@ Slack bot for duty rotations.
 
 ## Usage example
 
+[![screencast](https://blog.pilosus.org/images/dienstplan.gif)](https://blog.pilosus.org/images/dienstplan.gif)
+
 Let's create a rotation using `dienstplan`:
 
 ```
