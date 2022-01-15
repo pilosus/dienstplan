@@ -222,6 +222,15 @@
      :command :who
      :args {:name "backend-rota"}}
     "Who command"]
+   [{:params {:event {:text "  <@UNX01> who backend-rota"
+                      :ts "1640250011.000100"
+                      :channel "C123"}}}
+    {:context
+     {:ts "1640250011.000100"
+      :channel "C123"}
+     :command :who
+     :args {:name "backend-rota"}}
+    "Team id is optional"]
    [{:params {:event {:text "<@UNX01> list"
                       :ts "1640250011.000100"
                       :team "T123"
@@ -247,8 +256,7 @@
                       :team "T123"
                       :channel "C123"}}}
     {:context
-     {:ts nil
-      :team "T123"
+     {:team "T123"
       :channel "C123"}
      :command :create
      :args {:name "name"

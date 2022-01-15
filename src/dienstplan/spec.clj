@@ -167,8 +167,8 @@
   (s/keys
    :req-un
    [:bot-cmd-context/channel
-    :bot-cmd-context/ts
-    :bot-cmd-context/team]))
+    :bot-cmd-context/ts]
+   :opt-un [:bot-cmd-context/team]))
 
 (s/def :bot-cmd-common/command ::kw)
 
