@@ -380,7 +380,7 @@
     "Rota found"]
    [{:context {:channel "channel"} :command :about :args {:name "non-existent"}}
     []
-    "Rotation `rota` not found in channel <#channel>"
+    "Rotation `non-existent` not found in channel <#channel>"
     "Rota not found"]])
 
 (deftest test-command-exec!-about
