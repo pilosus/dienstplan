@@ -31,7 +31,7 @@
   "https://slack.com/api/chat.postMessage")
 
 (def help-msg
-  "To start interacting with the bot, mention its username, provide a command and its arguments as follows:
+  "To start interacting with the bot, mention its username, provide a command and options as follows:
 
 ```
 @dienstplan <command> [<options>]
@@ -44,27 +44,32 @@ Commands:
 @dienstplan create <rotation name> <list of users> <duties description>
 ```
 
-2. Rotate: take the next user on the rotation list
+2. Rotate: move current duty to a next user
 ```
 @dienstplan rotate <rotation name>
 ```
 
-3. Show who is duty
+3. Show a current duty
 ```
 @dienstplan who <rotation name>
 ```
 
-4. Delete a rotation
+4. Show details about a rotation
+```
+@dienstplan about <rotation name>
+```
+
+5. Delete a rotation
 ```
 @dienstplan delete <rotation name>
 ```
 
-5. List channel's rotations
+6. List channel's rotations
 ```
 @dienstplan list
 ```
 
-6. Show help message
+7. Show a help message
 ```
 @dienstplan help
 ```
@@ -74,8 +79,8 @@ Example:
 Let's create a rotation using dienstplan:
 
 ```
-@dienstplan create backend-rota @user1 @user2 @user3
-Backend engineer's duties:
+@dienstplan create my-rota @user1 @user2 @user3
+On-call engineer's duties:
 - Process support team questions queue
 - Resolve service alerts
 - Check service health metrics
@@ -86,13 +91,13 @@ Backend engineer's duties:
 Now let's use Slack reminder to rotate weekly:
 
 ```
-/remind #my-channel to \"@dienstplan rotate backend-rota\" every Monday at 9AM UTC
+/remind #my-channel to \"@dienstplan rotate my-rota\" every Monday at 9AM UTC
 ```
 
 Let's also show a current duty engineer with a reminder:
 
 ```
-/remind #my-channel to \"@dienstplan who backend-rota\" every Monday, Tuesday, Wednesday, Thursday, Friday at 10AM UTC
+/remind #my-channel to \"@dienstplan who my-rota\" every Monday, Tuesday, Wednesday, Thursday, Friday at 10AM UTC
 ```
 ")
 
@@ -101,8 +106,8 @@ Let's also show a current duty engineer with a reminder:
 @dienstplan create <rotation name> <list of users> <duties description>
 
 Example:
-@dienstplan create backend-rota @user1 @user2 @user3
-Backend engineer's duties:
+@dienstplan create my-rota @user1 @user2 @user3
+On-call engineer's duties:
 - Process support team questions queue
 - Resolve service alerts
 - Check service health metrics
@@ -114,21 +119,28 @@ Backend engineer's duties:
 @dienstplan rotate <rotation name>
 
 Example:
-@dienstplan rotate backend-rota")
+@dienstplan rotate my-rota")
 
 (def help-cmd-who
   "Usage:
 @dienstplan who <rotation name>
 
 Example:
-@dienstplan who backend-rota")
+@dienstplan who my-rota")
 
 (def help-cmd-delete
   "Usage:
 @dienstplan delete <rotation name>
 
 Example:
-@dienstplan delete backend-rota")
+@dienstplan delete my-rota")
+
+(def help-cmd-about
+  "Usage:
+@dienstplan about <rotation name>
+
+Example:
+@dienstplan about my-rota")
 
 (def help-cmd-list
   "Usage:
@@ -151,10 +163,12 @@ Example:
             :help help-cmd-create}
    :rotate {:spec ::spec/bot-cmd-default
             :help help-cmd-rotate}
-   :delete {:spec ::spec/bot-cmd-default
-            :help help-cmd-delete}
    :who {:spec ::spec/bot-cmd-default
          :help help-cmd-who}
+   :about {:spec ::spec/bot-cmd-default
+           :help help-cmd-about}
+   :delete {:spec ::spec/bot-cmd-default
+            :help help-cmd-delete}
    :list {:spec ::spec/bot-cmd-list
           :help help-cmd-list}
    :help {:spec ::spec/bot-cmd-help
@@ -288,6 +302,9 @@ Example:
 (defmethod parse-args :who [app-mention]
   (parse-args-default app-mention))
 
+(defmethod parse-args :about [app-mention]
+  (parse-args-default app-mention))
+
 (defmethod parse-args :help [_]
   {:description help-msg})
 
@@ -322,6 +339,20 @@ Example:
           (format
            "Hey %s, you are an on-call person for `%s` rotation.\n%s"
            duty rotation description)
+          (format
+           "Rotation `%s` not found in channel %s"
+           rotation (slack-mention-channel channel)))]
+    text))
+
+(defmethod command-exec! :about [command-map]
+  (let [{:keys [channel rotation]} (get-channel-rotation command-map)
+        about (first (db/rota-about-get channel rotation))
+        {:keys [created_on description users]} about
+        text
+        (if about
+          (format
+           "Rotation `%s` [%s] list: %s.\n%s"
+           rotation created_on users description)
           (format
            "Rotation `%s` not found in channel %s"
            rotation (slack-mention-channel channel)))]

@@ -103,7 +103,7 @@
    db
    ["SELECT
          r.name,
-         r.created_on
+         DATE(r.created_on) AS created_on
        FROM rota AS r
        WHERE
          1 = 1
@@ -111,6 +111,23 @@
        ORDER BY r.created_on DESC
        LIMIT 500"
     channel]))
+
+(defn rota-about-get
+  [channel rotation]
+  (jdbc/query
+   db
+   ["SELECT
+       DATE(r.created_on) AS created_on,
+       r.description,
+       STRING_AGG(m.name, ' ' ORDER BY m.id ASC) AS users
+     FROM rota AS r
+     JOIN mention AS m ON m.rota_id = r.id
+     WHERE
+       1 = 1
+       AND r.channel = ?
+       AND r.name = ?
+     GROUP BY created_on, r.description"
+    channel rotation]))
 
 (defn rota-delete!
   [channel rotation]
