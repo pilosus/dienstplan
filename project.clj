@@ -1,4 +1,4 @@
-(defproject dienstplan "0.1.4"
+(defproject dienstplan "0.2.0"
   :description "Duty rotation slack bot"
   :url "https://github.com/pilosus/dienstplan"
   :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"

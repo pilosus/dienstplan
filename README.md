@@ -5,13 +5,23 @@
 
 Slack bot for duty rotations.
 
+
+## Why
+
+- Great for on-call duty rotations in Slack channels
+- Ideal for small teams
+- Dead simple
+- Follows the rule: Do One Thing and Do It Well
+- Plays nicely with Slack [reminders](https://slack.com/resources/using-slack/how-to-use-reminders-in-slack) and [Workflows](https://slack.com/features/workflow-automation)
+
+
 ## Usage example
 
 Let's create a rotation using `dienstplan`:
 
 ```
-@dienstplan create backend-rota @user1 @user2 @user3
-Backend engineer's duties:
+@dienstplan create my-rota @user1 @user2 @user3
+On-call engineer's duties:
 - Process support team questions queue
 - Resolve service alerts
 - Check service health metrics
@@ -24,33 +34,33 @@ Rotation iterates over the list of users mentioned, one by one, starting from th
 Now let's use Slack `/remind` command to rotate users weekly:
 
 ```
-/remind #my-channel to "@dienstplan rotate backend-rota" every Monday at 9AM UTC
+/remind #my-channel to "@dienstplan rotate my-rota" every Monday at 9AM UTC
 ```
 
 Let's also show a current duty engineer with a reminder:
 
 ```
-/remind #my-channel to "@dienstplan who backend-rota" every Monday, Tuesday, Wednesday, Thursday, Friday at 10AM UTC
+/remind #my-channel to "@dienstplan who my-rota" every Monday, Tuesday, Wednesday, Thursday, Friday at 10AM UTC
 ```
 
 Once the reminder with the rotation command pops up you see a confirmation:
 
 ```
 Slackbot:
-Reminder: @dienstplan rotate backend-rota.
+Reminder: @dienstplan rotate my-rota.
 
 dienstplan:
-Users in rotation backend-rota of channel #my-channel have been rotated
+Users in rotation my-rota of channel #my-channel have been rotated
 ```
 
 When the `who` command pops up you see the current duty user:
 
 ```
 Slackbot:
-Reminder: @dienstplan who backend-rota.
+Reminder: @dienstplan who my-rota.
 
 dienstplan:
-Hey @user2, you are an on-call person for backend-rota rotation.
+Hey @user2, you are an on-call person for my-rota rotation.
 Backend engineer's duties:
 - Process support team questions queue
 - Resolve service alerts
@@ -75,45 +85,35 @@ Commands:
 @dienstplan create <rotation name> <list of users> <duties description>
 ```
 
-2. Rotate: take the next user on the rotation list
+2. Rotate: move current duty to a next user
 ```
 @dienstplan rotate <rotation name>
 ```
 
-3. Show who is duty
+3. Show a current duty
 ```
 @dienstplan who <rotation name>
 ```
 
-4. Delete a rotation
+4. Show details about a rotation
+```
+@dienstplan about <rotation name>
+```
+
+5. Delete a rotation
 ```
 @dienstplan delete <rotation name>
 ```
 
-5. List channel's rotations
+6. List channel's rotations
 ```
 @dienstplan list
 ```
 
-6. Show help message
+7. Show a help message
 ```
 @dienstplan help
 ```
-
-## Dos and Don'ts
-
-### Do
-
-- Automate rotation and showing who's duty with the Slack's [/remind](https://slack.com/resources/using-slack/how-to-use-reminders-in-slack) bot
-- Use channel mention (`#my-channel`, but neither `@channel` nor `@user`) when creating a reminder with the `/remind` command, e.g.:
-
-```
-/remind #my-channel to "@dienstplan rotate backend-rota" in 3 hours
-```
-
-### Don't
-
-- Don't use the bot in direct messages as it only operates on the channel level
 
 
 ## Install

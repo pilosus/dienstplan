@@ -77,6 +77,9 @@
    [{:user-id "U123" :command :delete :rest " backend-rota "}
     {:name "backend-rota"}
     "Delete"]
+   [{:user-id "U123" :command :about :rest " backend-rota "}
+    {:name "backend-rota"}
+    "About"]
    [{:user-id "U123" :command :rotate :rest " backend-rota "}
     {:name "backend-rota"}
     "Rotate"]
@@ -222,6 +225,15 @@
      :command :who
      :args {:name "backend-rota"}}
     "Who command"]
+   [{:params {:event {:text "<@UNX01> about backend-rota"
+                      :ts "1640250011.000100"
+                      :channel "C123"}}}
+    {:context
+     {:ts "1640250011.000100"
+      :channel "C123"}
+     :command :about
+     :args {:name "backend-rota"}}
+    "About command"]
    [{:params {:event {:text "  <@UNX01> who backend-rota"
                       :ts "1640250011.000100"
                       :channel "C123"}}}
@@ -361,6 +373,23 @@
         (with-redefs [db/duty-get (constantly duty)]
           (is (= expected (cmd/command-exec! command))))))))
 
+(def params-command-exec!-about
+  [[{:context {:channel "channel"} :command :about :args {:name "rota"}}
+    [{:created_on "2021-01-01" :description "Test" :users "<U123> <U456> <U789>"}]
+    "Rotation `rota` [2021-01-01] list: <U123> <U456> <U789>.\nTest"
+    "Rota found"]
+   [{:context {:channel "channel"} :command :about :args {:name "non-existent"}}
+    []
+    "Rotation `non-existent` not found in channel <#channel>"
+    "Rota not found"]])
+
+(deftest test-command-exec!-about
+  (testing "Test command-exec! about"
+    (doseq [[command rotation expected description] params-command-exec!-about]
+      (testing description
+        (with-redefs [db/rota-about-get (constantly rotation)]
+          (is (= expected (cmd/command-exec! command))))))))
+
 (def params-command-exec!-delete
   [[{:context {:channel "channel"} :command :delete :args {:name "rota"}}
     [1]
@@ -424,7 +453,11 @@
    [{:context {:channel "channel"} :command :rotate :args {:name "rota"}}
     {:users-count 3 :users-updated 0}
     "Failed to rotate users in rotation `rota` of channel <#channel>"
-    "Failed to rotate users"]])
+    "Failed to rotate users"]
+   [{:context {:channel "channel"} :command :rotate :args {:name "rota"}}
+    {:users-count 0 :users-updated 0}
+    "No users found in rotation `rota` of channel <#channel>"
+    "Not found"]])
 
 (deftest test-command-exec!-rotate
   (testing "Test command-exec! rotate"

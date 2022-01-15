@@ -6,6 +6,12 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
+## [0.2.0] - 2022-01-15
+
+### Added
+- Support for `about` command: `@dienstplan about <rotation name>`
+  ([#19](https://github.com/pilosus/dienstplan/issues/19))
+
 ## [0.1.4] - 2022-01-15
 
 ### Fixed
@@ -58,7 +64,8 @@ file. This change log follows the conventions of
 ### Added
 - Bot app MVP
 
-[Unreleased]: https://github.com/pilosus/dienstplan/compare/0.1.4...HEAD
+[Unreleased]: https://github.com/pilosus/dienstplan/compare/0.2.0...HEAD
+[0.2.0]: https://github.com/pilosus/dienstplan/compare/0.1.4...0.2.0
 [0.1.4]: https://github.com/pilosus/dienstplan/compare/0.1.3...0.1.4
 [0.1.3]: https://github.com/pilosus/dienstplan/compare/0.1.2...0.1.3
 [0.1.2]: https://github.com/pilosus/dienstplan/compare/0.1.1...0.1.2
