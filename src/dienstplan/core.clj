@@ -36,7 +36,7 @@
 (defn wrap-handler
   [handler]
   (fn [request]
-    (let [{:keys [uri]} request
+    (let [{:keys [uri] :or {uri "/"}} request
           request* (bidi/match-route* endpoints/routes uri request)]
       (handler request*))))
 

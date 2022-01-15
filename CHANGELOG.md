@@ -6,6 +6,13 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
+## [0.2.1] - 2022-01-15
+
+### Fixed
+- Default `uri` in request
+  ([#29](https://github.com/pilosus/dienstplan/issues/29))
+- Better logging for 500 error handler
+
 ## [0.2.0] - 2022-01-15
 
 ### Added
@@ -64,7 +71,8 @@ file. This change log follows the conventions of
 ### Added
 - Bot app MVP
 
-[Unreleased]: https://github.com/pilosus/dienstplan/compare/0.2.0...HEAD
+[Unreleased]: https://github.com/pilosus/dienstplan/compare/0.2.1...HEAD
+[0.2.1]: https://github.com/pilosus/dienstplan/compare/0.2.0...0.2.1
 [0.2.0]: https://github.com/pilosus/dienstplan/compare/0.1.4...0.2.0
 [0.1.4]: https://github.com/pilosus/dienstplan/compare/0.1.3...0.1.4
 [0.1.3]: https://github.com/pilosus/dienstplan/compare/0.1.2...0.1.3
