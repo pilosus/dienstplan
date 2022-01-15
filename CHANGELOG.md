@@ -6,6 +6,13 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
+## [0.1.4] - 2022-01-15
+
+### Fixed
+- `team` id in `app_mention` request context is optional to make it
+  compatible with Slack workflow builder
+  ([#26](https://github.com/pilosus/dienstplan/issues/26))
+
 ### Added
 - README badges
 - Envs from 0.1.3 added to `Dockerfile` and Docker Compose's `.env`
@@ -51,7 +58,8 @@ file. This change log follows the conventions of
 ### Added
 - Bot app MVP
 
-[Unreleased]: https://github.com/pilosus/dienstplan/compare/0.1.3...HEAD
+[Unreleased]: https://github.com/pilosus/dienstplan/compare/0.1.4...HEAD
+[0.1.4]: https://github.com/pilosus/dienstplan/compare/0.1.3...0.1.4
 [0.1.3]: https://github.com/pilosus/dienstplan/compare/0.1.2...0.1.3
 [0.1.2]: https://github.com/pilosus/dienstplan/compare/0.1.1...0.1.2
 [0.1.1]: https://github.com/pilosus/dienstplan/compare/0.1.0...0.1.1

@@ -198,11 +198,14 @@ Example:
 (defn get-event-app-mention
   [request]
   (let [event (get-in request [:params :event])
-        {:keys [text team channel ts]} event]
-    {:channel channel
-     :team team
-     :ts ts
-     :text text}))
+        {:keys [text team channel ts]} event
+        context {:channel channel
+                 :team team
+                 :ts ts
+                 :text text}
+        result
+        (into (hash-map) (remove (fn [[_ v]] (nil? v)) context))]
+    result))
 
 (defn get-now-ts
   []
@@ -415,8 +418,9 @@ Example:
 (defn get-command-map
   "Get parsed command map from app_mention request"
   [request]
-  (let [{:keys [text channel team ts]} (get-event-app-mention request)
-        context {:channel channel :team team :ts ts}
+  (let [app-mention (get-event-app-mention request)
+        text (:text app-mention)
+        context (dissoc app-mention :text)
         parsed-command (parse-app-mention text)
         {:keys [command]} parsed-command
         {:keys [spec help]} (get commands->data command)
