@@ -6,6 +6,14 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
+## [0.2.2] - 2022-01-16
+
+### Removed
+- `ENV` instructions removed from the `Dockerfile` to make sure
+  default config values are used if an env is not provided. Use
+  `docker run -e YOUR_ENV=YOUR_VAL` to explicitly pass in envs to the
+  app in container ([#32](https://github.com/pilosus/dienstplan/issues/32))
+
 ## [0.2.1] - 2022-01-15
 
 ### Fixed
@@ -71,7 +79,8 @@ file. This change log follows the conventions of
 ### Added
 - Bot app MVP
 
-[Unreleased]: https://github.com/pilosus/dienstplan/compare/0.2.1...HEAD
+[Unreleased]: https://github.com/pilosus/dienstplan/compare/0.2.2...HEAD
+[0.2.2]: https://github.com/pilosus/dienstplan/compare/0.2.1...0.2.2
 [0.2.1]: https://github.com/pilosus/dienstplan/compare/0.2.0...0.2.1
 [0.2.0]: https://github.com/pilosus/dienstplan/compare/0.1.4...0.2.0
 [0.1.4]: https://github.com/pilosus/dienstplan/compare/0.1.3...0.1.4
