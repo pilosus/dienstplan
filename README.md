@@ -15,7 +15,7 @@ Slack bot for duty rotations.
 
 ## Usage example
 
-[![screencast](https://blog.pilosus.org/images/dienstplan.gif "Watch the screencast")](https://youtu.be/pZWJYpsT1_w)
+[![screencast](https://blog.pilosus.org/images/dienstplan.gif "Watch the screencast on YouTube")](https://youtu.be/pZWJYpsT1_w)
 
 Let's create a rotation using `dienstplan`. Just pass in a `create`
 command followed by a rotation name, a list of the channel users in a
@@ -31,14 +31,15 @@ On-call engineer's duties:
  Follow the boy scout rule: always leave the campground cleaner than you found it
 ```
 
-Once the rota is set up, a first user in the list becomes a current
+Once the rota is set up, the first user in the list becomes a current
 on-call person. Check it with a `who` command:
 
 ```
 @dienstplan who my-rota
 ```
 
-To change current on-call person to the next one use `rotate` command:
+To change the current on-call person to the next one use `rotate`
+command:
 
 ```
 @dienstplan rotate my-rota
@@ -51,8 +52,8 @@ The bot iterates over the users in the list order:
 ```
 
 Now that you know the basics, let's automate rotation and current duty
-notifications with the Slack's built-in `/remind` command. First, set
-up a reminder to rotate users weekly:
+notifications with Slack's built-in `/remind` command. First, set up a
+reminder to rotate users weekly:
 
 ```
 /remind #my-channel to "@dienstplan rotate my-rota" every Monday at 9AM UTC
