@@ -175,6 +175,13 @@
                     (update %2 :duty (constantly false))) users)))]
     result))
 
+(defn get-duty-user-name
+  [users]
+  (->> users
+       (filter #(= (:duty %) true))
+       first
+       :user))
+
 (defn rotate-duty!
   [channel rotation ts]
   (jdbc/with-db-transaction [conn db]
@@ -200,6 +207,8 @@
          channel rotation]))
       users-count (count users)
       rotated (rotate-users users)
+      prev-duty (get-duty-user-name users)
+      current-duty (get-duty-user-name rotated)
       rota_id (first users)
       users-updated
       (reduce
@@ -218,4 +227,7 @@
          conn :rota
          {:updated_on ts}
          ["id = ?" (:rota_id rota_id)]))]
-      {:users-count users-count :users-updated users-updated})))
+      {:users-count users-count
+       :users-updated users-updated
+       :prev-duty prev-duty
+       :current-duty current-duty})))

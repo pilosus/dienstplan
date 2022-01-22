@@ -61,11 +61,13 @@
 
 ;; Basics
 
+(s/def ::map map?)
 (s/def ::kw keyword?)
 (s/def ::str string?)
 (s/def ::nillable-str (s/nilable ::str))
 (s/def ::non-empty-str (s/and ::str not-empty))
 (s/def ::boolean-str (s/and #{"true" "false"} ::->bool))
+(s/def ::boolean boolean?)
 
 ;; Domain-related
 (def timeout-max-ms (* 65535 1000))
@@ -74,6 +76,8 @@
 (s/def ::ephemeral-port (s/and ::->int (s/int-in 1024 (inc 65535))))
 (s/def ::pool-size (s/and ::->int (s/int-in 1 (inc pool-size-max))))
 (s/def ::timeout (s/and ::->int (s/int-in 1000 (inc timeout-max-ms))))
+(s/def ::http-status-code (s/and ::->int (s/int-in 100 (inc 599))))
+(s/def ::http-method #{:get :post :delete :put :patch :head})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Application Configuration ;;
@@ -231,3 +235,40 @@
    :req-un
    [:bot-response/channel
     :bot-response/text]))
+
+;;;;;;;;;;;;;;;;;;;;
+;; Function specs ;;
+;;;;;;;;;;;;;;;;;;;;
+
+(s/def :http-raw-response/body ::str)
+(s/def :http-raw-response/status ::http-status-code)
+
+(s/def ::http-raw-response
+  (s/keys
+   :req-un
+   [:http-raw-response/body
+    :http-raw-response/status]))
+
+(s/def :http-parsed-response/ok? ::boolean)
+(s/def :http-parsed-response/status ::http-status-code)
+(s/def :http-parsed-response/data (s/nilable ::map))
+
+(s/def ::http-parsed-response
+  (s/keys
+   :req-un
+   [:http-parsed-response/ok?]
+   :opt-un
+   [:http-parsed-response/status
+    :http-parsed-response/data]))
+
+(s/def :slack-api-request/method ::http-method)
+(s/def :slack-api-request/body ::map)
+(s/def :slack-api-request/query-params ::map)
+
+(s/def ::slack-api-request
+  (s/keys
+   :req-un
+   [:slack-api-request/method]
+   :opt-un
+   [:slack-api-request/body
+    :slack-api-request/query-params]))
