@@ -76,7 +76,8 @@
 (s/def ::ephemeral-port (s/and ::->int (s/int-in 1024 (inc 65535))))
 (s/def ::pool-size (s/and ::->int (s/int-in 1 (inc pool-size-max))))
 (s/def ::timeout (s/and ::->int (s/int-in 1000 (inc timeout-max-ms))))
-(s/def ::http-status-code (s/and ::->int (s/int-in 100 (inc 599))))
+
+(s/def ::http-status-code (s/int-in 100 (inc 599)))
 (s/def ::http-method #{:get :post :delete :put :patch :head})
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -246,8 +247,9 @@
 (s/def ::http-raw-response
   (s/keys
    :req-un
-   [:http-raw-response/body
-    :http-raw-response/status]))
+   [:http-raw-response/status]
+   :opt-un
+   [:http-raw-response/body]))
 
 (s/def :http-parsed-response/ok? ::boolean)
 (s/def :http-parsed-response/status ::http-status-code)
@@ -261,7 +263,7 @@
    [:http-parsed-response/status
     :http-parsed-response/data]))
 
-(s/def :slack-api-request/method ::http-method)
+(s/def :slack-api-request/method ::kw)
 (s/def :slack-api-request/body ::map)
 (s/def :slack-api-request/query-params ::map)
 

@@ -20,8 +20,8 @@
    [dienstplan.slack :as slack]
    [clj-http.client :as http]))
 
-;;(instrument `slack/parse-http-response)
-;;(instrument `slack/slack-api-request)
+(instrument `slack/parse-http-response)
+(instrument `slack/slack-api-request)
 
 (def params-get-user-real-name
   [["<@U123>" {:data {"user" {"real_name" "user1"}}} "user1" "Real name found"]

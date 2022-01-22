@@ -33,13 +33,10 @@
    :socket-timeout 1000
    :connection-timeout 1000})
 
-(def AUTH-TOKEN
-  (format "Bearer %s" (get-in config [:slack :token])))
-
 ;; Helpers
 
 (defn get-headers
-  ([] {"Authorization" AUTH-TOKEN})
+  ([] {"Authorization" (format "Bearer %s" (get-in config [:slack :token]))})
   ([headers] (merge (get-headers) headers)))
 
 (defn get-params
@@ -47,7 +44,7 @@
   ([params] (merge (get-params) params)))
 
 (s/fdef parse-http-response
-  :args (s/coll-of ::spec/http-raw-response)
+  :args (s/cat :response-raw ::spec/http-raw-response)
   :ret ::spec/http-parsed-response)
 
 (defn parse-http-response
@@ -70,7 +67,7 @@
                   method-str (string/upper-case (name method))
                   _ (log/error
                      (format "Request %s %s failed: %s" method-str url data))
-                  result {:status status :ok? false :data nil}]
+                  result {:status status :ok? false}]
               result)))
         response-parsed (parse-http-response response-raw)]
     response-parsed))
@@ -78,7 +75,7 @@
 ;; Slack API methods
 
 (s/fdef slack-api-request
-  :args (s/coll-of ::spec/slack-api-request)
+  :args (s/cat :slack-request ::spec/slack-api-request)
   :ret ::spec/http-parsed-response)
 
 (defmulti slack-api-request
