@@ -425,7 +425,7 @@ Example:
         _ (log/info
            (format "Updated %s/%s for rotation %s of channel %s"
                    users-updated users-count rotation channel))
-        duties (map slack/get-user-real-name [prev-duty current-duty])
+        duties (map slack/get-user-name [prev-duty current-duty])
         text
         (cond
           (= users-count 0)

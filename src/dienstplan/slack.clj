@@ -110,7 +110,7 @@
 
 ;; Business layer
 
-(defn get-user-real-name
+(defn get-user-name
   [mention]
   (let [mention-str (or mention "malformed-user-id")
         user-id (string/replace mention-str #"\<@([A-Z0-9]+)\>" "$1")
@@ -118,6 +118,8 @@
         (slack-api-request
          {:method :users.info
           :query-params {"user" user-id}})
-        real-name (get-in data ["user" "real_name"])
-        result (if (string/blank? real-name) mention-str real-name)]
+        display-name (get-in data ["user" "profile" "display_name"])
+        real-name (get-in data ["user" "profile" "real_name"])
+        names [display-name real-name mention-str]
+        result (first (remove string/blank? names))]
     result))

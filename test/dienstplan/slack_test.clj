@@ -23,7 +23,7 @@
 (instrument `slack/parse-http-response)
 (instrument `slack/slack-api-request)
 
-(def params-get-user-real-name
+(def params-get-user-name
   [["<@U123>" {:data {"user" {"real_name" "user1"}}} "user1" "Real name found"]
    ["<@U123>" {:data {"user" {"real_name" ""}}} "<@U123>" "Real name is empty string"]
    ["<@U123>" {:data {"user" {"real_name" nil}}} "<@U123>" "Real name is nil"]
@@ -31,12 +31,12 @@
    ["malformed" {:data {"user" {"something" "test"}}} "malformed" "Use mention as it is"]
    [nil {:data {"user" {"something" "test"}}} "malformed-user-id" "Mention is nil"]])
 
-(deftest test-get-user-real-name
-  (testing "Get user real name"
-    (doseq [[mention slack-response expected description] params-get-user-real-name]
+(deftest test-get-user-name
+  (testing "Get user name"
+    (doseq [[mention slack-response expected description] params-get-user-name]
       (testing description
         (with-redefs [slack/slack-api-request (constantly slack-response)]
-          (is (= expected (slack/get-user-real-name mention))))))))
+          (is (= expected (slack/get-user-name mention))))))))
 
 (def params-slack-api-request
   [[{:method :no-such-method}

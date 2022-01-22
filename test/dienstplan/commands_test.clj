@@ -464,7 +464,7 @@
   (testing "Test command-exec! rotate"
     (doseq [[command rotation expected description] params-command-exec!-rotate]
       (testing description
-        (with-redefs [slack/get-user-real-name (constantly "Mr.User")
+        (with-redefs [slack/get-user-name (constantly "Mr.User")
                       db/rotate-duty! (constantly rotation)]
           (is (= expected (cmd/command-exec! command))))))))
 
