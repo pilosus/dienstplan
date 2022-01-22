@@ -24,9 +24,10 @@
 (instrument `slack/slack-api-request)
 
 (def params-get-user-name
-  [["<@U123>" {:data {"user" {"real_name" "user1"}}} "user1" "Real name found"]
-   ["<@U123>" {:data {"user" {"real_name" ""}}} "<@U123>" "Real name is empty string"]
-   ["<@U123>" {:data {"user" {"real_name" nil}}} "<@U123>" "Real name is nil"]
+  [["<@U123>" {:data {"user" {"profile" {"display_name" "mr. user" "real_name" "user1"}}}} "mr. user" "Display name has priority"]
+   ["<@U123>" {:data {"user" {"profile" {"real_name" "user1"}}}} "user1" "Real name found"]
+   ["<@U123>" {:data {"user" {"profile" {"real_name" ""}}}} "<@U123>" "Real name is empty string"]
+   ["<@U123>" {:data {"user" {"profile" {"real_name" nil}}}} "<@U123>" "Real name is nil"]
    ["<@U123>" {:data {"user" {"something" "test"}}} "<@U123>" "Real name is absent"]
    ["malformed" {:data {"user" {"something" "test"}}} "malformed" "Use mention as it is"]
    [nil {:data {"user" {"something" "test"}}} "malformed-user-id" "Mention is nil"]])
@@ -47,11 +48,11 @@
     (constantly {:status 200 :body "{\"ok\": true, \"user\": {\"real_name\": \"me\"}}"})
     {:ok? true :status 200 :data {"ok" true, "user" {"real_name" "me"}}}
     "users.info ok"]
-   [{:method :chat.postMessage :body {"text" "something"}}
+   [{:method :chat.postMessage :body "{\"text\": \"something\"}"}
     (constantly {:status 201 :body "{}"})
     {:ok? false :status 201 :data {}}
     "chat.postMessage not ok"]
-   [{:method :chat.postMessage :body {"text" "something"}}
+   [{:method :chat.postMessage :body "{\"text\": \"something\"}"}
     (fn [& _]
       (throw (ex-info "Boom!" {:status 500 :body "<html><title>Boom!</title></html>"})))
     {:ok? false :status 500 :data nil}

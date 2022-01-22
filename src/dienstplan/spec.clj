@@ -264,7 +264,7 @@
     :http-parsed-response/data]))
 
 (s/def :slack-api-request/method ::kw)
-(s/def :slack-api-request/body ::map)
+(s/def :slack-api-request/body ::str)
 (s/def :slack-api-request/query-params ::map)
 
 (s/def ::slack-api-request
