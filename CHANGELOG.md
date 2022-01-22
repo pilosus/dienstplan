@@ -6,6 +6,13 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
+## [0.2.3] - 2022-01-23
+
+### Added
+- Verbosity to `rotate` command added so that previous and current
+  on-call persons are displayed
+  ([#35](https://github.com/pilosus/dienstplan/issues/35))
+
 ## [0.2.2] - 2022-01-16
 
 ### Removed
@@ -79,7 +86,8 @@ file. This change log follows the conventions of
 ### Added
 - Bot app MVP
 
-[Unreleased]: https://github.com/pilosus/dienstplan/compare/0.2.2...HEAD
+[Unreleased]: https://github.com/pilosus/dienstplan/compare/0.2.3...HEAD
+[0.2.3]: https://github.com/pilosus/dienstplan/compare/0.2.2...0.2.3
 [0.2.2]: https://github.com/pilosus/dienstplan/compare/0.2.1...0.2.2
 [0.2.1]: https://github.com/pilosus/dienstplan/compare/0.2.0...0.2.1
 [0.2.0]: https://github.com/pilosus/dienstplan/compare/0.1.4...0.2.0

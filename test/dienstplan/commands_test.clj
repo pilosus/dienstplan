@@ -18,6 +18,7 @@
    [clojure.test :refer [deftest is testing]]
    [dienstplan.commands :as cmd]
    [dienstplan.db :as db]
+   [dienstplan.slack :as slack]
    [clj-http.client :as http]))
 
 (def params-parse-app-mention
@@ -448,7 +449,7 @@
 (def params-command-exec!-rotate
   [[{:context {:channel "channel"} :command :rotate :args {:name "rota"}}
     {:users-count 3 :users-updated 3}
-    "Users in rotation `rota` of channel <#channel> have been rotated"
+    "Users in rotation `rota` of channel <#channel> have been rotated from Mr.User to Mr.User"
     "Rotated"]
    [{:context {:channel "channel"} :command :rotate :args {:name "rota"}}
     {:users-count 3 :users-updated 0}
@@ -463,7 +464,8 @@
   (testing "Test command-exec! rotate"
     (doseq [[command rotation expected description] params-command-exec!-rotate]
       (testing description
-        (with-redefs [db/rotate-duty! (constantly rotation)]
+        (with-redefs [slack/get-user-name (constantly "Mr.User")
+                      db/rotate-duty! (constantly rotation)]
           (is (= expected (cmd/command-exec! command))))))))
 
 (def params-command-exec!-default

@@ -104,3 +104,27 @@
     (doseq [[users expected description] params-rotate-users]
       (testing description
         (is (= expected (db/rotate-users users)))))))
+
+(def params-get-duty-user-name
+  [[[{:id 12, :rota_id 10, :user "a", :duty false}
+     {:id 14, :rota_id 10, :user "b", :duty false}
+     {:id 15, :rota_id 10, :user "c", :duty false}
+     {:id 16, :rota_id 10, :user "d", :duty true}
+     {:id 17, :rota_id 10, :user "e", :duty false}
+     {:id 20, :rota_id 10, :user "f", :duty false}
+     {:id 22, :rota_id 10, :user "g", :duty false}]
+    "d"
+    "Normal user list"]
+   [[] nil "Empty user list"]
+   [[{:id 15, :rota_id 10, :user "c", :duty false}
+     {:id 16, :rota_id 10, :user "d", :duty true}
+     {:id 17, :rota_id 10, :user "e", :duty false}
+     {:id 18, :rota_id 10, :user "f", :duty true}]
+    "d"
+    "Get the first duty in the list wit multiple duty users"]])
+
+(deftest test-get-duty-user-name
+  (testing "Get duty user name"
+    (doseq [[users expected description] params-get-duty-user-name]
+      (testing description
+        (is (= expected (db/get-duty-user-name users)))))))

@@ -17,18 +17,14 @@
   (:gen-class)
   (:require
    [cheshire.core :as json]
-   [clj-http.client :as http]
    [clojure.spec.alpha :as s]
-   [clojure.string :as str]
+   [clojure.string :as string]
    [clojure.tools.logging :as log]
-   [dienstplan.config :refer [config]]
    [dienstplan.db :as db]
+   [dienstplan.slack :as slack]
    [dienstplan.spec :as spec]))
 
 ;; Const
-
-(def slack-api-post-msg
-  "https://slack.com/api/chat.postMessage")
 
 (def help-msg
   "To start interacting with the bot, mention its username, provide a command and options as follows:
@@ -182,7 +178,7 @@ Example:
 
 (defn nilify
   [s]
-  (if (str/blank? s) nil s))
+  (if (string/blank? s) nil s))
 
 (defn stringify
   [s]
@@ -192,15 +188,15 @@ Example:
   "Trim a string with extra three whitespace chars unsupported by Java regex"
   [s]
   (-> s
-      (str/replace #"^[\u00A0|\u2007|\u202F|\s|\.]*" "")
-      (str/replace #"[\u00A0|\u2007|\u202F|\s|\.]*$" "")))
+      (string/replace #"^[\u00A0|\u2007|\u202F|\s|\.]*" "")
+      (string/replace #"[\u00A0|\u2007|\u202F|\s|\.]*$" "")))
 
 (defn text-trim
   ""
   [s]
   (-> s
-      (str/replace #"[,!?\-\.]*$" "")
-      str/trim))
+      (string/replace #"[,!?\-\.]*$" "")
+      string/trim))
 
 (defn slack-mention-channel
   "Make channel name formatted for Slack API"
@@ -256,7 +252,7 @@ Example:
         (->>
          raw-text
          stringify
-         str/trim)
+         string/trim)
         users (re-seq regex-user-mention text)
         result (if users (map #(second %) users) nil)]
     result))
@@ -268,7 +264,7 @@ Example:
   (->>
    (get app-mention :rest)
    stringify
-   str/trim))
+   string/trim))
 
 (defmulti parse-args
   "Parse command arguments for app mention"
@@ -276,7 +272,7 @@ Example:
 
 (defmethod parse-args :create [app-mention]
   (let [args (get-command-args app-mention)
-        splitted (str/split args regex-user-mention)
+        splitted (string/split args regex-user-mention)
         name (->
               (first splitted)
               str-trim)
@@ -413,7 +409,7 @@ Example:
         (->>
          rotations
          (map #(format "- `%s` [%s]" (:name %) (:created_on %)))
-         (str/join \newline)
+         (string/join \newline)
          nilify)
         text
         (if rota-list
@@ -424,19 +420,21 @@ Example:
 (defmethod command-exec! :rotate [command-map]
   (let [{:keys [channel rotation]} (get-channel-rotation command-map)
         channel-formatted (slack-mention-channel channel)
-        {:keys [users-count users-updated]}
+        {:keys [users-count users-updated prev-duty current-duty]}
         (db/rotate-duty! channel rotation (get-now-ts))
         _ (log/info
            (format "Updated %s/%s for rotation %s of channel %s"
                    users-updated users-count rotation channel))
+        duties (map slack/get-user-name [prev-duty current-duty])
         text
         (cond
           (= users-count 0)
           (format "No users found in rotation `%s` of channel %s"
                   rotation channel-formatted)
           (= users-count users-updated)
-          (format "Users in rotation `%s` of channel %s have been rotated"
-                  rotation channel-formatted)
+          (format
+           "Users in rotation `%s` of channel %s have been rotated from %s to %s"
+           rotation channel-formatted (first duties) (second duties))
           :else
           (format "Failed to rotate users in rotation `%s` of channel %s"
                   rotation channel-formatted))]
@@ -480,30 +478,13 @@ Example:
         response {:channel channel :text text}]
     response))
 
-;; TODO create a mount http connection pool
-;; https://github.com/dakrone/clj-http#persistent-connections
 (defn send-command-response
   [request]
   (let [body-map (get-command-response request)
-        body-json (json/generate-string body-map)
-        token (str "Bearer " (get-in config [:slack :token]))
-        params
-        {:headers
-         {"Authorization" token
-          "Content-type" "application/json; charset=utf-8"}
-         :body body-json
-         :max-redirects 2
-         :socket-timeout 1000 ;; ms
-         :connection-timeout 1000}
-        response-raw (http/post slack-api-post-msg params)
-        response-body (:body response-raw)
-        response-status (:status response-raw)
-        response-data (json/parse-string response-body)
-        response-ok? (get response-data "ok")
-        log-level (if response-ok? :debug :error)
-        log-msg
-        (format
-         "Post message to Slack: status %s body %s"
-         response-status response-data)
+        body (json/generate-string body-map)
+        {:keys [ok? status data]}
+        (slack/slack-api-request {:method :chat.postMessage :body body})
+        log-level (if ok? :debug :error)
+        log-msg (format "Post message to Slack: status %s body %s" status data)
         _ (log/log log-level log-msg)]
     body-map))
