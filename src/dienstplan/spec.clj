@@ -354,7 +354,8 @@
     [:args-parsed/name]
     :opt-un
     [:args-parsed/users
-     :args-parsed/description])))
+     :args-parsed/description
+     :args-parsed/user])))
 
 ;; TODO the spec is too complex,
 ;; command-map functions need to be simplified

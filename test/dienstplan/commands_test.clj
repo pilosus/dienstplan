@@ -481,11 +481,11 @@
           (is (= expected (cmd/command-exec! command))))))))
 
 (def params-command-exec!-assign
-  [[{:context {:channel "channel"} :command :assign :args {:name "rota" :user "<@U123>"}}
+  [[{:context {:channel "channel" :ts "1640250011.000100"} :command :assign :args {:name "rota" :user "<@U123>"}}
     :user-not-found
     "User <@U123> is not found in rotation `rota` of channel <#channel>"
     "User not found"]
-   [{:context {:channel "channel"} :command :assign :args {:name "rota" :user "<@U123>"}}
+   [{:context {:channel "channel" :ts "1640250011.000100"} :command :assign :args {:name "rota" :user "<@U123>"}}
     [{:id 1 :user "<@U123>" :duty true}]
     "Assigned user <@U123> in rotation `rota` of channel <#channel>"
     "Assigned"]
