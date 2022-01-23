@@ -77,5 +77,5 @@
       (testing description
         (with-redefs [verify/request-verified? (constantly verified?)
                       cfg/config (constantly app-config)
-                      cmd/send-command-response (constantly command-response)]
+                      cmd/send-command-response! (constantly command-response)]
           (is (= expected (e/multi-handler request))))))))

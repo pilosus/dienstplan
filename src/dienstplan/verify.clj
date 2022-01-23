@@ -21,7 +21,9 @@
   (:require
    [buddy.core.codecs :as codecs]
    [buddy.core.mac :as mac]
-   [clojure.tools.logging :as log]))
+   [clojure.spec.alpha :as s]
+   [clojure.tools.logging :as log]
+   [dienstplan.spec :as spec]))
 
 (def VERSION "v0")
 (def REPLAY_ATTACK_THRESHOLD_SECONDS (* 60 5))
@@ -35,6 +37,10 @@
                  (codecs/bytes->hex))
         signature (format "%s=%s" VERSION hmac)]
     signature))
+
+(s/fdef request-verified?
+  :args (s/cat :request ::spec/request :sig-key ::spec/str)
+  :ret ::spec/boolean)
 
 (defn request-verified?
   [request sig-key]

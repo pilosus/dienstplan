@@ -16,12 +16,22 @@
 (ns dienstplan.commands-test
   (:require
    [clojure.test :refer [deftest is testing]]
+   [clojure.spec.test.alpha :refer [instrument]]
    [dienstplan.commands :as cmd]
    [dienstplan.db :as db]
    [dienstplan.slack :as slack]
    [clj-http.client :as http]))
 
-(def params-parse-app-mention
+(instrument `cmd/get-request-context-with-text)
+(instrument `cmd/parse-command)
+(instrument `cmd/get-command-args)
+(instrument `cmd/parse-args)
+(instrument `cmd/get-command-map)
+(instrument `cmd/get-command-response)
+(instrument `cmd/send-command-response!)
+(instrument `cmd/command-exec!)
+
+(def params-parse-command
   [["this is a text" nil "No command found"]
    ["<@U02HXENLLPN> create backend-rota <@U1KF3FG75> <@U01NT7XLST0> <@U01P02NDVSN>\nOn-call backend engineer's duty \n- Check <#C02PJGR5LLB>\n- Check Sentry alerts\n- Check Grafana metrics"
     {:command :create :rest "backend-rota <@U1KF3FG75> <@U01NT7XLST0> <@U01P02NDVSN>\nOn-call backend engineer's duty \n- Check <#C02PJGR5LLB>\n- Check Sentry alerts\n- Check Grafana metrics"}
@@ -39,11 +49,11 @@
    [" command args" nil "No user id specified"]
    [nil nil "nil text"]])
 
-(deftest test-parse-app-mention
-  (testing "Parse app mention text response"
-    (doseq [[text expected description] params-parse-app-mention]
+(deftest test-parse-command
+  (testing "Parse command from app mention response"
+    (doseq [[text expected description] params-parse-command]
       (testing description
-        (is (= expected (cmd/parse-app-mention text)))))))
+        (is (= expected (cmd/parse-command text)))))))
 
 (def params-get-user-mentions
   [["single user <@U123> mentioned"
@@ -188,7 +198,7 @@
   (testing "Get valuable params from the app_mention slack bot request"
     (doseq [[request expected description] params-get-event-app-mention]
       (testing description
-        (is (= expected (cmd/get-event-app-mention request)))))))
+        (is (= expected (cmd/get-request-context-with-text request)))))))
 
 (def params-test-get-command
   [[request-app-mention
@@ -265,18 +275,6 @@
       :channel "C123"}
      :error cmd/help-msg}
     "Unrecognized command"]
-   [{:params {:event {:text "<@UNX01> create name <@U123> <@U456> desc"
-                      :team "T123"
-                      :channel "C123"}}}
-    {:context
-     {:team "T123"
-      :channel "C123"}
-     :command :create
-     :args {:name "name"
-            :users ["<@U123>" "<@U456>"]
-            :description "desc"}
-     :error cmd/help-cmd-create}
-    "Failed spec: wrong context keys"]
    [{:params {:event {:text "  <@UNX01> who"
                       :ts "1640250011.000100"
                       :team "T123"
@@ -322,7 +320,7 @@
     (doseq [[request expected description] params-test-get-command]
       (testing description
         (with-redefs [cmd/command-exec! (constantly "okay")
-                      http/post (constantly {:status 200 :body "{\"ok\": true}"})]
+                      http/request (constantly {:status 200 :body "{\"ok\": true}"})]
           (let [expected' (if (:error expected)
                             {:channel (get-in expected [:context :channel])
                              :text (:error expected)}
@@ -332,7 +330,7 @@
               (is (= expected'
                      (cmd/get-command-response request)))
               (is (= expected'
-                     (cmd/send-command-response request))))))))))
+                     (cmd/send-command-response! request))))))))))
 
 (def params-slack-mention-channel
   [["C123" "<#C123>" "Make channel name mentionable"]
@@ -358,11 +356,11 @@
         (is (= expected (cmd/users->mention-table-rows users)))))))
 
 (def params-command-exec!-who
-  [[{:context {:channel "channel"} :command :who :args {:name "rota"}}
+  [[{:context {:channel "channel" :ts "1640250011.000100"} :command :who :args {:name "rota"}}
     [{:duty "user1" :description "Do what thou wilt shall be the whole of the Law"}]
     "Hey user1, you are an on-call person for `rota` rotation.\nDo what thou wilt shall be the whole of the Law"
     "Rota found"]
-   [{:context {:channel "channel"} :command :who :args {:name "rota"}}
+   [{:context {:channel "channel" :ts "1640250011.000100"} :command :who :args {:name "rota"}}
     []
     "Rotation `rota` not found in channel <#channel>"
     "Rota not found"]])
@@ -375,11 +373,11 @@
           (is (= expected (cmd/command-exec! command))))))))
 
 (def params-command-exec!-about
-  [[{:context {:channel "channel"} :command :about :args {:name "rota"}}
+  [[{:context {:channel "channel" :ts "1640250011.000100"} :command :about :args {:name "rota"}}
     [{:created_on "2021-01-01" :description "Test" :users "<U123> <U456> <U789>"}]
     "Rotation `rota` [2021-01-01] list: <U123> <U456> <U789>.\nTest"
     "Rota found"]
-   [{:context {:channel "channel"} :command :about :args {:name "non-existent"}}
+   [{:context {:channel "channel" :ts "1640250011.000100"} :command :about :args {:name "non-existent"}}
     []
     "Rotation `non-existent` not found in channel <#channel>"
     "Rota not found"]])
@@ -392,11 +390,11 @@
           (is (= expected (cmd/command-exec! command))))))))
 
 (def params-command-exec!-delete
-  [[{:context {:channel "channel"} :command :delete :args {:name "rota"}}
+  [[{:context {:channel "channel" :ts "1640250011.000100"} :command :delete :args {:name "rota"}}
     [1]
     "Rotation `rota` has been deleted"
     "Deleted"]
-   [{:context {:channel "channel"} :command :delete :args {:name "rota"}}
+   [{:context {:channel "channel" :ts "1640250011.000100"} :command :delete :args {:name "rota"}}
     [0]
     "Rotation `rota` not found in channel <#channel>"
     "Rotation not found"]])
@@ -409,15 +407,15 @@
           (is (= expected (cmd/command-exec! command))))))))
 
 (def params-command-exec!-create
-  [[{:context {:channel "channel"} :command :create :args {:name "rota" :description "todo"}}
+  [[{:context {:channel "channel" :ts "1640250011.000100"} :command :create :args {:name "rota" :description "todo"}}
     {}
     "Rotation `rota` for channel <#channel> created successfully"
     "Created"]
-   [{:context {:channel "channel"} :command :create :args {:name "rota" :description "todo"}}
+   [{:context {:channel "channel" :ts "1640250011.000100"} :command :create :args {:name "rota" :description "todo"}}
     {:error {:reason :duplicate}}
     "Rotation `rota` for channel <#channel> already exists"
     "Duplicate"]
-   [{:context {:channel "channel"} :command :create :args {:name "rota" :description "todo"}}
+   [{:context {:channel "channel" :ts "1640250011.000100"} :command :create :args {:name "rota" :description "todo"}}
     {:error {:reason :other :message "Connection to the database closed unexpectedly"}}
     "Cannot create rotation `rota` for channel <#channel>: Connection to the database closed unexpectedly"
     "Other error"]])
@@ -430,11 +428,11 @@
           (is (= expected (cmd/command-exec! command))))))))
 
 (def params-command-exec!-list
-  [[{:context {:channel "channel"} :command :list}
+  [[{:context {:channel "channel" :ts "1640250011.000100"} :command :list}
     [{:name "rota 1" :created_on "2021-01-30"} {:name "rota 2" :created_on "2021-11-15"}]
     "Rotations created in channel <#channel>:\n- `rota 1` [2021-01-30]\n- `rota 2` [2021-11-15]"
     "Rotations found"]
-   [{:context {:channel "channel"} :command :list}
+   [{:context {:channel "channel" :ts "1640250011.000100"} :command :list}
     []
     "No rotations found in channel <#channel>"
     "No rotations found"]])
@@ -447,15 +445,15 @@
           (is (= expected (cmd/command-exec! command))))))))
 
 (def params-command-exec!-rotate
-  [[{:context {:channel "channel"} :command :rotate :args {:name "rota"}}
+  [[{:context {:channel "channel" :ts "1640250011.000100"} :command :rotate :args {:name "rota"}}
     {:users-count 3 :users-updated 3}
     "Users in rotation `rota` of channel <#channel> have been rotated from Mr.User to Mr.User"
     "Rotated"]
-   [{:context {:channel "channel"} :command :rotate :args {:name "rota"}}
+   [{:context {:channel "channel" :ts "1640250011.000100"} :command :rotate :args {:name "rota"}}
     {:users-count 3 :users-updated 0}
     "Failed to rotate users in rotation `rota` of channel <#channel>"
     "Failed to rotate users"]
-   [{:context {:channel "channel"} :command :rotate :args {:name "rota"}}
+   [{:context {:channel "channel" :ts "1640250011.000100"} :command :rotate :args {:name "rota"}}
     {:users-count 0 :users-updated 0}
     "No users found in rotation `rota` of channel <#channel>"
     "Not found"]])
@@ -469,10 +467,10 @@
           (is (= expected (cmd/command-exec! command))))))))
 
 (def params-command-exec!-default
-  [[{:context {:channel "channel"} :command :help}
+  [[{:context {:channel "channel" :ts "1640250011.000100"} :command :help}
     cmd/help-msg
     "Help command"]
-   [{:context {:channel "channel"} :command :whatever :args {:name "rota"}}
+   [{:context {:channel "channel" :ts "1640250011.000100"} :command :whatever :args {:name "rota"}}
     cmd/help-msg
     "Whatever command"]])
 

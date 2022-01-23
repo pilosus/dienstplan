@@ -16,7 +16,10 @@
 (ns dienstplan.verify-test
   (:require
    [clojure.test :refer [deftest is testing]]
+   [clojure.spec.test.alpha :refer [instrument]]
    [dienstplan.verify :as verify]))
+
+(instrument `verify/request-verified?)
 
 (def RAW-BODY "request-body")
 
