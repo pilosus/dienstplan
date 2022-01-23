@@ -189,7 +189,7 @@
               1 = 1
               AND r.channel = ?
               AND r.name = ?
-            ORDER BY r.id ASC
+            ORDER BY m.id ASC
             FOR UPDATE"
          channel rotation]))
       users-count (count users)
