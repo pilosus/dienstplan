@@ -129,6 +129,26 @@
      GROUP BY created_on, r.description"
     channel rotation]))
 
+(defn rota-get [conn channel rotation]
+  (into
+    []
+    (jdbc/query
+      conn
+      ["SELECT
+              m.id,
+              m.rota_id,
+              m.name AS user,
+              m.duty
+            FROM rota AS r
+            JOIN mention AS m ON r.id = m.rota_id
+            WHERE
+              1 = 1
+              AND r.channel = ?
+              AND r.name = ?
+            ORDER BY m.id ASC
+            FOR UPDATE"
+       channel rotation])))
+
 (defn rota-delete!
   [channel rotation]
   (jdbc/delete! db :rota ["channel = ? AND name = ?" channel rotation]))
@@ -152,15 +172,25 @@
                 error)))]
       result)))
 
+(defn- assign
+  [users next-duty]
+  (if (not (some #{next-duty} users))
+    :user-not-found
+    (mapv #(assoc % :duty (= % next-duty)) users)))
+
 (defn rotate-users
   [users]
   (let [current-duty (first (filter #(:duty %) users))]
     (if (not current-duty)
       users
       (let [current-duty-idx (.indexOf users current-duty)
-            next-duty-idx (mod (+ current-duty-idx 1) (count users))
-            users (mapv #(assoc % :duty false) users)]
-        (assoc-in users [next-duty-idx :duty] true)))))
+            next-duty-idx (mod (+ current-duty-idx 1) (count users))]
+        (assign users (nth users next-duty-idx))))))
+
+(defn assign-user
+  [users name]
+  (let [next-duty (first (filter #(= (:user %) name) users))]
+    (assign users next-duty)))
 
 (defn get-duty-user-name
   [users]
@@ -169,52 +199,48 @@
        first
        :user))
 
+(defn- update-users
+  [conn users ts]
+  (let [rota_id (first users)
+        users-updated
+        (reduce
+          +
+          (map
+            (fn [user]
+              (first
+                (jdbc/update!
+                  conn :mention
+                  {:duty (:duty user)}
+                  ["id = ?" (:id user)])))
+            users))
+        _
+        (when rota_id
+          (jdbc/update!
+            conn :rota
+            {:updated_on ts}
+            ["id = ?" (:rota_id rota_id)]))]
+    users-updated))
+
 (defn rotate-duty!
   [channel rotation ts]
   (jdbc/with-db-transaction [conn db]
     (let
-     [users
-      (into
-       []
-       (jdbc/query
-        conn
-        ["SELECT
-              m.id,
-              m.rota_id,
-              m.name AS user,
-              m.duty
-            FROM rota AS r
-            JOIN mention AS m ON r.id = m.rota_id
-            WHERE
-              1 = 1
-              AND r.channel = ?
-              AND r.name = ?
-            ORDER BY m.id ASC
-            FOR UPDATE"
-         channel rotation]))
+     [users (rota-get conn channel rotation)
       users-count (count users)
       rotated (rotate-users users)
       prev-duty (get-duty-user-name users)
       current-duty (get-duty-user-name rotated)
-      rota_id (first users)
-      users-updated
-      (reduce
-       +
-       (map
-        (fn [user]
-          (first
-           (jdbc/update!
-            conn :mention
-            {:duty (:duty user)}
-            ["id = ?" (:id user)])))
-        rotated))
-      _
-      (when rota_id
-        (jdbc/update!
-         conn :rota
-         {:updated_on ts}
-         ["id = ?" (:rota_id rota_id)]))]
+      users-updated (update-users conn rotated ts)]
       {:users-count users-count
        :users-updated users-updated
        :prev-duty prev-duty
        :current-duty current-duty})))
+
+(defn assign!
+  [channel rotation name ts]
+  (jdbc/with-db-transaction [conn db]
+    (let
+      [users (rota-get conn channel rotation)
+       assigned (assign-user users name)
+       _ (update-users conn assigned ts)]
+      assigned)))

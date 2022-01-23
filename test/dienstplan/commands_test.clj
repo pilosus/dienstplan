@@ -94,6 +94,9 @@
    [{:user-id "U123" :command :rotate :rest " backend-rota "}
     {:name "backend-rota"}
     "Rotate"]
+   [{:user-id "U123" :command :assign :rest " backend-rota <@U456>"}
+    {:name "backend-rota" :user "<@U456>"}
+    "Assign"]
    [{:user-id "U123" :command :who :rest " backend-rota "}
     {:name "backend-rota"}
     "Who"]
@@ -307,7 +310,18 @@
       :channel "C123"}
      :command :rotate
      :args {:name "backend-rota"}}
-    "Real life rotate from reminder"]])
+    "Real life rotate from reminder"]
+   [{:params {:event {:text "<@UNX01> assign backend-rota <@U123>"
+                      :ts "1640250011.000100"
+                      :team "T123"
+                      :channel "C123"}}}
+    {:context
+              {:ts "1640250011.000100"
+               :team "T123"
+               :channel "C123"}
+     :command :assign
+     :args {:name "backend-rota" :user "<@U123>"}}
+    "Assign command"]])
 
 (deftest test-get-command
   (testing "Get parsed command map"
@@ -464,6 +478,24 @@
       (testing description
         (with-redefs [slack/get-user-name (constantly "Mr.User")
                       db/rotate-duty! (constantly rotation)]
+          (is (= expected (cmd/command-exec! command))))))))
+
+(def params-command-exec!-assign
+  [[{:context {:channel "channel"} :command :assign :args {:name "rota" :user "<@U123>"}}
+    :user-not-found
+    "User <@U123> is not found in rotation `rota` of channel <#channel>"
+    "User not found"]
+   [{:context {:channel "channel"} :command :assign :args {:name "rota" :user "<@U123>"}}
+    [{:id 1 :user "<@U123>" :duty true}]
+    "Assigned user <@U123> in rotation `rota` of channel <#channel>"
+    "Assigned"]
+   ])
+
+(deftest test-command-exec!-assign
+  (testing "Test command-exec! assign"
+    (doseq [[command assigned expected description] params-command-exec!-assign]
+      (testing description
+        (with-redefs [db/assign! (constantly assigned)]
           (is (= expected (cmd/command-exec! command))))))))
 
 (def params-command-exec!-default
