@@ -238,9 +238,11 @@
 
 (defn assign!
   [channel rotation name ts]
-  (jdbc/with-db-transaction [conn db]
+  (jdbc/with-db-transaction
+    [conn db]
     (let
       [users (rota-get conn channel rotation)
-       assigned (assign-user users name)
-       _ (update-users conn assigned ts)]
+       assigned (assign-user users name)]
+      (if (not= assigned :user-not-found)
+        (update-users conn assigned ts))
       assigned)))
