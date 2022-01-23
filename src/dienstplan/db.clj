@@ -154,26 +154,13 @@
 
 (defn rotate-users
   [users]
-  (let [current-duty-idx
-        (if (empty? users)
-          :empty
-          (->> users
-               (keep-indexed #(if (= (:duty %2) true) %1))
-               first))
-        next-duty-idx
-        (cond
-          (= current-duty-idx :empty) :list-empty
-          (nil? current-duty-idx) :idx-not-found
-          :else (mod (+ current-duty-idx 1) (count users)))
-        result
-        (if (contains? #{:list-empty :idx-not-found} next-duty-idx)
-          users
-          (into []
-                (map-indexed
-                 #(if (= %1 next-duty-idx)
-                    (update %2 :duty (constantly true))
-                    (update %2 :duty (constantly false))) users)))]
-    result))
+  (let [current-duty (first (filter #(:duty %) users))]
+    (if (not current-duty)
+      users
+      (let [current-duty-idx (.indexOf users current-duty)
+            next-duty-idx (mod (+ current-duty-idx 1) (count users))
+            users (mapv #(assoc % :duty false) users)]
+        (assoc-in users [next-duty-idx :duty] true)))))
 
 (defn get-duty-user-name
   [users]
