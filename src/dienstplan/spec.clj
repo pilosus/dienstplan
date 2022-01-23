@@ -64,6 +64,7 @@
 (s/def ::map map?)
 (s/def ::kw keyword?)
 (s/def ::str string?)
+(s/def ::int integer?)
 (s/def ::nillable-str (s/nilable ::str))
 (s/def ::non-empty-str (s/and ::str not-empty))
 (s/def ::boolean-str (s/and #{"true" "false"} ::->bool))
@@ -274,3 +275,96 @@
    :opt-un
    [:slack-api-request/body
     :slack-api-request/query-params]))
+
+;; http request for app mention event
+
+(s/def :request-context/ts ::str)
+(s/def :request-context/text ::str)
+(s/def :request-context/channel ::str)
+(s/def :request-context/team ::nillable-str)
+
+(s/def ::request-context-with-text
+  (s/keys
+   :req-un
+   [:request-params-event/ts
+    :request-params-event/text
+    :request-params-event/channel]
+   :opt-un
+   [:request-params-event/team]))
+
+(s/def ::request-context
+  (s/keys
+   :req-un
+   [:request-params-event/ts
+    :request-params-event/channel]
+   :opt-un
+   [:request-params-event/team]))
+
+(s/def :request-params/event ::request-context-with-text)
+
+(s/def :request/params
+  (s/keys
+   :req-un
+   [:request-params/event]))
+
+(s/def :request/raw-body ::str)
+(s/def :request/headers (s/coll-of (s/tuple ::kw ::str)))
+
+(s/def ::request
+  (s/keys
+   :opt-un
+   [:request/params
+    :request/raw-body
+    :request/headers]))
+
+(s/def ::raw-text ::nillable-str)
+
+(s/def :command-parsed/command (s/nilable ::kw))
+(s/def :command-parsed/rest ::nillable-str)
+
+(s/def ::command-parsed
+  (s/nilable
+   (s/keys
+    :req-un
+    [:command-parsed/command
+     :command-parsed/rest])))
+
+(s/def :args-parsed/name ::str)
+(s/def :args-parsed/users (s/nilable (s/coll-of ::str)))
+(s/def :args-parsed/description ::str)
+
+(s/def ::args-parsed
+  (s/nilable
+   (s/keys
+    :req-un
+    [:args-parsed/name]
+    :opt-un
+    [:args-parsed/users
+     :args-parsed/description])))
+
+;; TODO the spec is too complex,
+;; command-map functions need to be simplified
+
+(s/def :command-map/context ::request-context)
+(s/def :command-map/command (s/nilable ::kw))
+(s/def :command-map/args ::args-parsed)
+(s/def :command-map/error ::str)
+
+(s/def ::command-map
+  (s/nilable
+   (s/keys
+    :req-un
+    [:command-map/context]
+    :opt-un
+    [:command-map/command
+     :command-map/args
+     :command-map/error])))
+
+(s/def ::command-response-text ::nillable-str)
+
+(s/def ::command-response
+  (s/nilable
+   (s/keys
+    :req-un
+    [:request-context/channel
+     ::command-response-text])))

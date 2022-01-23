@@ -205,7 +205,11 @@ Example:
     channel
     (format "<#%s>" channel)))
 
-(defn get-event-app-mention
+(s/fdef get-request-context-with-text
+  :args (s/cat :request ::spec/request)
+  :ret ::spec/request-context-with-text)
+
+(defn get-request-context-with-text
   [request]
   (let [event (get-in request [:params :event])
         {:keys [text team channel ts]} event
@@ -223,8 +227,12 @@ Example:
 
 ;; Parse app mention response
 
-(defn parse-app-mention
-  "Parse text from app_mention response.
+(s/fdef parse-command
+  :args (s/cat :raw-text ::spec/raw-text)
+  :ret ::spec/command-parsed)
+
+(defn parse-command
+  "Parse command from app_mention response.
   Channels, users, and links are expected to be escaped with the angle brakets"
   [raw-text]
   (let [text
@@ -259,19 +267,27 @@ Example:
 
 ;; Parse command arguments
 
+(s/fdef get-command-args
+  :args (s/cat :command-parsed ::spec/command-parsed)
+  :ret ::spec/command-parsed)
+
 (defn get-command-args
-  [app-mention]
+  [command-parsed]
   (->>
-   (get app-mention :rest)
+   (get command-parsed :rest)
    stringify
    string/trim))
 
+(s/fdef parse-args
+  :args (s/cat :command-parsed ::spec/command-parsed)
+  :ret ::spec/args-parsed)
+
 (defmulti parse-args
   "Parse command arguments for app mention"
-  (fn [app-mention] (get app-mention :command)))
+  (fn [command-parsed] (get command-parsed :command)))
 
-(defmethod parse-args :create [app-mention]
-  (let [args (get-command-args app-mention)
+(defmethod parse-args :create [command-parsed]
+  (let [args (get-command-args command-parsed)
         splitted (string/split args regex-user-mention)
         name (->
               (first splitted)
@@ -284,22 +300,22 @@ Example:
 
 (defn- parse-args-default
   "Parse arguments for simple commands in the form: command <name>"
-  [app-mention]
-  (let [name (nilify (get-command-args app-mention))
+  [command-parsed]
+  (let [name (nilify (get-command-args command-parsed))
         result (if name {:name name} nil)]
     result))
 
-(defmethod parse-args :rotate [app-mention]
-  (parse-args-default app-mention))
+(defmethod parse-args :rotate [command-parsed]
+  (parse-args-default command-parsed))
 
-(defmethod parse-args :delete [app-mention]
-  (parse-args-default app-mention))
+(defmethod parse-args :delete [command-parsed]
+  (parse-args-default command-parsed))
 
-(defmethod parse-args :who [app-mention]
-  (parse-args-default app-mention))
+(defmethod parse-args :who [command-parsed]
+  (parse-args-default command-parsed))
 
-(defmethod parse-args :about [app-mention]
-  (parse-args-default app-mention))
+(defmethod parse-args :about [command-parsed]
+  (parse-args-default command-parsed))
 
 (defmethod parse-args :help [_]
   {:description help-msg})
@@ -307,6 +323,10 @@ Example:
 (defmethod parse-args :default [_] nil)
 
 ;; Actions
+
+(s/fdef command-exec!
+  :args (s/cat :command-map ::spec/command-map)
+  :ret ::spec/command-response-text)
 
 (defmulti command-exec!
   "Execute the command"
@@ -444,13 +464,17 @@ Example:
 
 ;; Entry point
 
+(s/fdef get-command-map
+  :args (s/cat :request ::spec/request)
+  :ret ::spec/command-map)
+
 (defn get-command-map
   "Get parsed command map from app_mention request"
   [request]
-  (let [app-mention (get-event-app-mention request)
-        text (:text app-mention)
-        context (dissoc app-mention :text)
-        parsed-command (parse-app-mention text)
+  (let [request-context-with-text (get-request-context-with-text request)
+        text (:text request-context-with-text)
+        context (dissoc request-context-with-text :text)
+        parsed-command (parse-command text)
         {:keys [command]} parsed-command
         {:keys [spec help]} (get commands->data command)
         args (parse-args parsed-command)
@@ -467,6 +491,10 @@ Example:
           :else command-map)]
     result))
 
+(s/fdef get-command-response
+  :args (s/cat :request ::spec/request)
+  :ret ::spec/command-response)
+
 (defn get-command-response
   "Get response for app mention request"
   [request]
@@ -478,7 +506,11 @@ Example:
         response {:channel channel :text text}]
     response))
 
-(defn send-command-response
+(s/fdef send-command-response!
+  :args (s/cat :request ::spec/request)
+  :ret ::spec/command-response)
+
+(defn send-command-response!
   [request]
   (let [body-map (get-command-response request)
         body (json/generate-string body-map)

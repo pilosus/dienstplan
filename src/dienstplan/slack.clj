@@ -106,7 +106,7 @@
 
 (defmethod slack-api-request
   :default [_]
-  {:ok? false :status 500 :data nil})
+  {:ok? false :status 599 :data nil})
 
 ;; Business layer
 

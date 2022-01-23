@@ -42,7 +42,7 @@
 (def params-slack-api-request
   [[{:method :no-such-method}
     (constantly {:status 200 :body "{}"})
-    {:ok? false :status 500 :data nil}
+    {:ok? false :status 599 :data nil}
     "No such method"]
    [{:method :users.info :query-params {"user" "U123"}}
     (constantly {:status 200 :body "{\"ok\": true, \"user\": {\"real_name\": \"me\"}}"})
