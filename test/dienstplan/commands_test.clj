@@ -316,9 +316,9 @@
                       :team "T123"
                       :channel "C123"}}}
     {:context
-              {:ts "1640250011.000100"
-               :team "T123"
-               :channel "C123"}
+     {:ts "1640250011.000100"
+      :team "T123"
+      :channel "C123"}
      :command :assign
      :args {:name "backend-rota" :user "<@U123>"}}
     "Assign command"]])
@@ -488,8 +488,7 @@
    [{:context {:channel "channel" :ts "1640250011.000100"} :command :assign :args {:name "rota" :user "<@U123>"}}
     [{:id 1 :user "<@U123>" :duty true}]
     "Assigned user <@U123> in rotation `rota` of channel <#channel>"
-    "Assigned"]
-   ])
+    "Assigned"]])
 
 (deftest test-command-exec!-assign
   (testing "Test command-exec! assign"

@@ -316,8 +316,8 @@ Example:
   (let [args (get-command-args app-mention)
         splitted (string/split args regex-user-mention)
         name (->
-               (first splitted)
-               str-trim)
+              (first splitted)
+              str-trim)
         user (first (parse-user-mentions args))]
     {:name name
      :user user}))

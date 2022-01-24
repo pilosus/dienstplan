@@ -127,8 +127,7 @@
     [{:id 12, :rota_id 10, :user "John", :duty false}
      {:id 14, :rota_id 10, :user "Ivan", :duty false}
      {:id 15, :rota_id 10, :user "Saqib", :duty true}]
-    "New user"]
-   ])
+    "New user"]])
 
 (deftest test-assign-user
   (testing "Assign specific user"

@@ -131,10 +131,10 @@
 
 (defn rota-get [conn channel rotation]
   (into
-    []
-    (jdbc/query
-      conn
-      ["SELECT
+   []
+   (jdbc/query
+    conn
+    ["SELECT
               m.id,
               m.rota_id,
               m.name AS user,
@@ -147,7 +147,7 @@
               AND r.name = ?
             ORDER BY m.id ASC
             FOR UPDATE"
-       channel rotation])))
+     channel rotation])))
 
 (defn rota-delete!
   [channel rotation]
@@ -204,21 +204,21 @@
   (let [rota_id (first users)
         users-updated
         (reduce
-          +
-          (map
-            (fn [user]
-              (first
-                (jdbc/update!
-                  conn :mention
-                  {:duty (:duty user)}
-                  ["id = ?" (:id user)])))
-            users))
+         +
+         (map
+          (fn [user]
+            (first
+             (jdbc/update!
+              conn :mention
+              {:duty (:duty user)}
+              ["id = ?" (:id user)])))
+          users))
         _
         (when rota_id
           (jdbc/update!
-            conn :rota
-            {:updated_on ts}
-            ["id = ?" (:rota_id rota_id)]))]
+           conn :rota
+           {:updated_on ts}
+           ["id = ?" (:rota_id rota_id)]))]
     users-updated))
 
 (defn rotate-duty!
@@ -241,8 +241,8 @@
   (jdbc/with-db-transaction
     [conn db]
     (let
-      [users (rota-get conn channel rotation)
-       assigned (assign-user users name)]
+     [users (rota-get conn channel rotation)
+      assigned (assign-user users name)]
       (if (not= assigned :user-not-found)
         (update-users conn assigned ts))
       assigned)))

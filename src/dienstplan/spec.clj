@@ -204,9 +204,9 @@
 
 (s/def :bot-cmd-assign/args
   (s/keys
-    :req-un
-    [:bot-cmd-args/name
-     :bot-cmd-args/user]))
+   :req-un
+   [:bot-cmd-args/name
+    :bot-cmd-args/user]))
 
 (s/def ::bot-cmd-create
   (s/keys
@@ -217,10 +217,10 @@
 
 (s/def ::bot-cmd-assign
   (s/keys
-    :req-un
-    [:bot-cmd-common/context
-     :bot-cmd-common/command
-     :bot-cmd-assign/args]))
+   :req-un
+   [:bot-cmd-common/context
+    :bot-cmd-common/command
+    :bot-cmd-assign/args]))
 
 (s/def :bot-cmd-help/args
   (s/keys
