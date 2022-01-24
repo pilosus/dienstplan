@@ -179,6 +179,7 @@
 (s/def :bot-cmd-common/command ::kw)
 
 (s/def :bot-cmd-args/name ::nillable-str)
+(s/def :bot-cmd-args/user ::nillable-str)
 (s/def :bot-cmd-args/description ::nillable-str)
 (s/def :bot-cmd-args/users (s/nilable (s/+ string?)))
 
@@ -201,12 +202,25 @@
     :bot-cmd-args/users
     :bot-cmd-args/description]))
 
+(s/def :bot-cmd-assign/args
+  (s/keys
+   :req-un
+   [:bot-cmd-args/name
+    :bot-cmd-args/user]))
+
 (s/def ::bot-cmd-create
   (s/keys
    :req-un
    [:bot-cmd-common/context
     :bot-cmd-common/command
     :bot-cmd-create/args]))
+
+(s/def ::bot-cmd-assign
+  (s/keys
+   :req-un
+   [:bot-cmd-common/context
+    :bot-cmd-common/command
+    :bot-cmd-assign/args]))
 
 (s/def :bot-cmd-help/args
   (s/keys
@@ -340,7 +354,8 @@
     [:args-parsed/name]
     :opt-un
     [:args-parsed/users
-     :args-parsed/description])))
+     :args-parsed/description
+     :args-parsed/user])))
 
 ;; TODO the spec is too complex,
 ;; command-map functions need to be simplified

@@ -91,22 +91,27 @@ Commands:
 @dienstplan who <rotation name>
 ```
 
-4. Show details about a rotation
+4. Assign specific user for a duty. New user becomes a current on-call and the order of users remains as it was.
+```
+@dienstplan assign <rotation name> <user name>
+```
+
+5. Show details about a rotation
 ```
 @dienstplan about <rotation name>
 ```
 
-5. Delete a rotation
+6. Delete a rotation
 ```
 @dienstplan delete <rotation name>
 ```
 
-6. List channel's rotations
+7. List channel's rotations
 ```
 @dienstplan list
 ```
 
-7. Show a help message
+8. Show a help message
 ```
 @dienstplan help
 ```

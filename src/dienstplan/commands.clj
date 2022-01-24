@@ -50,22 +50,27 @@ Commands:
 @dienstplan who <rotation name>
 ```
 
-4. Show details about a rotation
+4. Assign: assign specific user for a duty. New user becomes a current on-call and the order of users remains as it was.
+```
+@dienstplan assign <rotation name> <user name>
+```
+
+5. Show details about a rotation
 ```
 @dienstplan about <rotation name>
 ```
 
-5. Delete a rotation
+6. Delete a rotation
 ```
 @dienstplan delete <rotation name>
 ```
 
-6. List channel's rotations
+7. List channel's rotations
 ```
 @dienstplan list
 ```
 
-7. Show a help message
+8. Show a help message
 ```
 @dienstplan help
 ```
@@ -117,6 +122,13 @@ On-call engineer's duties:
 Example:
 @dienstplan rotate my-rota")
 
+(def help-cmd-assign
+  "Usage:
+@dienstplan rotate <rotation name> <user name>
+
+Example:
+@dienstplan rotate my-rota @user1")
+
 (def help-cmd-who
   "Usage:
 @dienstplan who <rotation name>
@@ -159,6 +171,8 @@ Example:
             :help help-cmd-create}
    :rotate {:spec ::spec/bot-cmd-default
             :help help-cmd-rotate}
+   :assign {:spec ::spec/bot-cmd-assign
+            :help help-cmd-assign}
    :who {:spec ::spec/bot-cmd-default
          :help help-cmd-who}
    :about {:spec ::spec/bot-cmd-default
@@ -297,6 +311,16 @@ Example:
     {:name name
      :users users
      :description description}))
+
+(defmethod parse-args :assign [app-mention]
+  (let [args (get-command-args app-mention)
+        splitted (string/split args regex-user-mention)
+        name (->
+              (first splitted)
+              str-trim)
+        user (first (parse-user-mentions args))]
+    {:name name
+     :user user}))
 
 (defn- parse-args-default
   "Parse arguments for simple commands in the form: command <name>"
@@ -458,6 +482,19 @@ Example:
           :else
           (format "Failed to rotate users in rotation `%s` of channel %s"
                   rotation channel-formatted))]
+    text))
+
+(defmethod command-exec! :assign [command-map]
+  (let [{:keys [channel rotation]} (get-channel-rotation command-map)
+        channel-formatted (slack-mention-channel channel)
+        name (get-in command-map [:args :user])
+        assigned (db/assign! channel rotation name (get-now-ts))
+        text
+        (if (= assigned :user-not-found)
+          (format "User %s is not found in rotation `%s` of channel %s"
+                  name rotation channel-formatted)
+          (format "Assigned user %s in rotation `%s` of channel %s"
+                  name rotation channel-formatted))]
     text))
 
 (defmethod command-exec! :default [_] help-msg)

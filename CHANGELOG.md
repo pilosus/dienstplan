@@ -6,6 +6,12 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
+## [0.2.5] - 2022-01-23
+
+### Added
+- Assign command (PR by [BurlakovNick](https://github.com/pilosus/dienstplan/issues/36))
+  ([#36](https://github.com/pilosus/dienstplan/issues/36))
+
 ## [0.2.4] - 2022-01-23
 
 ### Added

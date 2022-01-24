@@ -105,6 +105,36 @@
       (testing description
         (is (= expected (db/rotate-users users)))))))
 
+(def params-assign-user
+  [[[] "John" :user-not-found "Empty list"]
+   [[{:id 1 :user "Ivan" :duty false}
+     {:id 2 :user "Saqib" :duty false}]
+    "John"
+    :user-not-found
+    "User not found"]
+   [[{:id 12, :rota_id 10, :user "John", :duty true}
+     {:id 14, :rota_id 10, :user "Ivan", :duty false}
+     {:id 15, :rota_id 10, :user "Saqib", :duty false}]
+    "John"
+    [{:id 12, :rota_id 10, :user "John", :duty true}
+     {:id 14, :rota_id 10, :user "Ivan", :duty false}
+     {:id 15, :rota_id 10, :user "Saqib", :duty false}]
+    "Already on duty"]
+   [[{:id 12, :rota_id 10, :user "John", :duty true}
+     {:id 14, :rota_id 10, :user "Ivan", :duty false}
+     {:id 15, :rota_id 10, :user "Saqib", :duty false}]
+    "Saqib"
+    [{:id 12, :rota_id 10, :user "John", :duty false}
+     {:id 14, :rota_id 10, :user "Ivan", :duty false}
+     {:id 15, :rota_id 10, :user "Saqib", :duty true}]
+    "New user"]])
+
+(deftest test-assign-user
+  (testing "Assign specific user"
+    (doseq [[users name expected description] params-assign-user]
+      (testing description
+        (is (= expected (db/assign-user users name)))))))
+
 (def params-get-duty-user-name
   [[[{:id 12, :rota_id 10, :user "a", :duty false}
      {:id 14, :rota_id 10, :user "b", :duty false}
