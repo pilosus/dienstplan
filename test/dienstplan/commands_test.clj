@@ -97,6 +97,9 @@
    [{:user-id "U123" :command :assign :rest " backend-rota <@U456>"}
     {:rotation "backend-rota" :user "<@U456>"}
     "Assign"]
+   [{:user-id "U123" :command :assign :rest "<@U456>"}
+    {:rotation nil :user "<@U456>"}
+    "Assign with no rota name"]
    [{:user-id "U123" :command :who :rest " backend-rota "}
     {:rotation "backend-rota"}
     "Who"]
@@ -228,6 +231,20 @@
             :users ["<@U123>" "<@U456>" "<@U789>"]
             :description "On-call backend engineer's duty:\n- Check support questions\n- Check alerts\n- Check metrics"}}
     "Unicode chars"]
+   [{:params {:event {:text "<@U001> create <@U123> <@U456> test"
+                      :ts "1640250011.000100"
+                      :team "T123"
+                      :channel "C123"}}}
+    {:context
+     {:ts "1640250011.000100"
+      :team "T123"
+      :channel "C123"}
+     :command :create
+     :args {:rotation nil
+            :users ["<@U123>" "<@U456>"]
+            :description "test"}
+     :error cmd/help-cmd-create}
+    "Create with no rotation name"]
    [{:params {:event {:text "  <@UNX01> who backend-rota"
                       :ts "1640250011.000100"
                       :team "T123"
@@ -522,3 +539,16 @@
     (doseq [[command expected description] params-command-exec!-default]
       (testing description
         (is (= expected (cmd/command-exec! command)))))))
+
+(def params-str-trim
+  [[nil nil "Nil"]
+   ["text" "text" "Nothing to change"]
+   ["text\u00A0" "text" "Right trim"]
+   ["\u2007text" "text" "Left trim"]
+   ["\u2007text\u202F" "text" "Full trim"]])
+
+(deftest test-str-trim
+  (testing "Test str-trim"
+    (doseq [[s expected description] params-str-trim]
+      (testing description
+        (is (= expected (cmd/str-trim s)))))))

@@ -165,7 +165,7 @@
 ;; Bot Commands ;;
 ;;;;;;;;;;;;;;;;;;
 
-(s/def :bot-cmd-context/channel ::str)
+(s/def :bot-cmd-context/channel ::non-empty-str)
 (s/def :bot-cmd-context/ts ::str)
 (s/def :bot-cmd-context/team ::str)
 
@@ -179,10 +179,10 @@
 (s/def :bot-cmd-common/command ::kw)
 
 (s/def :bot-cmd-args/rotation-nil nil?)
-(s/def :bot-cmd-args/rotation ::str)
-(s/def :bot-cmd-args/user ::str)
+(s/def :bot-cmd-args/rotation ::non-empty-str)
+(s/def :bot-cmd-args/user ::non-empty-str)
 (s/def :bot-cmd-args/description ::nillable-str)
-(s/def :bot-cmd-args/users (s/nilable (s/+ string?)))
+(s/def :bot-cmd-args/users (s/nilable (s/+ ::non-empty-str)))
 
 (s/def :bot-cmd-default/args
   (s/keys
@@ -250,8 +250,8 @@
 ;; Bot Response ;;
 ;;;;;;;;;;;;;;;;;;
 
-(s/def :bot-response/channel ::str)
-(s/def :bot-response/text ::str)
+(s/def :bot-response/channel ::non-empty-str)
+(s/def :bot-response/text ::non-empty-str)
 
 (s/def ::bot-response
   (s/keys
@@ -301,7 +301,7 @@
 
 (s/def :request-context/ts ::str)
 (s/def :request-context/text ::str)
-(s/def :request-context/channel ::str)
+(s/def :request-context/channel ::non-empty-str)
 (s/def :request-context/team ::nillable-str)
 
 (s/def ::request-context-with-text
@@ -350,8 +350,8 @@
     [:command-parsed/command
      :command-parsed/rest])))
 
-(s/def :args-parsed/rotation ::str)
-(s/def :args-parsed/users (s/nilable (s/coll-of ::str)))
+(s/def :args-parsed/rotation ::non-empty-str)
+(s/def :args-parsed/users (s/nilable (s/coll-of ::non-empty-str)))
 (s/def :args-parsed/description ::str)
 
 (s/def ::args-parsed

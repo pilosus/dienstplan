@@ -229,9 +229,10 @@ Example:
 (defn str-trim
   "Trim a string with extra three whitespace chars unsupported by Java regex"
   [s]
-  (-> s
-      (string/replace #"^[\u00A0|\u2007|\u202F|\s|\.]*" "")
-      (string/replace #"[\u00A0|\u2007|\u202F|\s|\.]*$" "")))
+  (when (some? s)
+    (-> s
+        (string/replace #"^[\u00A0|\u2007|\u202F|\s|\.]*" "")
+        (string/replace #"[\u00A0|\u2007|\u202F|\s|\.]*$" ""))))
 
 (defn text-trim
   ""
@@ -333,19 +334,21 @@ Example:
         splitted (string/split args regex-user-mention)
         rotation (->
                   (first splitted)
-                  str-trim)
+                  str-trim
+                  nilify)
         description (->> (last splitted) str-trim)
         users (parse-user-mentions args)]
     {:rotation rotation
      :users users
      :description description}))
 
-(defmethod parse-args :assign [app-mention]
-  (let [args (get-command-args app-mention)
+(defmethod parse-args :assign [command-parsed]
+  (let [args (get-command-args command-parsed)
         splitted (string/split args regex-user-mention)
         rotation (->
                   (first splitted)
-                  str-trim)
+                  str-trim
+                  nilify)
         user (first (parse-user-mentions args))]
     {:rotation rotation
      :user user}))

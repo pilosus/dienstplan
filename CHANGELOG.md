@@ -6,6 +6,15 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
+## [0.2.7] - 2022-01-29
+
+### Fixed
+- `NullPointerException` fixed for `create` and `assign` commands when
+  no rotation name passed in
+  ([#46](https://github.com/pilosus/dienstplan/issues/46))
+- Rotation name is always non-empty string for `create` and `assign`
+  commands
+
 ## [0.2.6] - 2022-01-29
 
 ### Changed
@@ -104,8 +113,9 @@ file. This change log follows the conventions of
 ### Added
 - Bot app MVP
 
-[Unreleased]: https://github.com/pilosus/dienstplan/compare/0.2.6...HEAD
-[0.2.5]: https://github.com/pilosus/dienstplan/compare/0.2.5...0.2.6
+[Unreleased]: https://github.com/pilosus/dienstplan/compare/0.2.7...HEAD
+[0.2.7]: https://github.com/pilosus/dienstplan/compare/0.2.6...0.2.7
+[0.2.6]: https://github.com/pilosus/dienstplan/compare/0.2.5...0.2.6
 [0.2.5]: https://github.com/pilosus/dienstplan/compare/0.2.4...0.2.5
 [0.2.4]: https://github.com/pilosus/dienstplan/compare/0.2.3...0.2.4
 [0.2.3]: https://github.com/pilosus/dienstplan/compare/0.2.2...0.2.3
