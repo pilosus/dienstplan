@@ -12,6 +12,8 @@ file. This change log follows the conventions of
 - `NullPointerException` fixed for `create` and `assign` commands when
   no rotation name passed in
   ([#46](https://github.com/pilosus/dienstplan/issues/46))
+- Rotation name is always non-empty string for `create` and `assign`
+  commands
 
 ## [0.2.6] - 2022-01-29
 

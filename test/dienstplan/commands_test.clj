@@ -231,6 +231,20 @@
             :users ["<@U123>" "<@U456>" "<@U789>"]
             :description "On-call backend engineer's duty:\n- Check support questions\n- Check alerts\n- Check metrics"}}
     "Unicode chars"]
+   [{:params {:event {:text "<@U001> create <@U123> <@U456> test"
+                      :ts "1640250011.000100"
+                      :team "T123"
+                      :channel "C123"}}}
+    {:context
+     {:ts "1640250011.000100"
+      :team "T123"
+      :channel "C123"}
+     :command :create
+     :args {:rotation nil
+            :users ["<@U123>" "<@U456>"]
+            :description "test"}
+     :error cmd/help-cmd-create}
+    "Create with no rotation name"]
    [{:params {:event {:text "  <@UNX01> who backend-rota"
                       :ts "1640250011.000100"
                       :team "T123"

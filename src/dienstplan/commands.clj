@@ -334,7 +334,8 @@ Example:
         splitted (string/split args regex-user-mention)
         rotation (->
                   (first splitted)
-                  str-trim)
+                  str-trim
+                  nilify)
         description (->> (last splitted) str-trim)
         users (parse-user-mentions args)]
     {:rotation rotation
@@ -346,7 +347,8 @@ Example:
         splitted (string/split args regex-user-mention)
         rotation (->
                   (first splitted)
-                  str-trim)
+                  str-trim
+                  nilify)
         user (first (parse-user-mentions args))]
     {:rotation rotation
      :user user}))
