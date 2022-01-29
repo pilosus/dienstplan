@@ -97,6 +97,9 @@
    [{:user-id "U123" :command :assign :rest " backend-rota <@U456>"}
     {:rotation "backend-rota" :user "<@U456>"}
     "Assign"]
+   [{:user-id "U123" :command :assign :rest "<@U456>"}
+    {:rotation nil :user "<@U456>"}
+    "Assign with no rota name"]
    [{:user-id "U123" :command :who :rest " backend-rota "}
     {:rotation "backend-rota"}
     "Who"]
@@ -522,3 +525,16 @@
     (doseq [[command expected description] params-command-exec!-default]
       (testing description
         (is (= expected (cmd/command-exec! command)))))))
+
+(def params-str-trim
+  [[nil nil "Nil"]
+   ["text" "text" "Nothing to change"]
+   ["text\u00A0" "text" "Right trim"]
+   ["\u2007text" "text" "Left trim"]
+   ["\u2007text\u202F" "text" "Full trim"]])
+
+(deftest test-str-trim
+  (testing "Test str-trim"
+    (doseq [[s expected description] params-str-trim]
+      (testing description
+        (is (= expected (cmd/str-trim s)))))))
