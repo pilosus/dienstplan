@@ -73,12 +73,12 @@
 
 (def params-parse-args
   [[{:user-id "U02HXENLLPN" :command :create :rest "backend-rota <@U1KF3FG75> <@U01NT7XLST0> <@U01P02NDVSN>\nOn-call backend engineer's duty \n- Check <#C02PJGR5LLB>\n- Check Sentry alerts\n- Check Grafana metrics"}
-    {:name "backend-rota"
+    {:rotation "backend-rota"
      :users ["<@U1KF3FG75>" "<@U01NT7XLST0>" "<@U01P02NDVSN>"]
      :description "On-call backend engineer's duty \n- Check <#C02PJGR5LLB>\n- Check Sentry alerts\n- Check Grafana metrics"}
     "Create"]
    [{:command :create :rest "backend rotation\u00a0<@U123>\u00a0<@U456>\u00a0<@U789>\u00a0On-call backend engineer's duty:\n- Check support questions\n- Check alerts\n- Check metrics"}
-    {:name "backend rotation"
+    {:rotation "backend rotation"
      :users ["<@U123>" "<@U456>" "<@U789>"]
      :description "On-call backend engineer's duty:\n- Check support questions\n- Check alerts\n- Check metrics"}
     "Unicode whitespaces"]
@@ -86,19 +86,19 @@
     {:description cmd/help-msg}
     "Help"]
    [{:user-id "U123" :command :delete :rest " backend-rota "}
-    {:name "backend-rota"}
+    {:rotation "backend-rota"}
     "Delete"]
    [{:user-id "U123" :command :about :rest " backend-rota "}
-    {:name "backend-rota"}
+    {:rotation "backend-rota"}
     "About"]
    [{:user-id "U123" :command :rotate :rest " backend-rota "}
-    {:name "backend-rota"}
+    {:rotation "backend-rota"}
     "Rotate"]
    [{:user-id "U123" :command :assign :rest " backend-rota <@U456>"}
-    {:name "backend-rota" :user "<@U456>"}
+    {:rotation "backend-rota" :user "<@U456>"}
     "Assign"]
    [{:user-id "U123" :command :who :rest " backend-rota "}
-    {:name "backend-rota"}
+    {:rotation "backend-rota"}
     "Who"]
    [{:user-id "U123" :command :something :rest " backend-rota "}
     nil
@@ -211,7 +211,7 @@
       :channel "C123"}
      :command :create
      :args
-     {:name "backend-rota"
+     {:rotation "backend-rota"
       :users ["<@U435>" "<@U567>" "<@U789>"]
       :description "Do what thou wilt shall be the whole of the Law"}}
     "Create command"]
@@ -224,7 +224,7 @@
       :team "T123"
       :channel "C123"}
      :command :create
-     :args {:name "backend rotation"
+     :args {:rotation "backend rotation"
             :users ["<@U123>" "<@U456>" "<@U789>"]
             :description "On-call backend engineer's duty:\n- Check support questions\n- Check alerts\n- Check metrics"}}
     "Unicode chars"]
@@ -237,7 +237,7 @@
       :team "T123"
       :channel "C123"}
      :command :who
-     :args {:name "backend-rota"}}
+     :args {:rotation "backend-rota"}}
     "Who command"]
    [{:params {:event {:text "<@UNX01> about backend-rota"
                       :ts "1640250011.000100"
@@ -246,7 +246,7 @@
      {:ts "1640250011.000100"
       :channel "C123"}
      :command :about
-     :args {:name "backend-rota"}}
+     :args {:rotation "backend-rota"}}
     "About command"]
    [{:params {:event {:text "  <@UNX01> who backend-rota"
                       :ts "1640250011.000100"
@@ -255,7 +255,7 @@
      {:ts "1640250011.000100"
       :channel "C123"}
      :command :who
-     :args {:name "backend-rota"}}
+     :args {:rotation "backend-rota"}}
     "Team id is optional"]
    [{:params {:event {:text "<@UNX01> list"
                       :ts "1640250011.000100"
@@ -287,7 +287,7 @@
       :team "T123"
       :channel "C123"}
      :command :who
-     :args nil
+     :args {:rotation nil}
      :error cmd/help-cmd-who}
     "No args provided for who command"]
    [{:params {:event {:text "<@UNX01> assign my-rota"
@@ -299,7 +299,7 @@
       :team "T123"
       :channel "C123"}
      :command :assign
-     :args {:name "my-rota" :user nil}
+     :args {:rotation "my-rota" :user nil}
      :error cmd/help-cmd-assign}
     "No user mentioned provided for assign command"]
    [{:params {:event {:text "broken text"
@@ -321,7 +321,7 @@
       :team "T123"
       :channel "C123"}
      :command :rotate
-     :args {:name "backend-rota"}}
+     :args {:rotation "backend-rota"}}
     "Real life rotate from reminder"]
    [{:params {:event {:text "<@UNX01> assign backend-rota <@U123>"
                       :ts "1640250011.000100"
@@ -332,7 +332,7 @@
       :team "T123"
       :channel "C123"}
      :command :assign
-     :args {:name "backend-rota" :user "<@U123>"}}
+     :args {:rotation "backend-rota" :user "<@U123>"}}
     "Assign command"]])
 
 (deftest test-get-command
@@ -382,11 +382,11 @@
         (is (= expected (cmd/users->mention-table-rows users)))))))
 
 (def params-command-exec!-who
-  [[{:context {:channel "channel" :ts "1640250011.000100"} :command :who :args {:name "rota"}}
+  [[{:context {:channel "channel" :ts "1640250011.000100"} :command :who :args {:rotation "rota"}}
     [{:duty "user1" :description "Do what thou wilt shall be the whole of the Law"}]
     "Hey user1, you are an on-call person for `rota` rotation.\nDo what thou wilt shall be the whole of the Law"
     "Rota found"]
-   [{:context {:channel "channel" :ts "1640250011.000100"} :command :who :args {:name "rota"}}
+   [{:context {:channel "channel" :ts "1640250011.000100"} :command :who :args {:rotation "rota"}}
     []
     "Rotation `rota` not found in channel <#channel>"
     "Rota not found"]])
@@ -399,11 +399,11 @@
           (is (= expected (cmd/command-exec! command))))))))
 
 (def params-command-exec!-about
-  [[{:context {:channel "channel" :ts "1640250011.000100"} :command :about :args {:name "rota"}}
+  [[{:context {:channel "channel" :ts "1640250011.000100"} :command :about :args {:rotation "rota"}}
     [{:created_on "2021-01-01" :description "Test" :users "<U123> <U456> <U789>"}]
     "Rotation `rota` [2021-01-01] list: <U123> <U456> <U789>.\nTest"
     "Rota found"]
-   [{:context {:channel "channel" :ts "1640250011.000100"} :command :about :args {:name "non-existent"}}
+   [{:context {:channel "channel" :ts "1640250011.000100"} :command :about :args {:rotation "non-existent"}}
     []
     "Rotation `non-existent` not found in channel <#channel>"
     "Rota not found"]])
@@ -416,11 +416,11 @@
           (is (= expected (cmd/command-exec! command))))))))
 
 (def params-command-exec!-delete
-  [[{:context {:channel "channel" :ts "1640250011.000100"} :command :delete :args {:name "rota"}}
+  [[{:context {:channel "channel" :ts "1640250011.000100"} :command :delete :args {:rotation "rota"}}
     [1]
     "Rotation `rota` has been deleted"
     "Deleted"]
-   [{:context {:channel "channel" :ts "1640250011.000100"} :command :delete :args {:name "rota"}}
+   [{:context {:channel "channel" :ts "1640250011.000100"} :command :delete :args {:rotation "rota"}}
     [0]
     "Rotation `rota` not found in channel <#channel>"
     "Rotation not found"]])
@@ -433,15 +433,15 @@
           (is (= expected (cmd/command-exec! command))))))))
 
 (def params-command-exec!-create
-  [[{:context {:channel "channel" :ts "1640250011.000100"} :command :create :args {:name "rota" :description "todo"}}
+  [[{:context {:channel "channel" :ts "1640250011.000100"} :command :create :args {:rotation "rota" :description "todo"}}
     {}
     "Rotation `rota` for channel <#channel> created successfully"
     "Created"]
-   [{:context {:channel "channel" :ts "1640250011.000100"} :command :create :args {:name "rota" :description "todo"}}
+   [{:context {:channel "channel" :ts "1640250011.000100"} :command :create :args {:rotation "rota" :description "todo"}}
     {:error {:reason :duplicate}}
     "Rotation `rota` for channel <#channel> already exists"
     "Duplicate"]
-   [{:context {:channel "channel" :ts "1640250011.000100"} :command :create :args {:name "rota" :description "todo"}}
+   [{:context {:channel "channel" :ts "1640250011.000100"} :command :create :args {:rotation "rota" :description "todo"}}
     {:error {:reason :other :message "Connection to the database closed unexpectedly"}}
     "Cannot create rotation `rota` for channel <#channel>: Connection to the database closed unexpectedly"
     "Other error"]])
@@ -471,15 +471,15 @@
           (is (= expected (cmd/command-exec! command))))))))
 
 (def params-command-exec!-rotate
-  [[{:context {:channel "channel" :ts "1640250011.000100"} :command :rotate :args {:name "rota"}}
+  [[{:context {:channel "channel" :ts "1640250011.000100"} :command :rotate :args {:rotation "rota"}}
     {:users-count 3 :users-updated 3}
     "Users in rotation `rota` of channel <#channel> have been rotated from Mr.User to Mr.User"
     "Rotated"]
-   [{:context {:channel "channel" :ts "1640250011.000100"} :command :rotate :args {:name "rota"}}
+   [{:context {:channel "channel" :ts "1640250011.000100"} :command :rotate :args {:rotation "rota"}}
     {:users-count 3 :users-updated 0}
     "Failed to rotate users in rotation `rota` of channel <#channel>"
     "Failed to rotate users"]
-   [{:context {:channel "channel" :ts "1640250011.000100"} :command :rotate :args {:name "rota"}}
+   [{:context {:channel "channel" :ts "1640250011.000100"} :command :rotate :args {:rotation "rota"}}
     {:users-count 0 :users-updated 0}
     "No users found in rotation `rota` of channel <#channel>"
     "Not found"]])
@@ -493,11 +493,11 @@
           (is (= expected (cmd/command-exec! command))))))))
 
 (def params-command-exec!-assign
-  [[{:context {:channel "channel" :ts "1640250011.000100"} :command :assign :args {:name "rota" :user "<@U123>"}}
+  [[{:context {:channel "channel" :ts "1640250011.000100"} :command :assign :args {:rotation "rota" :user "<@U123>"}}
     :user-not-found
     "User <@U123> is not found in rotation `rota` of channel <#channel>"
     "User not found"]
-   [{:context {:channel "channel" :ts "1640250011.000100"} :command :assign :args {:name "rota" :user "<@U123>"}}
+   [{:context {:channel "channel" :ts "1640250011.000100"} :command :assign :args {:rotation "rota" :user "<@U123>"}}
     [{:id 1 :user "<@U123>" :duty true}]
     "Assigned user <@U123> in rotation `rota` of channel <#channel>"
     "Assigned"]])
@@ -513,7 +513,7 @@
   [[{:context {:channel "channel" :ts "1640250011.000100"} :command :help}
     cmd/help-msg
     "Help command"]
-   [{:context {:channel "channel" :ts "1640250011.000100"} :command :whatever :args {:name "rota"}}
+   [{:context {:channel "channel" :ts "1640250011.000100"} :command :whatever :args {:rotation "rota"}}
     cmd/help-msg
     "Whatever command"]])
 
