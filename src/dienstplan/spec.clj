@@ -178,7 +178,8 @@
 
 (s/def :bot-cmd-common/command ::kw)
 
-(s/def :bot-cmd-args/name ::nillable-str)
+(s/def :bot-cmd-args/rotation-nil nil?)
+(s/def :bot-cmd-args/rotation ::str)
 (s/def :bot-cmd-args/user ::str)
 (s/def :bot-cmd-args/description ::nillable-str)
 (s/def :bot-cmd-args/users (s/nilable (s/+ string?)))
@@ -186,7 +187,7 @@
 (s/def :bot-cmd-default/args
   (s/keys
    :req-un
-   [:bot-cmd-args/name]))
+   [:bot-cmd-args/rotation]))
 
 (s/def ::bot-cmd-default
   (s/keys
@@ -195,17 +196,23 @@
     :bot-cmd-common/command
     :bot-cmd-default/args]))
 
+(s/def ::bot-cmd-list
+  (s/keys
+   :req-un
+   [:bot-cmd-common/context
+    :bot-cmd-common/command]))
+
 (s/def :bot-cmd-create/args
   (s/keys
    :req-un
-   [:bot-cmd-args/name
+   [:bot-cmd-args/rotation
     :bot-cmd-args/users
     :bot-cmd-args/description]))
 
 (s/def :bot-cmd-assign/args
   (s/keys
    :req-un
-   [:bot-cmd-args/name
+   [:bot-cmd-args/rotation
     :bot-cmd-args/user]))
 
 (s/def ::bot-cmd-create
@@ -343,7 +350,7 @@
     [:command-parsed/command
      :command-parsed/rest])))
 
-(s/def :args-parsed/name ::str)
+(s/def :args-parsed/rotation ::str)
 (s/def :args-parsed/users (s/nilable (s/coll-of ::str)))
 (s/def :args-parsed/description ::str)
 
@@ -351,7 +358,7 @@
   (s/nilable
    (s/keys
     :req-un
-    [:args-parsed/name]
+    [:args-parsed/rotation]
     :opt-un
     [:args-parsed/users
      :args-parsed/description

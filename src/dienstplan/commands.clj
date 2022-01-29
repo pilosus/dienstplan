@@ -331,30 +331,30 @@ Example:
 (defmethod parse-args :create [command-parsed]
   (let [args (get-command-args command-parsed)
         splitted (string/split args regex-user-mention)
-        name (->
-              (first splitted)
-              str-trim)
+        rotation (->
+                  (first splitted)
+                  str-trim)
         description (->> (last splitted) str-trim)
         users (parse-user-mentions args)]
-    {:name name
+    {:rotation rotation
      :users users
      :description description}))
 
 (defmethod parse-args :assign [app-mention]
   (let [args (get-command-args app-mention)
         splitted (string/split args regex-user-mention)
-        name (->
-              (first splitted)
-              str-trim)
+        rotation (->
+                  (first splitted)
+                  str-trim)
         user (first (parse-user-mentions args))]
-    {:name name
+    {:rotation rotation
      :user user}))
 
 (defn- parse-args-default
   "Parse arguments for simple commands in the form: command <name>"
   [command-parsed]
-  (let [name (nilify (get-command-args command-parsed))
-        result (if name {:name name} nil)]
+  (let [rotation (nilify (get-command-args command-parsed))
+        result (if name {:rotation rotation} nil)]
     result))
 
 (defmethod parse-args :rotate [command-parsed]
@@ -395,7 +395,7 @@ Example:
 
 (defn- get-channel-rotation [command-map]
   (let [channel (get-in command-map [:context :channel])
-        rotation (get-in command-map [:args :name])]
+        rotation (get-in command-map [:args :rotation])]
     {:channel channel :rotation rotation}))
 
 (defmethod command-exec! :who [command-map]
