@@ -37,7 +37,7 @@ Commands:
 
 1. Create a rotation
 ```
-@dienstplan create <rotation name> <list of users> <duties description>
+@dienstplan create <rotation name> <list of user mentions> <duties description>
 ```
 
 2. Rotate: move current duty to a next user
@@ -50,9 +50,9 @@ Commands:
 @dienstplan who <rotation name>
 ```
 
-4. Assign: assign specific user for a duty. New user becomes a current on-call and the order of users remains as it was.
+4. Assign specific user for a duty. New user becomes a current on-call and the order of users remains as it was.
 ```
-@dienstplan assign <rotation name> <user name>
+@dienstplan assign <rotation name> <user mention>
 ```
 
 5. Show details about a rotation
@@ -104,59 +104,87 @@ Let's also show a current duty engineer with a reminder:
 
 (def help-cmd-create
   "Usage:
-@dienstplan create <rotation name> <list of users> <duties description>
+```
+@dienstplan create <rotation name> <list of user mentions> <duties description>
+```
 
 Example:
+```
 @dienstplan create my-rota @user1 @user2 @user3
 On-call engineer's duties:
 - Process support team questions queue
 - Resolve service alerts
 - Check service health metrics
 - Casual code refactoring
-- Follow the boy scout rule: always leave the campground cleaner than you found it")
+- Follow the boy scout rule: always leave the campground cleaner than you found it
+```")
 
 (def help-cmd-rotate
   "Usage:
+```
 @dienstplan rotate <rotation name>
+```
 
 Example:
-@dienstplan rotate my-rota")
+```
+@dienstplan rotate my-rota
+```")
 
 (def help-cmd-assign
   "Usage:
-@dienstplan rotate <rotation name> <user name>
+```
+@dienstplan rotate <rotation name> <user mention>
+```
 
 Example:
-@dienstplan rotate my-rota @user1")
+```
+@dienstplan rotate my-rota @user1
+```")
 
 (def help-cmd-who
   "Usage:
+```
 @dienstplan who <rotation name>
+```
 
 Example:
-@dienstplan who my-rota")
+```
+@dienstplan who my-rota
+```")
 
 (def help-cmd-delete
   "Usage:
+```
 @dienstplan delete <rotation name>
+```
 
 Example:
-@dienstplan delete my-rota")
+```
+@dienstplan delete my-rota
+```")
 
 (def help-cmd-about
   "Usage:
+```
 @dienstplan about <rotation name>
+```
 
 Example:
-@dienstplan about my-rota")
+```
+@dienstplan about my-rota
+```")
 
 (def help-cmd-list
   "Usage:
-@dienstplan list")
+```
+@dienstplan list
+```")
 
 (def help-cmd-help
   "Usage:
-@dienstplan help")
+```
+@dienstplan help
+```")
 
 (def regex-user-mention #"(?s)(?<userid>\<@[A-Z0-9]+\>)")
 

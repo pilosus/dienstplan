@@ -290,6 +290,18 @@
      :args nil
      :error cmd/help-cmd-who}
     "No args provided for who command"]
+   [{:params {:event {:text "<@UNX01> assign my-rota"
+                      :ts "1640250011.000100"
+                      :team "T123"
+                      :channel "C123"}}}
+    {:context
+     {:ts "1640250011.000100"
+      :team "T123"
+      :channel "C123"}
+     :command :assign
+     :args {:name "my-rota" :user nil}
+     :error cmd/help-cmd-assign}
+    "No user mentioned provided for assign command"]
    [{:params {:event {:text "broken text"
                       :ts "1640250011.000100"
                       :team "T123"
