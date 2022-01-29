@@ -179,7 +179,7 @@
 (s/def :bot-cmd-common/command ::kw)
 
 (s/def :bot-cmd-args/name ::nillable-str)
-(s/def :bot-cmd-args/user ::nillable-str)
+(s/def :bot-cmd-args/user ::str)
 (s/def :bot-cmd-args/description ::nillable-str)
 (s/def :bot-cmd-args/users (s/nilable (s/+ string?)))
 

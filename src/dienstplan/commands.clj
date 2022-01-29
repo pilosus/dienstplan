@@ -37,7 +37,7 @@ Commands:
 
 1. Create a rotation
 ```
-@dienstplan create <rotation name> <list of users> <duties description>
+@dienstplan create <rotation name> <list of user mentions> <duties description>
 ```
 
 2. Rotate: move current duty to a next user
@@ -50,9 +50,9 @@ Commands:
 @dienstplan who <rotation name>
 ```
 
-4. Assign: assign specific user for a duty. New user becomes a current on-call and the order of users remains as it was.
+4. Assign specific user for a duty. New user becomes a current on-call and the order of users remains as it was.
 ```
-@dienstplan assign <rotation name> <user name>
+@dienstplan assign <rotation name> <user mention>
 ```
 
 5. Show details about a rotation
@@ -104,7 +104,7 @@ Let's also show a current duty engineer with a reminder:
 
 (def help-cmd-create
   "Usage:
-@dienstplan create <rotation name> <list of users> <duties description>
+@dienstplan create <rotation name> <list of user mentions> <duties description>
 
 Example:
 @dienstplan create my-rota @user1 @user2 @user3
@@ -124,7 +124,7 @@ Example:
 
 (def help-cmd-assign
   "Usage:
-@dienstplan rotate <rotation name> <user name>
+@dienstplan rotate <rotation name> <user mention>
 
 Example:
 @dienstplan rotate my-rota @user1")
