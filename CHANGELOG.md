@@ -6,11 +6,10 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
-## [0.2.5] - 2022-01-23
+## [0.2.5] - 2022-01-29
 
 ### Added
-- Assign command (PR by [BurlakovNick](https://github.com/pilosus/dienstplan/issues/36))
-  ([#36](https://github.com/pilosus/dienstplan/issues/36))
+- `assign` command ([#36](https://github.com/pilosus/dienstplan/issues/36)) by [BurlakovNick](https://github.com/BurlakovNick)
 
 ## [0.2.4] - 2022-01-23
 
@@ -98,7 +97,8 @@ file. This change log follows the conventions of
 ### Added
 - Bot app MVP
 
-[Unreleased]: https://github.com/pilosus/dienstplan/compare/0.2.4...HEAD
+[Unreleased]: https://github.com/pilosus/dienstplan/compare/0.2.5...HEAD
+[0.2.5]: https://github.com/pilosus/dienstplan/compare/0.2.4...0.2.5
 [0.2.4]: https://github.com/pilosus/dienstplan/compare/0.2.3...0.2.4
 [0.2.3]: https://github.com/pilosus/dienstplan/compare/0.2.2...0.2.3
 [0.2.2]: https://github.com/pilosus/dienstplan/compare/0.2.1...0.2.2

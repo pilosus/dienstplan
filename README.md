@@ -78,7 +78,7 @@ Commands:
 
 1. Create a rotation
 ```
-@dienstplan create <rotation name> <list of users> <duties description>
+@dienstplan create <rotation name> <list of user mentions> <duties description>
 ```
 
 2. Rotate: move current duty to a next user
@@ -93,7 +93,7 @@ Commands:
 
 4. Assign specific user for a duty. New user becomes a current on-call and the order of users remains as it was.
 ```
-@dienstplan assign <rotation name> <user name>
+@dienstplan assign <rotation name> <user mention>
 ```
 
 5. Show details about a rotation
