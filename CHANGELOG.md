@@ -10,6 +10,7 @@ file. This change log follows the conventions of
 
 ### Added
 - `assign` command ([#36](https://github.com/pilosus/dienstplan/issues/36)) by [BurlakovNick](https://github.com/BurlakovNick)
+- Pretty formatting for usage example in command help messages
 
 ## [0.2.4] - 2022-01-23
 
