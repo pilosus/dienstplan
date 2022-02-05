@@ -528,17 +528,18 @@
 
 (def params-command-exec!-default
   [[{:context {:channel "channel" :ts "1640250011.000100"} :command :help}
-    cmd/help-msg
+    (format cmd/help-intro "0.2.7" cmd/help-msg)
     "Help command"]
    [{:context {:channel "channel" :ts "1640250011.000100"} :command :whatever :args {:rotation "rota"}}
-    cmd/help-msg
+    (format cmd/help-intro "0.2.7" cmd/help-msg)
     "Whatever command"]])
 
 (deftest test-command-exec!-default
   (testing "Test command-exec! default arg"
     (doseq [[command expected description] params-command-exec!-default]
       (testing description
-        (is (= expected (cmd/command-exec! command)))))))
+        (with-redefs [cmd/get-help-message (constantly expected)]
+          (is (= expected (cmd/command-exec! command))))))))
 
 (def params-str-trim
   [[nil nil "Nil"]
