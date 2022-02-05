@@ -20,11 +20,14 @@
    [clojure.spec.alpha :as s]
    [clojure.string :as string]
    [clojure.tools.logging :as log]
+   [dienstplan.config :refer [config]]
    [dienstplan.db :as db]
    [dienstplan.slack :as slack]
    [dienstplan.spec :as spec]))
 
 ;; Const
+
+(def help-intro "`dienstplan` [version %s] is a bot app for duty rotations.\n\n%s")
 
 (def help-msg
   "To start interacting with the bot, mention its username, provide a command and options as follows:
@@ -528,7 +531,15 @@ Example:
                   name rotation channel-formatted))]
     text))
 
-(defmethod command-exec! :default [_] help-msg)
+(defn get-help-message []
+  (let [version (get-in config [:application :version])]
+    (format
+     help-intro
+     version
+     help-msg)))
+
+(defmethod command-exec! :default [_]
+  (get-help-message))
 
 ;; Entry point
 
