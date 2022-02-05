@@ -263,7 +263,7 @@ settings:
 ## Contributing
 
 See
-[Contributing](https://github.com/pilosus/dienstplan/tree/master/CONTRIBUTING.md)
+[Contributing](https://github.com/pilosus/dienstplan/tree/main/CONTRIBUTING.md)
 guide.
 
 
