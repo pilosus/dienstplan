@@ -6,6 +6,12 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
+## [0.2.8] - 2022-02-05
+
+### Added
+- App version in default help message text
+  ([#42](https://github.com/pilosus/dienstplan/issues/42))
+
 ## [0.2.7] - 2022-01-29
 
 ### Fixed
@@ -113,7 +119,8 @@ file. This change log follows the conventions of
 ### Added
 - Bot app MVP
 
-[Unreleased]: https://github.com/pilosus/dienstplan/compare/0.2.7...HEAD
+[Unreleased]: https://github.com/pilosus/dienstplan/compare/0.2.8...HEAD
+[0.2.8]: https://github.com/pilosus/dienstplan/compare/0.2.7...0.2.8
 [0.2.7]: https://github.com/pilosus/dienstplan/compare/0.2.6...0.2.7
 [0.2.6]: https://github.com/pilosus/dienstplan/compare/0.2.5...0.2.6
 [0.2.5]: https://github.com/pilosus/dienstplan/compare/0.2.4...0.2.5
