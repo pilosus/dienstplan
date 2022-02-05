@@ -11,6 +11,9 @@ file. This change log follows the conventions of
 ### Added
 - App version in default help message text
   ([#42](https://github.com/pilosus/dienstplan/issues/42))
+- Community documents: contributing guide, bug report issue template,
+  feature request issue template
+  ([#39](https://github.com/pilosus/dienstplan/issues/39))
 
 ## [0.2.7] - 2022-01-29
 

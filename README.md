@@ -260,6 +260,13 @@ settings:
 - Make it looking nice: `Basic Information` -> `Display Information` -> upload an [app icon](https://openclipart.org/detail/233274/circle-arrow) with a public domain license
 - Deploy the app with
 
+## Contributing
+
+See
+[Contributing](https://github.com/pilosus/dienstplan/tree/master/CONTRIBUTING.md)
+guide.
+
+
 ## License
 
 Copyright (c) 2021-2022 Vitaly Samigullin and contributors. All rights reserved.
