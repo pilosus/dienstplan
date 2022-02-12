@@ -595,7 +595,7 @@ Example:
         body (json/generate-string body-map)
         {:keys [ok? status data]}
         (slack/slack-api-request {:method :chat.postMessage :body body})
-        log-level (if ok? :debug :error)
+        log-level (if ok? :info :error)
         log-msg (format "Post message to Slack: status %s body %s" status data)
         _ (log/log log-level log-msg)]
     body-map))
