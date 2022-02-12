@@ -3,12 +3,16 @@ services:
   postgres:
     image: postgres:14-bullseye
     volumes:
-      - "./db-data:/var/lib/postgresql/data"
+      - "/tmp/diestplan-db-data:/var/lib/postgresql/data"
     env_file:
       - .env
 
   dienstplan:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile-test
+    volumes:
+      - ".:/usr/src/app"
     ports:
       - "8080:8080"
     depends_on:
