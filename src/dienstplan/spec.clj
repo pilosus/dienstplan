@@ -108,13 +108,15 @@
 (s/def :server/port ::ephemeral-port)
 (s/def :server/loglevel #{"DEBUG" "INFO" "WARN" "ERROR" "FATAL"})
 (s/def :server/access-log ::boolean-str)
+(s/def :server/block-thread ::boolean-str)
 
 (s/def ::server
   (s/keys
    :req-un
    [:server/port
     :server/loglevel
-    :server/access-log]))
+    :server/access-log
+    :server/block-thread]))
 
 ;; Slack
 

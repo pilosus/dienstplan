@@ -76,8 +76,9 @@
 
 (defstate server
   :start
-  (let [port (get-in config [:server :port])]
-    (run-jetty app {:port port :join? true}))
+  (let [port (get-in config [:server :port])
+        join? (get-in config [:server :block-thread])]
+    (run-jetty app {:port port :join? join?}))
   :stop (.stop server))
 
 ;; CLI opts
