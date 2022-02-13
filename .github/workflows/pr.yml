@@ -18,8 +18,14 @@ jobs:
       run: lein deps
     - name: Code formatting check
       run: lein cljfmt check
+    - name: Build docker
+      run: make build
+    - name: Run docker
+      run: make up
+    - name: Apply DB migrations
+      run: make migrate
     - name: Run tests
-      run: lein cloverage --codecov
+      run: make TEST_ARGS="--codecov" cloverage
     - name: Update code coverage report
       run: |
         curl https://keybase.io/codecovsecurity/pgp_keys.asc | gpg --no-default-keyring --keyring trustedkeys.gpg --import

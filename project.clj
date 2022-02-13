@@ -52,6 +52,7 @@
   :aot [dienstplan.core]
   :target-path "target/%s"
   :repl-options {:init-ns dienstplan.core}
-  :test-selectors {:integration :integration}
+  :test-selectors {:integration :integration
+                   :unit (complement :integration)}
   :aliases {"migrate"  ["run" "-m" "dienstplan.db/migrate"]
             "rollback" ["run" "-m" "dienstplan.db/rollback"]})

@@ -1,4 +1,4 @@
-.PHONY: lint test cloverage
+.PHONY: lint test test-all cloverage
 
 all: build up migrate lint test
 
