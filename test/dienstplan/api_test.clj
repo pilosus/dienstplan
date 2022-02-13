@@ -6,22 +6,19 @@
    [clojure.java.jdbc :as jdbc]
    [clojure.test :refer [deftest is testing use-fixtures]]
    [clojure.tools.logging :as log]
-   [dienstplan.config]
+   [dienstplan.config :refer [config]]
    [dienstplan.core]
    [dienstplan.db]
    [dienstplan.slack :as slack]
-   [mount.core :as mount]))
+   [hikari-cp.core :as cp]
+   [mount.core :as mount :refer [defstate]]))
 
 ;; Fixtures
 
 (defn fix-run-server
   [test]
   (log/info "[fix-run-server] start")
-  (mount/start
-   #'dienstplan.config/config
-   #'dienstplan.core/logs
-   #'dienstplan.db/db
-   #'dienstplan.core/server)
+  (mount/start)
   (test)
   (mount/stop)
   (log/info "[fix-run-server] stop"))
@@ -32,15 +29,28 @@
    [slack/slack-api-request (constantly {:ok? true :status 200 :date nil})]
     (test)))
 
+(defstate db-test
+  "Separate DB component with transaction rollback for tests"
+  :start
+  (let [db-opts (:db config)
+        datasource (cp/make-datasource db-opts)]
+    {:datasource datasource})
+  :stop
+  (-> db-test :datasource cp/close-datasource))
+
 (defn fix-db-rollback
   [test]
   (log/info "[fix-db-rollback] start")
-  (jdbc/with-db-transaction [txn dienstplan.db/db {:isolation :serializable}]
+  (mount/start #'db-test)
+  (jdbc/with-db-transaction [txn db-test]
     (jdbc/db-set-rollback-only! txn)
     (-> (mount/only [#'dienstplan.db/db])
         (mount/swap {#'dienstplan.db/db txn})
         (mount/start))
-    (test)))
+    (test)
+    (mount/stop #'dienstplan.db/db))
+  (mount/stop #'db-test)
+  (log/info "[fix-db-rollback] stop"))
 
 (use-fixtures :once fix-run-server fix-mock-slack-api-request)
 (use-fixtures :each fix-db-rollback)
@@ -77,45 +87,35 @@
           (is (= status actual-status))
           (is (= body actual-body)))))))
 
-(def params-events
-  [[{:method :post
-     :url "http://localhost:8080/api/events"
-     :params
-     {:event
-      {:text "<@U001> create backend rotation <@U123> <@U456> <@U789> Do what thou wilt shall be the whole of the Law"
-       :ts "1640250011.000100"
-       :team "T123"
-       :channel "C123"}}}
-    {:status 200 :body {:channel "C123" :text "Rotation `backend rotation` for channel <#C123> created successfully"}}
-    {:status 200 :body {:channel "C123" :text "Rotation `backend rotation` for channel <#C123> already exists"}}
-    "Create rota"]])
-
 (deftest test-events
   (testing "Events API endpoint test"
-    (doseq [[request response-created response-exists description] params-events]
-      (testing description
-        (let [{:keys [method url params]} request
-              request-body (json/generate-string params)
-              request-map {:method method
-                           :url url
-                           :content-type :json
-                           :accept :json
-                           :body request-body}
-              actual-response-created (http/request request-map)
-              actual-response-created-status
-              (-> actual-response-created  :status)
-              actual-response-created-body
-              (-> actual-response-created
-                  :body
-                  (json/parse-string true))
-              actual-response-exists (http/request request-map)
-              actual-response-exists-status
-              (-> actual-response-exists  :status)
-              actual-response-exists-body
-              (-> actual-response-exists
-                  :body
-                  (json/parse-string true))]
-          (is (= (:status response-created) actual-response-created-status))
-          (is (= (:body response-created) actual-response-created-body))
-          (is (= (:status response-exists) actual-response-exists-status))
-          (is (= (:body response-exists) actual-response-exists-body)))))))
+    (testing "Create new rota"
+      (let [create-new-request-body
+            (json/generate-string
+             {:event
+              {:text "<@U001> create my-rota <@U123> <@U456> <@U789> Do what thou wilt shall be the whole of the Law"
+               :ts "1640250011.000100"
+               :team "T123"
+               :channel "C123"}})
+            create-new-request
+            {:method :post
+             :url "http://localhost:8080/api/events"
+             :content-type :json
+             :accept :json
+             :body create-new-request-body}
+            create-new-response (http/request create-new-request)
+            create-existing-response (http/request create-new-request)]
+        (is (= 200 (:status create-new-response)))
+        (is (=
+             {:channel "C123"
+              :text "Rotation `my-rota` for channel <#C123> created successfully"}
+             (-> create-new-response
+                 :body
+                 (json/parse-string true))))
+        (is (= 200 (:status create-existing-response)))
+        (is (=
+             {:channel "C123"
+              :text "Rotation `my-rota` for channel <#C123> already exists"}
+             (-> create-existing-response
+                 :body
+                 (json/parse-string true))))))))
