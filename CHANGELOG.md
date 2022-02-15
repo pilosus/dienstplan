@@ -6,6 +6,12 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
+## [0.2.9] - 2022-02-15
+
+### Added
+- Integration tests and fixtures
+  ([#41](https://github.com/pilosus/dienstplan/issues/41))
+
 ## [0.2.8] - 2022-02-05
 
 ### Added
@@ -122,7 +128,8 @@ file. This change log follows the conventions of
 ### Added
 - Bot app MVP
 
-[Unreleased]: https://github.com/pilosus/dienstplan/compare/0.2.8...HEAD
+[Unreleased]: https://github.com/pilosus/dienstplan/compare/0.2.9...HEAD
+[0.2.9]: https://github.com/pilosus/dienstplan/compare/0.2.8...0.2.9
 [0.2.8]: https://github.com/pilosus/dienstplan/compare/0.2.7...0.2.8
 [0.2.7]: https://github.com/pilosus/dienstplan/compare/0.2.6...0.2.7
 [0.2.6]: https://github.com/pilosus/dienstplan/compare/0.2.5...0.2.6

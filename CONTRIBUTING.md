@@ -16,10 +16,10 @@ report first, get assigned to the issue, then submit the code.
 
 1. Follow a [GitHub flow](https://docs.github.com/en/get-started/quickstart/github-flow)
 2. Cover your code with tests
-3. Format your code with linters:
+3. Make sure all tests pass, code is auto-formated:
 
 ```
-lein cljfmt fix
+make all
 ```
 
 4. Update `CHANGELOG.md`:

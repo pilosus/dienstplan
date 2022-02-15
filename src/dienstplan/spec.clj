@@ -108,13 +108,15 @@
 (s/def :server/port ::ephemeral-port)
 (s/def :server/loglevel #{"DEBUG" "INFO" "WARN" "ERROR" "FATAL"})
 (s/def :server/access-log ::boolean-str)
+(s/def :server/block-thread ::boolean-str)
 
 (s/def ::server
   (s/keys
    :req-un
    [:server/port
     :server/loglevel
-    :server/access-log]))
+    :server/access-log
+    :server/block-thread]))
 
 ;; Slack
 
@@ -357,10 +359,9 @@
 (s/def ::args-parsed
   (s/nilable
    (s/keys
-    :req-un
-    [:args-parsed/rotation]
     :opt-un
-    [:args-parsed/users
+    [:args-parsed/rotation
+     :args-parsed/users
      :args-parsed/description
      :args-parsed/user])))
 

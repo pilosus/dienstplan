@@ -1,4 +1,4 @@
-(defproject dienstplan "0.2.8"
+(defproject dienstplan "0.2.9"
   :description "Duty rotation slack bot"
   :url "https://github.com/pilosus/dienstplan"
   :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"
@@ -52,5 +52,7 @@
   :aot [dienstplan.core]
   :target-path "target/%s"
   :repl-options {:init-ns dienstplan.core}
+  :test-selectors {:integration :integration
+                   :unit (complement :integration)}
   :aliases {"migrate"  ["run" "-m" "dienstplan.db/migrate"]
             "rollback" ["run" "-m" "dienstplan.db/rollback"]})

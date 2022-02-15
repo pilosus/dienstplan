@@ -22,6 +22,8 @@
    [dienstplan.slack :as slack]
    [clj-http.client :as http]))
 
+;; Instrumenting functions with specs
+
 (instrument `cmd/get-request-context-with-text)
 (instrument `cmd/parse-command)
 (instrument `cmd/get-command-args)
@@ -30,6 +32,8 @@
 (instrument `cmd/get-command-response)
 (instrument `cmd/send-command-response!)
 (instrument `cmd/command-exec!)
+
+;; Tests
 
 (def params-parse-command
   [["this is a text" nil "No command found"]

@@ -8,6 +8,7 @@ server:
   port: !envvar [SERVER__PORT, 8080]
   loglevel: !envvar [SERVER__LOGLEVEL, INFO]
   access-log: !envvar [SERVER__ACCESS_LOG, true]
+  block-thread: !envvar [SERVER__BLOCK_THREAD, true]
 
 slack:
   token: !envvar SLACK__TOKEN
