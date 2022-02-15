@@ -8,6 +8,7 @@
    [clojure.tools.logging :as log]
    [dienstplan.config :refer [config]]
    [dienstplan.core]
+   [dienstplan.commands :as cmd]
    [dienstplan.db]
    [dienstplan.slack :as slack]
    [hikari-cp.core :as cp]
@@ -89,33 +90,278 @@
 
 (deftest test-events
   (testing "Events API endpoint test"
-    (testing "Create new rota"
-      (let [create-new-request-body
-            (json/generate-string
-             {:event
-              {:text "<@U001> create my-rota <@U123> <@U456> <@U789> Do what thou wilt shall be the whole of the Law"
-               :ts "1640250011.000100"
-               :team "T123"
-               :channel "C123"}})
-            create-new-request
-            {:method :post
-             :url "http://localhost:8080/api/events"
-             :content-type :json
-             :accept :json
-             :body create-new-request-body}
-            create-new-response (http/request create-new-request)
-            create-existing-response (http/request create-new-request)]
-        (is (= 200 (:status create-new-response)))
+    (testing "Create new rota, check who is duty"
+      (let [create-response
+            (http/request
+             {:method :post
+              :url "http://localhost:8080/api/events"
+              :content-type :json
+              :accept :json
+              :body (json/generate-string
+                     {:event
+                      {:text "<@U001> create my-rota <@U123> <@U456> <@U789> Do what thou wilt shall be the whole of the Law"
+                       :ts "1640250011.000100"
+                       :team "T123"
+                       :channel "C123"}})})
+            who-response
+            (http/request
+             {:method :post
+              :url "http://localhost:8080/api/events"
+              :content-type :json
+              :accept :json
+              :body
+              (json/generate-string
+               {:event
+                {:text "<@U001> who my-rota"
+                 :ts "1640250011.000100"
+                 :team "T123"
+                 :channel "C123"}})})]
+        (is (= 200 (:status create-response)))
         (is (=
              {:channel "C123"
               :text "Rotation `my-rota` for channel <#C123> created successfully"}
-             (-> create-new-response
+             (-> create-response
                  :body
                  (json/parse-string true))))
-        (is (= 200 (:status create-existing-response)))
+        (is (= 200 (:status who-response)))
         (is (=
              {:channel "C123"
-              :text "Rotation `my-rota` for channel <#C123> already exists"}
-             (-> create-existing-response
+              :text "Hey <@U123>, you are an on-call person for `my-rota` rotation.\nDo what thou wilt shall be the whole of the Law"}
+             (-> who-response
                  :body
-                 (json/parse-string true))))))))
+                 (json/parse-string true))))
+        (testing "Assign a user, check who is duty"
+          (let [assign-response
+                (http/request
+                 {:method :post
+                  :url "http://localhost:8080/api/events"
+                  :content-type :json
+                  :accept :json
+                  :body
+                  (json/generate-string
+                   {:event
+                    {:text "<@U001> assign my-rota <@U789>"
+                     :ts "1640250011.000100"
+                     :team "T123"
+                     :channel "C123"}})})
+                who-response
+                (http/request
+                 {:method :post
+                  :url "http://localhost:8080/api/events"
+                  :content-type :json
+                  :accept :json
+                  :body
+                  (json/generate-string
+                   {:event
+                    {:text "<@U001> who my-rota"
+                     :ts "1640250011.000100"
+                     :team "T123"
+                     :channel "C123"}})})]
+            (is (= 200 (:status assign-response)))
+            (is (=
+                 {:channel "C123"
+                  :text "Assigned user <@U789> in rotation `my-rota` of channel <#C123>"}
+                 (-> assign-response
+                     :body
+                     (json/parse-string true))))
+            (is (= 200 (:status who-response)))
+            (is (=
+                 {:channel "C123"
+                  :text "Hey <@U789>, you are an on-call person for `my-rota` rotation.\nDo what thou wilt shall be the whole of the Law"}
+                 (-> who-response
+                     :body
+                     (json/parse-string true))))))
+        (testing "Rotate, check who's duty"
+          (let [rotate-response
+                (http/request
+                 {:method :post
+                  :url "http://localhost:8080/api/events"
+                  :content-type :json
+                  :accept :json
+                  :body
+                  (json/generate-string
+                   {:event
+                    {:text "<@U001> rotate my-rota"
+                     :ts "1640250011.000100"
+                     :team "T123"
+                     :channel "C123"}})})
+                who-response
+                (http/request
+                 {:method :post
+                  :url "http://localhost:8080/api/events"
+                  :content-type :json
+                  :accept :json
+                  :body
+                  (json/generate-string
+                   {:event
+                    {:text "<@U001> who my-rota"
+                     :ts "1640250011.000100"
+                     :team "T123"
+                     :channel "C123"}})})]
+            (is (= 200 (:status rotate-response)))
+            (is (=
+                 {:channel "C123"
+                  :text "Users in rotation `my-rota` of channel <#C123> have been rotated from <@U789> to <@U123>"}
+                 (-> rotate-response
+                     :body
+                     (json/parse-string true))))
+            (is (= 200 (:status who-response)))
+            (is (=
+                 {:channel "C123"
+                  :text "Hey <@U123>, you are an on-call person for `my-rota` rotation.\nDo what thou wilt shall be the whole of the Law"}
+                 (-> who-response
+                     :body
+                     (json/parse-string true))))))
+        (testing "Delete, check about, list, who commands"
+          (let [delete-response
+                (http/request
+                 {:method :post
+                  :url "http://localhost:8080/api/events"
+                  :content-type :json
+                  :accept :json
+                  :body
+                  (json/generate-string
+                   {:event
+                    {:text "<@U001> delete my-rota"
+                     :ts "1640250011.000100"
+                     :team "T123"
+                     :channel "C123"}})})
+                who-response
+                (http/request
+                 {:method :post
+                  :url "http://localhost:8080/api/events"
+                  :content-type :json
+                  :accept :json
+                  :body
+                  (json/generate-string
+                   {:event
+                    {:text "<@U001> who my-rota"
+                     :ts "1640250011.000100"
+                     :team "T123"
+                     :channel "C123"}})})
+                rotate-response
+                (http/request
+                 {:method :post
+                  :url "http://localhost:8080/api/events"
+                  :content-type :json
+                  :accept :json
+                  :body
+                  (json/generate-string
+                   {:event
+                    {:text "<@U001> rotate my-rota"
+                     :ts "1640250011.000100"
+                     :team "T123"
+                     :channel "C123"}})})
+                assign-response
+                (http/request
+                 {:method :post
+                  :url "http://localhost:8080/api/events"
+                  :content-type :json
+                  :accept :json
+                  :body
+                  (json/generate-string
+                   {:event
+                    {:text "<@U001> assign my-rota <@U123>"
+                     :ts "1640250011.000100"
+                     :team "T123"
+                     :channel "C123"}})})
+                about-response
+                (http/request
+                 {:method :post
+                  :url "http://localhost:8080/api/events"
+                  :content-type :json
+                  :accept :json
+                  :body
+                  (json/generate-string
+                   {:event
+                    {:text "<@U001> about my-rota"
+                     :ts "1640250011.000100"
+                     :team "T123"
+                     :channel "C123"}})})
+                list-response
+                (http/request
+                 {:method :post
+                  :url "http://localhost:8080/api/events"
+                  :content-type :json
+                  :accept :json
+                  :body
+                  (json/generate-string
+                   {:event
+                    {:text "<@U001> list"
+                     :ts "1640250011.000100"
+                     :team "T123"
+                     :channel "C123"}})})
+                help-explicit-response
+                (http/request
+                 {:method :post
+                  :url "http://localhost:8080/api/events"
+                  :content-type :json
+                  :accept :json
+                  :body
+                  (json/generate-string
+                   {:event
+                    {:text "<@U001> help"
+                     :ts "1640250011.000100"
+                     :team "T123"
+                     :channel "C123"}})})
+                help-implicit-response
+                (http/request
+                 {:method :post
+                  :url "http://localhost:8080/api/events"
+                  :content-type :json
+                  :accept :json
+                  :body
+                  (json/generate-string
+                   {:event
+                    {:text "<@U001> there is no such command!"
+                     :ts "1640250011.000100"
+                     :team "T123"
+                     :channel "C123"}})})]
+            (is (=
+                 {:channel "C123"
+                  :text "Rotation `my-rota` has been deleted"}
+                 (-> delete-response
+                     :body
+                     (json/parse-string true))))
+            (is (=
+                 {:channel "C123"
+                  :text "Rotation `my-rota` not found in channel <#C123>"}
+                 (-> who-response
+                     :body
+                     (json/parse-string true))))
+            (is (=
+                 {:channel "C123"
+                  :text "No users found in rotation `my-rota` of channel <#C123>"}
+                 (-> rotate-response
+                     :body
+                     (json/parse-string true))))
+            (is (=
+                 {:channel "C123"
+                  :text "User <@U123> is not found in rotation `my-rota` of channel <#C123>"}
+                 (-> assign-response
+                     :body
+                     (json/parse-string true))))
+            (is (=
+                 {:channel "C123"
+                  :text "Rotation `my-rota` not found in channel <#C123>"}
+                 (-> about-response
+                     :body
+                     (json/parse-string true))))
+            (is (=
+                 {:channel "C123"
+                  :text "No rotations found in channel <#C123>"}
+                 (-> list-response
+                     :body
+                     (json/parse-string true))))
+            (is (=
+                 {:channel "C123"
+                  :text (cmd/get-help-message)}
+                 (-> help-explicit-response
+                     :body
+                     (json/parse-string true))))
+            (is (=
+                 {:channel "C123"
+                  :text cmd/help-msg}
+                 (-> help-implicit-response
+                     :body
+                     (json/parse-string true))))))))))

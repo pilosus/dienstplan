@@ -359,10 +359,9 @@
 (s/def ::args-parsed
   (s/nilable
    (s/keys
-    :req-un
-    [:args-parsed/rotation]
     :opt-un
-    [:args-parsed/users
+    [:args-parsed/rotation
+     :args-parsed/users
      :args-parsed/description
      :args-parsed/user])))
 

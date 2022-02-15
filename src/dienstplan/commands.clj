@@ -136,7 +136,7 @@ Example:
 (def help-cmd-assign
   "Usage:
 ```
-@dienstplan rotate <rotation name> <user mention>
+@dienstplan assign <rotation name> <user mention>
 ```
 
 Example:
