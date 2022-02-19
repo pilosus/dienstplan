@@ -358,3 +358,49 @@
                  (-> help-implicit-response
                      :body
                      (json/parse-string true))))))))))
+
+(deftest test-events-create-existing-rota
+  (testing "Create a rota, try to duplicate"
+    (let [request
+          (merge
+           events-request-base
+           {:body (json/generate-string
+                   {:event
+                    {:text "<@U001> create my-rota <@U123> <@U456> <@U789> Test description"
+                     :ts "1640250011.000100"
+                     :team "T123"
+                     :channel "C123"}})})
+          _ (http/request request)
+          create-duplicate-response (http/request request)]
+      (is (= 200 (:status create-duplicate-response)))
+      (is (=
+           {:channel "C123"
+            :text "Rotation `my-rota` for channel <#C123> already exists"}
+           (-> create-duplicate-response
+               :body
+               (json/parse-string true)))))))
+
+(deftest test-api-unhandled-exception
+  (testing "API unhandled exception"
+    (with-redefs
+     [cmd/text-trim (fn [& _]
+                      (throw (ex-info "Boom!" {:data nil})))]
+      (let [request
+            (merge
+             events-request-base
+             ;; clj-http client throws exceptions for "not-ok" statuses
+             ;; let's override the behavior to handle exceptional statuses manually
+             {:throw-exceptions false}
+             {:body (json/generate-string
+                     {:event
+                      {:text "<@U001> create my-rota <@U123> <@U456> <@U789> Test description"
+                       :ts "1640250011.000100"
+                       :team "T123"
+                       :channel "C123"}})})
+            response (http/request request)]
+        (is (= 500 (:status response)))
+        (is (=
+             {:error "Internal error"}
+             (-> response
+                 :body
+                 (json/parse-string true))))))))
