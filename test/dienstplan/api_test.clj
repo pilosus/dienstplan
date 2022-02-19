@@ -103,34 +103,36 @@
           (is (= status actual-status))
           (is (= body actual-body)))))))
 
+(def events-request-base
+  {:method :post
+   :url "http://localhost:8080/api/events"
+   :content-type :json
+   :accept :json})
+
 (deftest test-events
   (testing "Events API endpoint test"
     (testing "Create new rota, check who is duty"
       (let [create-response
             (http/request
-             {:method :post
-              :url "http://localhost:8080/api/events"
-              :content-type :json
-              :accept :json
-              :body (json/generate-string
-                     {:event
-                      {:text "<@U001> create my-rota <@U123> <@U456> <@U789> Do what thou wilt shall be the whole of the Law"
-                       :ts "1640250011.000100"
-                       :team "T123"
-                       :channel "C123"}})})
+             (merge
+              events-request-base
+              {:body (json/generate-string
+                      {:event
+                       {:text "<@U001> create my-rota <@U123> <@U456> <@U789> Do what thou wilt shall be the whole of the Law"
+                        :ts "1640250011.000100"
+                        :team "T123"
+                        :channel "C123"}})}))
             who-response
             (http/request
-             {:method :post
-              :url "http://localhost:8080/api/events"
-              :content-type :json
-              :accept :json
-              :body
-              (json/generate-string
-               {:event
-                {:text "<@U001> who my-rota"
-                 :ts "1640250011.000100"
-                 :team "T123"
-                 :channel "C123"}})})]
+             (merge
+              events-request-base
+              {:body
+               (json/generate-string
+                {:event
+                 {:text "<@U001> who my-rota"
+                  :ts "1640250011.000100"
+                  :team "T123"
+                  :channel "C123"}})}))]
         (is (= 200 (:status create-response)))
         (is (=
              {:channel "C123"
@@ -148,30 +150,26 @@
         (testing "Assign a user, check who is duty"
           (let [assign-response
                 (http/request
-                 {:method :post
-                  :url "http://localhost:8080/api/events"
-                  :content-type :json
-                  :accept :json
-                  :body
-                  (json/generate-string
-                   {:event
-                    {:text "<@U001> assign my-rota <@U789>"
-                     :ts "1640250011.000100"
-                     :team "T123"
-                     :channel "C123"}})})
+                 (merge
+                  events-request-base
+                  {:body
+                   (json/generate-string
+                    {:event
+                     {:text "<@U001> assign my-rota <@U789>"
+                      :ts "1640250011.000100"
+                      :team "T123"
+                      :channel "C123"}})}))
                 who-response
                 (http/request
-                 {:method :post
-                  :url "http://localhost:8080/api/events"
-                  :content-type :json
-                  :accept :json
-                  :body
-                  (json/generate-string
-                   {:event
-                    {:text "<@U001> who my-rota"
-                     :ts "1640250011.000100"
-                     :team "T123"
-                     :channel "C123"}})})]
+                 (merge
+                  events-request-base
+                  {:body
+                   (json/generate-string
+                    {:event
+                     {:text "<@U001> who my-rota"
+                      :ts "1640250011.000100"
+                      :team "T123"
+                      :channel "C123"}})}))]
             (is (= 200 (:status assign-response)))
             (is (=
                  {:channel "C123"
@@ -189,30 +187,26 @@
         (testing "Rotate, check who's duty"
           (let [rotate-response
                 (http/request
-                 {:method :post
-                  :url "http://localhost:8080/api/events"
-                  :content-type :json
-                  :accept :json
-                  :body
-                  (json/generate-string
-                   {:event
-                    {:text "<@U001> rotate my-rota"
-                     :ts "1640250011.000100"
-                     :team "T123"
-                     :channel "C123"}})})
+                 (merge
+                  events-request-base
+                  {:body
+                   (json/generate-string
+                    {:event
+                     {:text "<@U001> rotate my-rota"
+                      :ts "1640250011.000100"
+                      :team "T123"
+                      :channel "C123"}})}))
                 who-response
                 (http/request
-                 {:method :post
-                  :url "http://localhost:8080/api/events"
-                  :content-type :json
-                  :accept :json
-                  :body
-                  (json/generate-string
-                   {:event
-                    {:text "<@U001> who my-rota"
-                     :ts "1640250011.000100"
-                     :team "T123"
-                     :channel "C123"}})})]
+                 (merge
+                  events-request-base
+                  {:body
+                   (json/generate-string
+                    {:event
+                     {:text "<@U001> who my-rota"
+                      :ts "1640250011.000100"
+                      :team "T123"
+                      :channel "C123"}})}))]
             (is (= 200 (:status rotate-response)))
             (is (=
                  {:channel "C123"
@@ -230,108 +224,92 @@
         (testing "Delete, check about, list, who commands"
           (let [delete-response
                 (http/request
-                 {:method :post
-                  :url "http://localhost:8080/api/events"
-                  :content-type :json
-                  :accept :json
-                  :body
-                  (json/generate-string
-                   {:event
-                    {:text "<@U001> delete my-rota"
-                     :ts "1640250011.000100"
-                     :team "T123"
-                     :channel "C123"}})})
+                 (merge
+                  events-request-base
+                  {:body
+                   (json/generate-string
+                    {:event
+                     {:text "<@U001> delete my-rota"
+                      :ts "1640250011.000100"
+                      :team "T123"
+                      :channel "C123"}})}))
                 who-response
                 (http/request
-                 {:method :post
-                  :url "http://localhost:8080/api/events"
-                  :content-type :json
-                  :accept :json
-                  :body
-                  (json/generate-string
-                   {:event
-                    {:text "<@U001> who my-rota"
-                     :ts "1640250011.000100"
-                     :team "T123"
-                     :channel "C123"}})})
+                 (merge
+                  events-request-base
+                  {:body
+                   (json/generate-string
+                    {:event
+                     {:text "<@U001> who my-rota"
+                      :ts "1640250011.000100"
+                      :team "T123"
+                      :channel "C123"}})}))
                 rotate-response
                 (http/request
-                 {:method :post
-                  :url "http://localhost:8080/api/events"
-                  :content-type :json
-                  :accept :json
-                  :body
-                  (json/generate-string
-                   {:event
-                    {:text "<@U001> rotate my-rota"
-                     :ts "1640250011.000100"
-                     :team "T123"
-                     :channel "C123"}})})
+                 (merge
+                  events-request-base
+                  {:body
+                   (json/generate-string
+                    {:event
+                     {:text "<@U001> rotate my-rota"
+                      :ts "1640250011.000100"
+                      :team "T123"
+                      :channel "C123"}})}))
                 assign-response
                 (http/request
-                 {:method :post
-                  :url "http://localhost:8080/api/events"
-                  :content-type :json
-                  :accept :json
-                  :body
-                  (json/generate-string
-                   {:event
-                    {:text "<@U001> assign my-rota <@U123>"
-                     :ts "1640250011.000100"
-                     :team "T123"
-                     :channel "C123"}})})
+                 (merge
+                  events-request-base
+                  {:body
+                   (json/generate-string
+                    {:event
+                     {:text "<@U001> assign my-rota <@U123>"
+                      :ts "1640250011.000100"
+                      :team "T123"
+                      :channel "C123"}})}))
                 about-response
                 (http/request
-                 {:method :post
-                  :url "http://localhost:8080/api/events"
-                  :content-type :json
-                  :accept :json
-                  :body
-                  (json/generate-string
-                   {:event
-                    {:text "<@U001> about my-rota"
-                     :ts "1640250011.000100"
-                     :team "T123"
-                     :channel "C123"}})})
+                 (merge
+                  events-request-base
+                  {:body
+                   (json/generate-string
+                    {:event
+                     {:text "<@U001> about my-rota"
+                      :ts "1640250011.000100"
+                      :team "T123"
+                      :channel "C123"}})}))
                 list-response
                 (http/request
-                 {:method :post
-                  :url "http://localhost:8080/api/events"
-                  :content-type :json
-                  :accept :json
-                  :body
-                  (json/generate-string
-                   {:event
-                    {:text "<@U001> list"
-                     :ts "1640250011.000100"
-                     :team "T123"
-                     :channel "C123"}})})
+                 (merge
+                  events-request-base
+                  {:body
+                   (json/generate-string
+                    {:event
+                     {:text "<@U001> list"
+                      :ts "1640250011.000100"
+                      :team "T123"
+                      :channel "C123"}})}))
                 help-explicit-response
                 (http/request
-                 {:method :post
-                  :url "http://localhost:8080/api/events"
-                  :content-type :json
-                  :accept :json
-                  :body
-                  (json/generate-string
-                   {:event
-                    {:text "<@U001> help"
-                     :ts "1640250011.000100"
-                     :team "T123"
-                     :channel "C123"}})})
+                 (merge
+                  events-request-base
+                  {:body
+                   (json/generate-string
+                    {:event
+                     {:text "<@U001> help"
+                      :ts "1640250011.000100"
+                      :team "T123"
+                      :channel "C123"}})}))
                 help-implicit-response
                 (http/request
-                 {:method :post
-                  :url "http://localhost:8080/api/events"
-                  :content-type :json
-                  :accept :json
-                  :body
-                  (json/generate-string
-                   {:event
-                    {:text "<@U001> there is no such command!"
-                     :ts "1640250011.000100"
-                     :team "T123"
-                     :channel "C123"}})})]
+                 (merge
+                  events-request-base
+                  {:body
+                   (json/generate-string
+                    {:event
+                     {:text "<@U001> there is no such command!"
+                      :ts "1640250011.000100"
+                      :team "T123"
+                      :channel "C123"}})}))]
             (is (=
                  {:channel "C123"
                   :text "Rotation `my-rota` has been deleted"}

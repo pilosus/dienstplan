@@ -6,6 +6,10 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
+### Changed
+- Integration test refactoring: reuse http request params
+  ([#51](https://github.com/pilosus/dienstplan/issues/51))
+
 ## [0.2.9] - 2022-02-15
 
 ### Added
