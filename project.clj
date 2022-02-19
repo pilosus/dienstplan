@@ -1,4 +1,4 @@
-(defproject dienstplan "0.2.10"
+(defproject dienstplan "0.2.11"
   :description "Duty rotation slack bot"
   :url "https://github.com/pilosus/dienstplan"
   :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"
@@ -41,6 +41,7 @@
                  [org.postgresql/postgresql "42.2.20.jre7"]
                  [hikari-cp "2.13.0"]
                  [dev.weavejester/ragtime "0.9.0"]
+                 [com.github.seancorfield/honeysql "2.2.861"]
 
                  ;; Cryptography
                  [buddy/buddy-core "1.10.1"]]
