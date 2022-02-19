@@ -6,6 +6,12 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
+## [0.2.10] - 2022-02-19
+
+### Added
+- More integration tests for middlewares (unhandled exceptions) and
+  commands edge cases (duplicate key).
+
 ### Changed
 - Integration test refactoring: reuse http request params
   ([#51](https://github.com/pilosus/dienstplan/issues/51))
@@ -132,7 +138,8 @@ file. This change log follows the conventions of
 ### Added
 - Bot app MVP
 
-[Unreleased]: https://github.com/pilosus/dienstplan/compare/0.2.9...HEAD
+[Unreleased]: https://github.com/pilosus/dienstplan/compare/0.2.10...HEAD
+[0.2.10]: https://github.com/pilosus/dienstplan/compare/0.2.9...0.2.10
 [0.2.9]: https://github.com/pilosus/dienstplan/compare/0.2.8...0.2.9
 [0.2.8]: https://github.com/pilosus/dienstplan/compare/0.2.7...0.2.8
 [0.2.7]: https://github.com/pilosus/dienstplan/compare/0.2.6...0.2.7
