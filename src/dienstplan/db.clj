@@ -21,6 +21,7 @@
    [clojure.string :as string]
    [dienstplan.config :refer [config]]
    [hikari-cp.core :as cp]
+   [honey.sql :as sql]
    [mount.core :as mount :refer [defstate]]
    [ragtime.jdbc :as ragtime-jdbc]
    [ragtime.repl :as ragtime-repl])
@@ -79,22 +80,21 @@
 
 ;; Business layer
 
+(def sql-params {:checking :strict})
+
 (defn duty-get
   [channel rotation]
   (jdbc/query
    db
-   ["SELECT
-         r.id AS rota_id,
-         r.description,
-         m.name AS duty
-       FROM rota AS r
-       JOIN mention AS m ON m.rota_id = r.id
-       WHERE
-         1 = 1
-         AND r.channel = ?
-         AND r.name = ?
-         AND m.duty IS TRUE"
-    channel rotation]))
+   (sql/format
+    {:select [[:r/id :rota_id] :r/description [:m/name :duty]]
+     :from [[:rota :r]]
+     :join [[:mention :m] [:= :m.rota_id :r.id]]
+     :where [:and
+             [:is :m/duty true]
+             [:= :r/channel channel]
+             [:= :r/name rotation]]}
+    sql-params)))
 
 (defn rota-list-get
   [channel]

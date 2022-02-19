@@ -41,6 +41,7 @@
                  [org.postgresql/postgresql "42.2.20.jre7"]
                  [hikari-cp "2.13.0"]
                  [dev.weavejester/ragtime "0.9.0"]
+                 [com.github.seancorfield/honeysql "2.2.861"]
 
                  ;; Cryptography
                  [buddy/buddy-core "1.10.1"]]
