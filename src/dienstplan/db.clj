@@ -87,7 +87,9 @@
   (jdbc/query
    db
    (sql/format
-    {:select [[:r/id :rota_id] :r/description [:m/name :duty]]
+    {:select [[:r/id :rota_id]
+              :r/description
+              [:m/name :duty]]
      :from [[:rota :r]]
      :join [[:mention :m] [:= :m.rota_id :r.id]]
      :where [:and
@@ -100,16 +102,14 @@
   [channel]
   (jdbc/query
    db
-   ["SELECT
-         r.name,
-         DATE(r.created_on) AS created_on
-       FROM rota AS r
-       WHERE
-         1 = 1
-         AND r.channel = ?
-       ORDER BY r.created_on DESC
-       LIMIT 500"
-    channel]))
+   (sql/format
+    {:select [[:r/name]
+              [[:date :r/created_on] :created_on]]
+     :from [[:rota :r]]
+     :where [[:= :r/channel channel]]
+     :order-by [[:r/created_on :desc]]
+     :limit 500}
+    sql-params)))
 
 (defn rota-about-get
   [channel rotation]
