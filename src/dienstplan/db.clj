@@ -132,20 +132,19 @@
    []
    (jdbc/query
     conn
-    ["SELECT
-              m.id,
-              m.rota_id,
-              m.name AS user,
-              m.duty
-            FROM rota AS r
-            JOIN mention AS m ON r.id = m.rota_id
-            WHERE
-              1 = 1
-              AND r.channel = ?
-              AND r.name = ?
-            ORDER BY m.id ASC
-            FOR UPDATE"
-     channel rotation])))
+    (sql/format
+     {:select [:m/id
+               :m/rota_id
+               [:m/name :user]
+               :m/duty]
+      :from [[:rota :r]]
+      :join [[:mention :m] [:= :m.rota_id :r.id]]
+      :where [:and
+              [:= :r/channel channel]
+              [:= :r/name rotation]]
+      :order-by [[:m/id :asc]]
+      :for [:update]}
+     sql-params))))
 
 (defn rota-delete!
   [channel rotation]
