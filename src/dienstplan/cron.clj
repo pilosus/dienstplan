@@ -1,9 +1,14 @@
 (ns dienstplan.cron
   (:gen-class)
   (:require
-   [clojure.string :as string]))
+   [clojure.string :as string]
+   [tick.core :as t]
+   [java-time :as jt]))
 
 ;; https://crontab.guru/crontab.5.html
+
+;; https://stackoverflow.com/questions/34357126/why-crontab-uses-or-when-both-day-of-month-and-day-of-week-specified
+;; (month AND hour AND minute AND (mday OR wday))
 
 (def list-regex #",\s*")
 
@@ -11,25 +16,25 @@
   #"(?s)(?<start>([0-9|*]+))(?:-(?<end>([0-9]+)))?(?:/(?<step>[0-9]+))?")
 
 (def substitute-values
-  {#"mon" "1"
-   #"tue" "2"
-   #"wed" "3"
-   #"thu" "4"
-   #"fri" "5"
-   #"sat" "6"
-   #"sun" "0"
-   #"jan" "1"
-   #"feb" "2"
-   #"mar" "3"
-   #"apr" "4"
+  {#"mon.*" "1"
+   #"tue.*" "2"
+   #"wed.*" "3"
+   #"thu.*" "4"
+   #"fri.*" "5"
+   #"sat.*" "6"
+   #"sun.*" "0"
+   #"jan.*" "1"
+   #"feb.*" "2"
+   #"mar.*" "3"
+   #"apr.*" "4"
    #"may" "5"
-   #"jun" "6"
-   #"jul" "7"
-   #"aug" "8"
-   #"sep" "9"
-   #"oct" "10"
-   #"nov" "11"
-   #"dec" "12"})
+   #"jun.*" "6"
+   #"jul.*" "7"
+   #"aug.*" "8"
+   #"sep.*" "9"
+   #"oct.*" "10"
+   #"nov.*" "11"
+   #"dec.*" "12"})
 
 (def range-values
   {:minute {:start 0 :end (+ 59 1)}
@@ -37,6 +42,13 @@
    :day-of-month {:start 1 :end (+ 31 1)}
    :month {:start 1 :end (+ 12 1)}
    :day-of-week {:start 0 :end (+ 6 1)}})
+
+;; Temporary examples
+;; Move to untitests once debugged
+
+(def c0
+  "At minute 12, 14, 17, and every 3rd minute from 35 through 45 past every 2nd hour on day-of-month 27 in February. Next: 2023-02-27 00:12:00"
+  "12,14,17,35-45/3 */2 27 2 *")
 
 (def c1
   "12,14,17,35,38,41,44 minutes past the hour every 2 hours"
@@ -58,8 +70,11 @@
   "At 09:39 on day-of-month 1 in February"
   "39 9 1 2 *")
 
+;; Parsing
+
 (defn parse-range
-  [s type]
+  [^String s
+   ^clojure.lang.Keyword type]
   "Parse range of values with possible step value"
   (let [matcher (re-matcher range-regex s)]
     (if (.matches matcher)
@@ -83,11 +98,13 @@
 
 (defn parse-value
   "Parse single value (e.g. minutes, hours, months, etc.)"
-  [s type]
+  [^String s
+   ^clojure.lang.Keyword type]
   (let [ranges (string/split s list-regex)
         values (map #(parse-range % type) ranges)
-        result (apply concat values)]
-    result))
+        flat (apply concat values)
+        sorted (sort flat)]
+    sorted))
 
 (defn- replace-names-with-numbers
   [s substitutions]
@@ -99,12 +116,12 @@
 
 (defn names->numbers
   "Replace month and day of week names with respective numeric values"
-  [s]
+  [^String s]
   (replace-names-with-numbers s (seq substitute-values)))
 
 (defn parse-cron
   "Parse crontab string"
-  [s]
+  [^String s]
   (let
       [[minute hour day-of-month month day-of-week]
        (-> s
@@ -121,14 +138,58 @@
         :day-of-week (parse-value day-of-week :day-of-week)}]
     cron))
 
-;; TODO
-(defn parse-ts
-  "Parse timestamp into map of parts matching cron format"
-  [ts]
-  ts)
+(defn get-now
+  "Get current timestamp for UTC timezone
 
-;; TODO
+  See more:
+  https://github.com/dm3/clojure.java-time"
+  ^java.time.ZonedDateTime
+  []
+  (jt/with-zone-same-instant (jt/zoned-date-time) "UTC"))
+
+(defn generate-timeseries
+  "Generate seq of java.time.ZonedDateTime timestamps for a parsed crontab"
+  [cron-parsed]
+  (let [now-year (jt/as (get-now) :year)
+        eleven-years-later (+ now-year 11)]
+    (for [year (range now-year eleven-years-later)  ;; ten years range
+          ;; FIXME ignore day of week for now
+          ;; we should use either day of week or day of month,
+          ;; if both are present, day of month has priority
+          ;; Check if it's follows the standard
+          month (:month cron-parsed)
+          day (:day-of-month cron-parsed)
+          hour (:hour cron-parsed)
+          minute (:minute cron-parsed)
+          :let [ts
+                (try
+                  (->
+                   (jt/local-date-time year month day hour minute)
+                   (t/in "UTC"))
+                  ;; Skip incorrect datetimes like February 29th
+                  (catch java.time.DateTimeException _ nil))]
+          :when (some? ts)]
+      ts)))
+
+
+(defn find-first
+  "Return first element in the collection that meets predicate conditions
+
+  Example:
+  > (find-first #(< % 10) [30 20 11 10 9 8])
+  9
+  "
+  [f coll]
+  (first (filter f coll)))
+
+
+;; Entrypoint
+
 (defn get-next-ts
-  "Get timestamp after given one according to crontab"
-  [cron-parsed ts]
-  ts)
+  "Parse crontab string and return a timestamp for the next cron invocation"
+  [^String s]
+  (->>
+   s
+   parse-cron
+   generate-timeseries
+   (find-first #(jt/after? % (get-now)))))
