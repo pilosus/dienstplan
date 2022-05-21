@@ -169,6 +169,17 @@
                      {:text "<@U001> who my-rota"
                       :ts "1640250011.000100"
                       :team "T123"
+                      :channel "C123"}})}))
+                shout-response
+                (http/request
+                 (merge
+                  events-request-base
+                  {:body
+                   (json/generate-string
+                    {:event
+                     {:text "<@U001> shout my-rota"
+                      :ts "1640250011.000100"
+                      :team "T123"
                       :channel "C123"}})}))]
             (is (= 200 (:status assign-response)))
             (is (=
@@ -182,6 +193,12 @@
                  {:channel "C123"
                   :text "Hey <@U789>, you are an on-call person for `my-rota` rotation.\nDo what thou wilt shall be the whole of the Law"}
                  (-> who-response
+                     :body
+                     (json/parse-string true))))
+            (is (=
+                 {:channel "C123"
+                  :text "<@U789>"}
+                 (-> shout-response
                      :body
                      (json/parse-string true))))))
         (testing "Rotate, check who's duty"

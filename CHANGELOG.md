@@ -6,6 +6,12 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
+## [0.2.12] - 2022-05-21
+
+### Added
+- `shout` command used to mention current on-call person. The command
+  is very much like `who`, but with duties description omitted.
+
 ## [0.2.11] - 2022-02-20
 
 ### Added
@@ -150,7 +156,8 @@ file. This change log follows the conventions of
 ### Added
 - Bot app MVP
 
-[Unreleased]: https://github.com/pilosus/dienstplan/compare/0.2.11...HEAD
+[Unreleased]: https://github.com/pilosus/dienstplan/compare/0.2.12...HEAD
+[0.2.12]: https://github.com/pilosus/dienstplan/compare/0.2.11...0.2.12
 [0.2.11]: https://github.com/pilosus/dienstplan/compare/0.2.10...0.2.11
 [0.2.10]: https://github.com/pilosus/dienstplan/compare/0.2.9...0.2.10
 [0.2.9]: https://github.com/pilosus/dienstplan/compare/0.2.8...0.2.9
