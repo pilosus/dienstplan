@@ -107,6 +107,9 @@
    [{:user-id "U123" :command :who :rest " backend-rota "}
     {:rotation "backend-rota"}
     "Who"]
+   [{:user-id "U123" :command :shout :rest " backend-rota "}
+    {:rotation "backend-rota"}
+    "Shout"]
    [{:user-id "U123" :command :something :rest " backend-rota "}
     nil
     "Unrecognized command"]])
@@ -260,6 +263,17 @@
      :command :who
      :args {:rotation "backend-rota"}}
     "Who command"]
+   [{:params {:event {:text "  <@UNX01> shout backend-rota"
+                      :ts "1640250011.000100"
+                      :team "T123"
+                      :channel "C123"}}}
+    {:context
+     {:ts "1640250011.000100"
+      :team "T123"
+      :channel "C123"}
+     :command :shout
+     :args {:rotation "backend-rota"}}
+    "Shout command"]
    [{:params {:event {:text "<@UNX01> about backend-rota"
                       :ts "1640250011.000100"
                       :channel "C123"}}}
@@ -415,6 +429,23 @@
 (deftest test-command-exec!-who
   (testing "Test command-exec! who"
     (doseq [[command duty expected description] params-command-exec!-who]
+      (testing description
+        (with-redefs [db/duty-get (constantly duty)]
+          (is (= expected (cmd/command-exec! command))))))))
+
+(def params-command-exec!-shout
+  [[{:context {:channel "channel" :ts "1640250011.000100"} :command :shout :args {:rotation "rota"}}
+    [{:duty "user1" :description "Do what thou wilt shall be the whole of the Law"}]
+    "user1"
+    "Rota found"]
+   [{:context {:channel "channel" :ts "1640250011.000100"} :command :shout :args {:rotation "rota"}}
+    []
+    "Rotation `rota` not found in channel <#channel>"
+    "Rota not found"]])
+
+(deftest test-command-exec!-shout
+  (testing "Test command-exec! shout"
+    (doseq [[command duty expected description] params-command-exec!-shout]
       (testing description
         (with-redefs [db/duty-get (constantly duty)]
           (is (= expected (cmd/command-exec! command))))))))

@@ -53,27 +53,32 @@ Commands:
 @dienstplan who <rotation name>
 ```
 
-4. Assign specific user for a duty. New user becomes a current on-call and the order of users remains as it was.
+4. Mention current on-call person (like `who` command, but with duties description omitted)
+```
+@dienstplan shout <rotation name>
+```
+
+5. Assign specific user for a duty. New user becomes a current on-call and the order of users remains as it was.
 ```
 @dienstplan assign <rotation name> <user mention>
 ```
 
-5. Show details about a rotation
+6. Show details about a rotation
 ```
 @dienstplan about <rotation name>
 ```
 
-6. Delete a rotation
+7. Delete a rotation
 ```
 @dienstplan delete <rotation name>
 ```
 
-7. List channel's rotations
+8. List channel's rotations
 ```
 @dienstplan list
 ```
 
-8. Show a help message
+9. Show a help message
 ```
 @dienstplan help
 ```
@@ -155,6 +160,17 @@ Example:
 @dienstplan who my-rota
 ```")
 
+(def help-cmd-shout
+  "Usage:
+```
+@dienstplan shout <rotation name>
+```
+
+Example:
+```
+@dienstplan shout my-rota
+```")
+
 (def help-cmd-delete
   "Usage:
 ```
@@ -206,6 +222,8 @@ Example:
             :help help-cmd-assign}
    :who {:spec ::spec/bot-cmd-default
          :help help-cmd-who}
+   :shout {:spec ::spec/bot-cmd-default
+           :help help-cmd-shout}
    :about {:spec ::spec/bot-cmd-default
            :help help-cmd-about}
    :delete {:spec ::spec/bot-cmd-default
@@ -372,6 +390,9 @@ Example:
 (defmethod parse-args :who [command-parsed]
   (parse-args-default command-parsed))
 
+(defmethod parse-args :shout [command-parsed]
+  (parse-args-default command-parsed))
+
 (defmethod parse-args :about [command-parsed]
   (parse-args-default command-parsed))
 
@@ -416,6 +437,18 @@ Example:
           (format
            "Rotation `%s` not found in channel %s"
            rotation (slack-mention-channel channel)))]
+    text))
+
+(defmethod command-exec! :shout [command-map]
+  (let [{:keys [channel rotation]} (get-channel-rotation command-map)
+        rota (first (db/duty-get channel rotation))
+        {:keys [duty description]} rota
+        text
+        (or
+         duty
+         (format
+          "Rotation `%s` not found in channel %s"
+          rotation (slack-mention-channel channel)))]
     text))
 
 (defmethod command-exec! :about [command-map]
