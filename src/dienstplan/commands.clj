@@ -48,12 +48,12 @@ Commands:
 @dienstplan rotate <rotation name>
 ```
 
-3. Show a current duty
+3. Show a current duty (on-call person and duties description)
 ```
 @dienstplan who <rotation name>
 ```
 
-4. Mention current on-call person (like `who` command, but with duties description omitted)
+4. Mention current on-call person. It's like `who` command, but with duties description omitted.
 ```
 @dienstplan shout <rotation name>
 ```

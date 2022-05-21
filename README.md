@@ -88,32 +88,37 @@ Commands:
 @dienstplan rotate <rotation name>
 ```
 
-3. Show a current duty
+3. Show a current duty (on-call person and duties description)
 ```
 @dienstplan who <rotation name>
 ```
 
-4. Assign specific user for a duty. New user becomes a current on-call and the order of users remains as it was.
+4. Mention current on-call person. It's like `who` command, but with duties description omitted.
+```
+@dienstplan shout <rotation name>
+```
+
+5. Assign specific user for a duty. New user becomes a current on-call and the order of users remains as it was.
 ```
 @dienstplan assign <rotation name> <user mention>
 ```
 
-5. Show details about a rotation
+6. Show details about a rotation
 ```
 @dienstplan about <rotation name>
 ```
 
-6. Delete a rotation
+7. Delete a rotation
 ```
 @dienstplan delete <rotation name>
 ```
 
-7. List channel's rotations
+8. List channel's rotations
 ```
 @dienstplan list
 ```
 
-8. Show a help message
+9. Show a help message
 ```
 @dienstplan help
 ```
