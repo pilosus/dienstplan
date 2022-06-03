@@ -1,18 +1,38 @@
+;; Copyright (c) 2022 Vitaly Samigullin and contributors. All rights reserved.
+;;
+;; This program and the accompanying materials are made available under the
+;; terms of the Eclipse Public License 2.0 which is available at
+;; http://www.eclipse.org/legal/epl-2.0.
+;;
+;; This Source Code may also be made available under the following Secondary
+;; Licenses when the conditions for such availability set forth in the Eclipse
+;; Public License, v. 2.0 are satisfied: GNU General Public License as published by
+;; the Free Software Foundation, either version 2 of the License, or (at your
+;; option) any later version, with the GNU Classpath Exception which is available
+;; at https://www.gnu.org/software/classpath/license.html.
+;;
+;; SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
+
 (ns dienstplan.cron
+  "Crontab format parsing
+
+  Format follows that of the Vixie cron:
+  https://linux.die.net/man/5/crontab
+
+  including support for the following timestamp matching:
+  (month AND hour AND minute AND (day-of-month OR day-of-week))
+
+  Short 3-letter names for months and week days are supported, e.g. Jan, Wed.
+  Sunday's day of week number can be either 0 or 7."
   (:gen-class)
   (:require
    [clojure.string :as string]
    [tick.core :as t]
    [java-time :as jt]))
 
-;; https://crontab.guru/crontab.5.html
+;; Constants
 
-;; https://stackoverflow.com/questions/34357126/why-crontab-uses-or-when-both-day-of-month-and-day-of-week-specified
-;; (month AND hour AND minute AND (mday OR wday))
-
-;; "0 10 3,7 * Mon" will execute on 10:00, 3rd AND 7th AND every Monday
-
-;; Sunday - 0
+(def year-limit 100)
 
 (def skip-range "")
 
@@ -22,59 +42,42 @@
   #"(?s)(?<start>([0-9|*]+))(?:-(?<end>([0-9]+)))?(?:/(?<step>[0-9]+))?")
 
 (def substitute-values
-  {#"mon" "1"
-   #"tue" "2"
-   #"wed" "3"
-   #"thu" "4"
-   #"fri" "5"
-   #"sat" "6"
-   #"sun" "7"
-   #"jan" "1"
-   #"feb" "2"
-   #"mar" "3"
-   #"apr" "4"
-   #"may" "5"
-   #"jun" "6"
-   #"jul" "7"
-   #"aug" "8"
-   #"sep" "9"
-   #"oct" "10"
-   #"nov" "11"
-   #"dec" "12"})
+  {#"mon" "1" #"tue" "2" #"wed" "3" #"thu" "4" #"fri" "5" #"sat" "6" #"sun" "7"
+   #"jan" "1" #"feb" "2" #"mar" "3" #"apr" "4" #"may" "5" #"jun" "6" #"jul" "7"
+   #"aug" "8" #"sep" "9" #"oct" "10" #"nov" "11" #"dec" "12"})
 
 (def range-values
   {:minute {:start 0 :end (+ 59 1)}
    :hour {:start 0 :end (+ 23 1)}
    :day-of-month {:start 1 :end (+ 31 1)}
    :month {:start 1 :end (+ 12 1)}
-   :day-of-week {:start 0 :end (+ 6 1)}})
+   :day-of-week {:start 1 :end (+ 7 1)}})
 
-;; Temporary examples
-;; Move to untitests once debugged
+;; Collection helpers
 
-(def c0
-  "At minute 12, 14, 17, and every 3rd minute from 35 through 45 past every 2nd hour on day-of-month 27 in February. Next: 2023-02-27 00:12:00"
-  "12,14,17,35-45/3 */2 27 2 *")
+(defn in?
+  "Return true if a collection contains the element"
+  [coll e]
+  (if (some #(= e %) coll) true false))
 
-(def c1
-  "12,14,17,35,38,41,44 minutes past the hour every 2 hours"
-  "12,14,17,35-45/3 */2 * * *")
+;; Timestamp helpers
 
-(def c2
-  "23:17 and 23:45 every day"
-  "17,45 23 * * *")
+(defn get-ts
+  "Get current or given timestamp for UTC timezone"
+  ^java.time.ZonedDateTime
+  ([] (get-ts []))
+  ([args] (jt/with-zone-same-instant (apply jt/zoned-date-time args) "UTC")))
 
-(def c3
-  "At 01:00 on Sunday"
-  "0 1 * * SUN")
-
-(def c4
-  "At 09:39 on every day-of-week from Wednesday through Friday"
-  "39 9 * * wed-fri")
-
-(def c5
-  "At 09:39 on day-of-month 1 in February"
-  "39 9 1 2 *")
+(defn ts-day-ok?
+  "Return true if timestamp's day of month or day of week are in given sequenses"
+  [^java.time.ZonedDateTime ts
+   days-of-month
+   days-of-week]
+  (let [day-of-month (jt/as ts :day-of-month)
+        day-of-week (jt/as ts :day-of-week)
+        contains-day-of-month? (in? days-of-month day-of-month)
+        contains-day-of-week? (in? days-of-week day-of-week)]
+    (or contains-day-of-month? contains-day-of-week?)))
 
 ;; Parsing
 
@@ -125,103 +128,105 @@
   [^String s]
   (replace-names-with-numbers s (seq substitute-values)))
 
+(defn- substitute-zero-day-of-week
+  "Substitute 0 day of week for Sunday with 7 and return sorted sequence"
+  [day-of-week-range]
+  (->>
+   day-of-week-range
+   (map #(if (= % 0) 7 %))
+   sort))
+
 (defn parse-cron
   "Parse crontab string"
   [^String s]
-  (let
-   [[minute hour day-of-month month day-of-week]
-    (-> s
-        string/trim
-        string/lower-case
-        names->numbers
-        (string/split #"\s+"))
-    day-of-month'
-    (cond
-      (and (= day-of-month "*") (not (= day-of-week "*"))) skip-range
-      :else day-of-month)
-    day-of-week'
-    (cond
-      (and (= day-of-week "*") (not (= day-of-month "*"))) skip-range
-      :else day-of-week)
-    _ (prn (format "%s %s %s %s %s" minute hour day-of-month month day-of-week))
-    cron
-    {:minute (parse-value minute :minute)
-     :hour (parse-value hour :hour)
-     :day-of-month (parse-value day-of-month' :day-of-month)
-     :month (parse-value month :month)
-     :day-of-week (parse-value day-of-week' :day-of-week)}]
-    cron))
+  (try
+    (let
+     [[minute hour day-of-month month day-of-week]
+      (-> s
+          string/trim
+          string/lower-case
+          names->numbers
+          (string/split #"\s+"))
+      day-of-month'
+      (cond
+        (and (= day-of-month "*") (not (= day-of-week "*"))) skip-range
+        :else day-of-month)
+      day-of-week'
+      (cond
+        (and (= day-of-week "*") (not (= day-of-month "*"))) skip-range
+        :else day-of-week)
+      cron
+      {:minute (parse-value minute :minute)
+       :hour (parse-value hour :hour)
+       :day-of-month (parse-value day-of-month' :day-of-month)
+       :month (parse-value month :month)
+       :day-of-week
+       (->
+        day-of-week'
+        (parse-value :day-of-week)
+        substitute-zero-day-of-week)}]
+      cron)
+    (catch Exception _ nil)))
 
-(defn get-now
-  "Get current timestamp for UTC timezone
+;; Business layer
 
-  See more:
-  https://github.com/dm3/clojure.java-time"
-  ^java.time.ZonedDateTime
-  []
-  (jt/with-zone-same-instant (jt/zoned-date-time) "UTC"))
+(defn get-timeseries
+  "Generate timestamps for given years range for a parsed crontab"
+  [start-year cron-parsed]
+  (when cron-parsed
+    (let [day-of-month (:day-of-month cron-parsed)
+          day-of-week (:day-of-week cron-parsed)
+          days (range
+                (get-in range-values [:day-of-month :start])
+                (get-in range-values [:day-of-month :end]))]
+      ;; Infinite years seq doesn't terminate the loop in case
+      ;; at least one other value (e.g. minute) is an empty sequence
+      ;; even when take/drop/filter or the like functions applied.
+      ;; That's why we take N elements of the infinite seq only.
+      ;; The behvaiour doesn't reproduce when all the values are non-empty/nil
+      ;; Is it a Clojure bug?
+      (for [year (take year-limit (iterate inc start-year))
+            month (:month cron-parsed)
+            day days
+            hour (:hour cron-parsed)
+            minute (:minute cron-parsed)
+            :let [ts
+                  (try
+                    (->
+                     (jt/local-date-time year month day hour minute)
+                     (t/in "UTC"))
+                    ;; Skip incorrect datetimes like February 29th
+                    (catch java.time.DateTimeException _ nil))]
+            :when (and
+                   (some? ts)
+                   (ts-day-ok? ts day-of-month day-of-week))]
+        ts))))
 
-(defn in?
-  "Return true if a collection contains the element"
-  [coll e]
-  (if (some #(= e %) coll) true false))
-
-(defn ts-day-ok?
-  "Return true if timestamp's day of month or day of week are in given sequenses"
-  [^java.time.ZonedDateTime ts
-   days-of-month
-   days-of-week]
-  (let [day-of-month (jt/as ts :day-of-month)
-        day-of-week (jt/as ts :day-of-week)
-        contains-day-of-month? (in? days-of-month day-of-month)
-        contains-day-of-week? (in? days-of-week day-of-week)]
-    (or contains-day-of-month? contains-day-of-week?)))
-
-(defn generate-timeseries
-  "Generate seq of java.time.ZonedDateTime timestamps for a parsed crontab"
-  [cron-parsed]
-  (let [now-year (jt/as (get-now) :year)
-        eleven-years-later (+ now-year 11)
-        day-of-month (:day-of-month cron-parsed)
-        day-of-week (:day-of-week cron-parsed)
-        days (range
-              (get-in range-values [:day-of-month :start])
-              (get-in range-values [:day-of-month :end]))]
-    (for [year (range now-year eleven-years-later)  ;; ten years range
-          month (:month cron-parsed)
-          ;; day (:day-of-month cron-parsed)
-          day days
-          hour (:hour cron-parsed)
-          minute (:minute cron-parsed)
-          :let [ts
-                (try
-                  (->
-                   (jt/local-date-time year month day hour minute)
-                   (t/in "UTC"))
-                  ;; Skip incorrect datetimes like February 29th
-                  (catch java.time.DateTimeException _ nil))]
-          :when (and
-                 (some? ts)
-                 (ts-day-ok? ts day-of-month day-of-week))]
-      ts)))
-
-(defn find-first
-  "Return first element in the collection that meets predicate conditions
-
-  Example:
-  > (find-first #(< % 10) [30 20 11 10 9 8])
-  9
-  "
-  [f coll]
-  (first (filter f coll)))
-
-;; Entrypoint
-
-(defn get-next-ts
-  "Parse crontab string and return a timestamp for the next cron invocation"
-  [^String s]
-  (->>
-   s
-   parse-cron
-   generate-timeseries
-   (find-first #(jt/after? % (get-now)))))
+(defn get-next-tss
+  "Parse crontab string and return lazy seq of timestamps for next exucutions"
+  ([s] (get-next-tss (get-ts) s))
+  ([ts s]
+   (let [start-year (jt/as ts :year)]
+     (->>
+      s
+      parse-cron
+      (get-timeseries start-year)
+      ;; TODO optimize filtering
+      ;; Generate many timestamps, filtering enabled
+      ;; > (time (first (get-next-tss (get-ts [2022 12 31 23 59 59]) "* * * * *")))
+      ;; "Elapsed time: 2207.318429 msecs"
+      ;; Generate less timestamps since beginning of the year (1 month, not 12)
+      ;; > (time (first (get-next-tss (get-ts [2022 1 31 23 59 59]) "* * * * *")))
+      ;; "Elapsed time: 178.73676 msecs"
+      ;; Generate even less ts by passing crontab of low frequency
+      ;; > (time (first (get-next-tss (get-ts [2022 1 31 23 59 59]) "0 10 1 * *")))
+      ;; "Elapsed time: 0.517044 msecs"
+      ;; Generate many ts, filtering disabled (commented out)
+      ;; > (time (first (get-next-tss (get-ts [2022 12 31 23 59 59]) "* * * * *")))
+      ;; "Elapsed time: 0.379484 msecs"
+      ;; Generate many ts, filtering changed to function (constantly true)
+      ;; > (time (first (get-next-tss (get-ts [2022 12 31 23 59 59]) "* * * * *")))
+      ;; "Elapsed time: 0.488917 msecs"
+      ;; Conclusion: jt/after? is very slow
+      ;; TODO: consider writing own ts comparator instead of jt/after?
+      (filter #(jt/after? % ts))))))
