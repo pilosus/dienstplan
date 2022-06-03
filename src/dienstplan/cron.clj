@@ -10,31 +10,37 @@
 ;; https://stackoverflow.com/questions/34357126/why-crontab-uses-or-when-both-day-of-month-and-day-of-week-specified
 ;; (month AND hour AND minute AND (mday OR wday))
 
+;; "0 10 3,7 * Mon" will execute on 10:00, 3rd AND 7th AND every Monday
+
+;; Sunday - 0
+
+(def skip-range "")
+
 (def list-regex #",\s*")
 
 (def range-regex
   #"(?s)(?<start>([0-9|*]+))(?:-(?<end>([0-9]+)))?(?:/(?<step>[0-9]+))?")
 
 (def substitute-values
-  {#"mon.*" "1"
-   #"tue.*" "2"
-   #"wed.*" "3"
-   #"thu.*" "4"
-   #"fri.*" "5"
-   #"sat.*" "6"
-   #"sun.*" "0"
-   #"jan.*" "1"
-   #"feb.*" "2"
-   #"mar.*" "3"
-   #"apr.*" "4"
+  {#"mon" "1"
+   #"tue" "2"
+   #"wed" "3"
+   #"thu" "4"
+   #"fri" "5"
+   #"sat" "6"
+   #"sun" "7"
+   #"jan" "1"
+   #"feb" "2"
+   #"mar" "3"
+   #"apr" "4"
    #"may" "5"
-   #"jun.*" "6"
-   #"jul.*" "7"
-   #"aug.*" "8"
-   #"sep.*" "9"
-   #"oct.*" "10"
-   #"nov.*" "11"
-   #"dec.*" "12"})
+   #"jun" "6"
+   #"jul" "7"
+   #"aug" "8"
+   #"sep" "9"
+   #"oct" "10"
+   #"nov" "11"
+   #"dec" "12"})
 
 (def range-values
   {:minute {:start 0 :end (+ 59 1)}
@@ -52,7 +58,7 @@
 
 (def c1
   "12,14,17,35,38,41,44 minutes past the hour every 2 hours"
-  "12,14,17,35-45/3 */2 * * *" )
+  "12,14,17,35-45/3 */2 * * *")
 
 (def c2
   "23:17 and 23:45 every day"
@@ -123,19 +129,27 @@
   "Parse crontab string"
   [^String s]
   (let
-      [[minute hour day-of-month month day-of-week]
-       (-> s
-           string/trim
-           string/lower-case
-           names->numbers
-           (string/split #"\s+"))
-       _ (prn (format "%s %s %s %s %s" minute hour day-of-month month day-of-week))
-       cron
-       {:minute (parse-value minute :minute)
-        :hour (parse-value hour :hour)
-        :day-of-month (parse-value day-of-month :day-of-month)
-        :month (parse-value month :month)
-        :day-of-week (parse-value day-of-week :day-of-week)}]
+   [[minute hour day-of-month month day-of-week]
+    (-> s
+        string/trim
+        string/lower-case
+        names->numbers
+        (string/split #"\s+"))
+    day-of-month'
+    (cond
+      (and (= day-of-month "*") (not (= day-of-week "*"))) skip-range
+      :else day-of-month)
+    day-of-week'
+    (cond
+      (and (= day-of-week "*") (not (= day-of-month "*"))) skip-range
+      :else day-of-week)
+    _ (prn (format "%s %s %s %s %s" minute hour day-of-month month day-of-week))
+    cron
+    {:minute (parse-value minute :minute)
+     :hour (parse-value hour :hour)
+     :day-of-month (parse-value day-of-month' :day-of-month)
+     :month (parse-value month :month)
+     :day-of-week (parse-value day-of-week' :day-of-week)}]
     cron))
 
 (defn get-now
@@ -147,18 +161,36 @@
   []
   (jt/with-zone-same-instant (jt/zoned-date-time) "UTC"))
 
+(defn in?
+  "Return true if a collection contains the element"
+  [coll e]
+  (if (some #(= e %) coll) true false))
+
+(defn ts-day-ok?
+  "Return true if timestamp's day of month or day of week are in given sequenses"
+  [^java.time.ZonedDateTime ts
+   days-of-month
+   days-of-week]
+  (let [day-of-month (jt/as ts :day-of-month)
+        day-of-week (jt/as ts :day-of-week)
+        contains-day-of-month? (in? days-of-month day-of-month)
+        contains-day-of-week? (in? days-of-week day-of-week)]
+    (or contains-day-of-month? contains-day-of-week?)))
+
 (defn generate-timeseries
   "Generate seq of java.time.ZonedDateTime timestamps for a parsed crontab"
   [cron-parsed]
   (let [now-year (jt/as (get-now) :year)
-        eleven-years-later (+ now-year 11)]
+        eleven-years-later (+ now-year 11)
+        day-of-month (:day-of-month cron-parsed)
+        day-of-week (:day-of-week cron-parsed)
+        days (range
+              (get-in range-values [:day-of-month :start])
+              (get-in range-values [:day-of-month :end]))]
     (for [year (range now-year eleven-years-later)  ;; ten years range
-          ;; FIXME ignore day of week for now
-          ;; we should use either day of week or day of month,
-          ;; if both are present, day of month has priority
-          ;; Check if it's follows the standard
           month (:month cron-parsed)
-          day (:day-of-month cron-parsed)
+          ;; day (:day-of-month cron-parsed)
+          day days
           hour (:hour cron-parsed)
           minute (:minute cron-parsed)
           :let [ts
@@ -168,9 +200,10 @@
                    (t/in "UTC"))
                   ;; Skip incorrect datetimes like February 29th
                   (catch java.time.DateTimeException _ nil))]
-          :when (some? ts)]
+          :when (and
+                 (some? ts)
+                 (ts-day-ok? ts day-of-month day-of-week))]
       ts)))
-
 
 (defn find-first
   "Return first element in the collection that meets predicate conditions
@@ -181,7 +214,6 @@
   "
   [f coll]
   (first (filter f coll)))
-
 
 ;; Entrypoint
 
