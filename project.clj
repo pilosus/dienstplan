@@ -44,7 +44,12 @@
                  [com.github.seancorfield/honeysql "2.2.861"]
 
                  ;; Cryptography
-                 [buddy/buddy-core "1.10.1"]]
+                 [buddy/buddy-core "1.10.1"]
+
+                 ;; Time
+                 [tick "0.5.0-RC5"]
+                 [clojure.java-time "0.3.3"]]
+
   :plugins [[lein-cljfmt "0.8.0"]
             [lein-cloverage "1.2.2"]
             [lein-licenses "0.2.2"]
