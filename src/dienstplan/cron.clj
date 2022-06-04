@@ -65,8 +65,16 @@
 (defn get-ts
   "Get current or given timestamp for UTC timezone"
   ^java.time.ZonedDateTime
-  ([] (get-ts []))
-  ([args] (jt/with-zone-same-instant (apply jt/zoned-date-time args) "UTC")))
+  ([]
+   (->
+    (jt/zoned-date-time)
+    (jt/with-zone-same-instant "UTC")
+    (jt/truncate-to :seconds)))
+  ([args]
+   (->
+    (apply jt/local-date-time args)
+    (t/in "UTC")
+    (jt/truncate-to :seconds))))
 
 (defn ts-day-ok?
   "Return true if timestamp's day of month or day of week are in given sequenses"
