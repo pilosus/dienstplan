@@ -18,6 +18,10 @@
    [clojure.test :refer [deftest is testing]]
    [dienstplan.cron :as cron]))
 
+(deftest test-get-ts-no-args
+  (testing "Test get current ts"
+    (is (= (type (cron/get-ts)) java.time.ZonedDateTime))))
+
 (def params-cron-parsed-ok
   [["12,14,17,35-45/3 */2 27 2 *"
     {:minute '(12 14 17 35 38 41 44),
@@ -88,3 +92,90 @@
     (doseq [[crontab expected description] params-cron-parsed-fail]
       (testing description
         (is (= (cron/parse-cron crontab)))))))
+
+(def params-get-next-tss
+  [["12,14,17,35-45/3 */2 27 2 *"
+    (cron/get-ts [1970 1 1 0 0])
+    10
+    [(cron/get-ts [1970 2 27 0 12])
+     (cron/get-ts [1970 2 27 0 14])
+     (cron/get-ts [1970 2 27 0 17])
+     (cron/get-ts [1970 2 27 0 35])
+     (cron/get-ts [1970 2 27 0 38])
+     (cron/get-ts [1970 2 27 0 41])
+     (cron/get-ts [1970 2 27 0 44])
+     (cron/get-ts [1970 2 27 2 12])
+     (cron/get-ts [1970 2 27 2 14])
+     (cron/get-ts [1970 2 27 2 17])]
+    "At minute 12, 14, 17, and every 3rd minute from 35 through 45 past every 2nd hour on day-of-month 27 in February"]
+   ["39 9 * * wed-fri"
+    (cron/get-ts [1970 1 1 0 0])
+    8
+    [(cron/get-ts [1970 1 1 9 39])
+     (cron/get-ts [1970 1 2 9 39])
+     (cron/get-ts [1970 1 7 9 39])
+     (cron/get-ts [1970 1 8 9 39])
+     (cron/get-ts [1970 1 9 9 39])
+     (cron/get-ts [1970 1 14 9 39])
+     (cron/get-ts [1970 1 15 9 39])
+     (cron/get-ts [1970 1 16 9 39])]
+    "At 09:39 on every day-of-week from Wednesday through Friday"]
+   ["0 10 3,7 Dec Mon"
+    (cron/get-ts [1970 1 1 0 0])
+    10
+    [(cron/get-ts [1970 12 3 10 0])
+     (cron/get-ts [1970 12 7 10 0])
+     (cron/get-ts [1970 12 14 10 0])
+     (cron/get-ts [1970 12 21 10 0])
+     (cron/get-ts [1970 12 28 10 0])
+     (cron/get-ts [1971 12 3 10 0])
+     (cron/get-ts [1971 12 6 10 0])
+     (cron/get-ts [1971 12 7 10 0])
+     (cron/get-ts [1971 12 13 10 0])
+     (cron/get-ts [1971 12 20 10 0])]
+    "At 10:00, on 3rd and 7th or every Monday of December"]
+   ["0 0 * May 0-3"
+    (cron/get-ts [1970 1 1 0 0])
+    8
+    [(cron/get-ts [1970 5 3 0 0])
+     (cron/get-ts [1970 5 4 0 0])
+     (cron/get-ts [1970 5 5 0 0])
+     (cron/get-ts [1970 5 6 0 0])
+     (cron/get-ts [1970 5 10 0 0])
+     (cron/get-ts [1970 5 11 0 0])
+     (cron/get-ts [1970 5 12 0 0])
+     (cron/get-ts [1970 5 13 0 0])]
+    "At 00:00, Wednesday through Sunday of May"]
+   ["0 0 * May 1,2,3,7"
+    (cron/get-ts [1970 1 1 0 0])
+    8
+    [(cron/get-ts [1970 5 3 0 0])
+     (cron/get-ts [1970 5 4 0 0])
+     (cron/get-ts [1970 5 5 0 0])
+     (cron/get-ts [1970 5 6 0 0])
+     (cron/get-ts [1970 5 10 0 0])
+     (cron/get-ts [1970 5 11 0 0])
+     (cron/get-ts [1970 5 12 0 0])
+     (cron/get-ts [1970 5 13 0 0])]
+    "At 00:00, Monday, Tuesday, Wednesday, Sunday of May"]
+   ["* * * * *"
+    (cron/get-ts [1970 1 1 0 0])
+    5
+    [(cron/get-ts [1970 1 1 0 1])
+     (cron/get-ts [1970 1 1 0 2])
+     (cron/get-ts [1970 1 1 0 3])
+     (cron/get-ts [1970 1 1 0 4])
+     (cron/get-ts [1970 1 1 0 5])]
+    "At every minute"]])
+
+(deftest test-get-next-tss
+  (testing "Test getting next timestamps"
+    (doseq [[crontab ts quantity expected description] params-get-next-tss]
+      (testing description
+        (is (= expected (take quantity (cron/get-next-tss ts crontab))))))))
+
+(deftest test-get-next-tss-no-ts
+  (testing "Test getting next timestamp for the current ts"
+    (is
+     (= (type (first (cron/get-next-tss "0 10 26 5 *"))))
+     java.time.ZonedDateTime)))
