@@ -1,2 +1,7 @@
 ## DB data ##
+**/*.log
+**/target/
 db-data/
+Dockerfile
+.git
+.gitignore
