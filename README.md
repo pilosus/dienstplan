@@ -1,7 +1,7 @@
 # dienstplan
 
 [![codecov](https://codecov.io/gh/pilosus/dienstplan/branch/main/graph/badge.svg?token=2ouqzEwhLc)](https://codecov.io/gh/pilosus/dienstplan)
-[![Docker Image Version (latest semver)](https://img.shields.io/docker/v/pilosus/dienstplan?label=docker%20image&sort=semver)](https://hub.docker.com/r/pilosus/dienstplan)
+[![Docker Image Version (latest semver)](https://img.shields.io/docker/v/pilosus/dienstplan?label=docker)](https://hub.docker.com/r/pilosus/dienstplan)
 [![Hits-of-Code](https://hitsofcode.com/github/pilosus/dienstplan?branch=main)](https://hitsofcode.com/github/pilosus/dienstplan/view?branch=main)
 
 Slack bot for duty rotations.
@@ -127,8 +127,8 @@ Commands:
 
 ### Server requirements
 
-- Any server with Java 17 or higher (tested with OpenJDK 17)
-- PostgreSQL 9.4 or higher (tested with PostgreSQL 13)
+- Any server with Java 17 or higher (tested with [Eclipse Temurin 17.0.4.1](https://whichjdk.com/#adoptium-eclipse-temurin))
+- PostgreSQL 9.4 to 14.5 (as of 2022-10-29 PostgreSQL 15 is not tested yet)
 - (Optionally) [Sentry account](https://sentry.io/) for error tracking
 
 ### Environment variables
