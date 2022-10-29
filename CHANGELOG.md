@@ -5,6 +5,10 @@ file. This change log follows the conventions of
 [keepachangelog.com](http://keepachangelog.com/).
 
 ## [Unreleased]
+### Changed
+- Base docker images for production and testing moved to Linux
+  Alpine-based with Eclipse Temurin 17 JRE to reduce container size
+  ([#63](https://github.com/pilosus/dienstplan/issues/63))
 
 ## [0.2.12] - 2022-05-21
 
