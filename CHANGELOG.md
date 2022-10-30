@@ -5,6 +5,8 @@ file. This change log follows the conventions of
 [keepachangelog.com](http://keepachangelog.com/).
 
 ## [Unreleased]
+
+## [0.3.0] - 2022-10-30
 ### Changed
 - Base docker images for production and testing moved to Linux
   Alpine-based with Eclipse Temurin 17 JRE to reduce container size
@@ -160,7 +162,8 @@ file. This change log follows the conventions of
 ### Added
 - Bot app MVP
 
-[Unreleased]: https://github.com/pilosus/dienstplan/compare/0.2.12...HEAD
+[Unreleased]: https://github.com/pilosus/dienstplan/compare/0.3.0...HEAD
+[0.3.0]: https://github.com/pilosus/dienstplan/compare/0.2.12...0.3.0
 [0.2.12]: https://github.com/pilosus/dienstplan/compare/0.2.11...0.2.12
 [0.2.11]: https://github.com/pilosus/dienstplan/compare/0.2.10...0.2.11
 [0.2.10]: https://github.com/pilosus/dienstplan/compare/0.2.9...0.2.10
