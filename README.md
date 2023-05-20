@@ -127,8 +127,8 @@ Commands:
 
 ### Server requirements
 
-- Any server with Java 17 or higher (tested with [Eclipse Temurin 17.0.4.1](https://whichjdk.com/#adoptium-eclipse-temurin))
-- PostgreSQL 9.4 to 14.5 (as of 2022-10-29 PostgreSQL 15 is not tested yet)
+- Any server with Java 17 or higher
+- PostgreSQL 9.4 to 15.3
 - (Optionally) [Sentry account](https://sentry.io/) for error tracking
 
 ### Environment variables

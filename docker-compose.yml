@@ -1,7 +1,9 @@
 version: "3.9"
 services:
   postgres:
-    image: postgres:14.5-alpine3.16@sha256:db802f226b620fc0b8adbeca7859eb203c8d3c9ce5d84870fadee05dea8f50ce
+    image: postgres:15.3-alpine3.18
+    ports:
+      - "15432:5432"
     volumes:
       - "/tmp/diestplan-db-data:/var/lib/postgresql/data"
     env_file:
