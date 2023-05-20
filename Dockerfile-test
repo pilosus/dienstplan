@@ -1,4 +1,4 @@
-FROM clojure:temurin-17-lein-alpine@sha256:37968e7afb62937499c3773e9b713400da4abb358e6beb0ec9bae41a59715111
+FROM clojure:temurin-17-lein-alpine
 RUN mkdir -p /usr/src/app
 COPY project.clj /usr/src/app/
 WORKDIR /usr/src/app
