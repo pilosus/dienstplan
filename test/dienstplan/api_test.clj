@@ -26,6 +26,7 @@
    [dienstplan.commands :as cmd]
    [dienstplan.db]
    [dienstplan.slack :as slack]
+   [dienstplan.verify :as verify]
    [hikari-cp.core :as cp]
    [mount.core :as mount :refer [defstate]]))
 
@@ -42,7 +43,8 @@
 (defn fix-mock-slack-api-request
   [test]
   (with-redefs
-   [slack/slack-api-request (constantly {:ok? true :status 200 :date nil})]
+   [slack/slack-api-request (constantly {:ok? true :status 200 :date nil})
+    verify/request-verified? (constantly true)]
     (test)))
 
 (defstate db-test
@@ -394,6 +396,63 @@
            {:channel "C123"
             :text "Rotation `my-rota` for channel <#C123> already exists"}
            (-> create-duplicate-response
+               :body
+               (json/parse-string true)))))))
+
+(deftest test-events-update-existing-rota
+  (testing "Create and update the rota"
+    (let [create-request
+          (merge
+           events-request-base
+           {:body (json/generate-string
+                   {:event
+                    {:text "<@U001> create my-rota <@U123> <@U456> <@U789> Test description"
+                     :ts "1640250011.000100"
+                     :team "T123"
+                     :channel "C123"}})})
+          _ (http/request create-request)
+          who-created-response
+          (http/request
+           (merge
+            events-request-base
+            {:body
+             (json/generate-string
+              {:event
+               {:text "<@U001> who my-rota"
+                :ts "1640250011.000100"
+                :team "T123"
+                :channel "C123"}})}))
+          update-request
+          (merge
+           events-request-base
+           {:body (json/generate-string
+                   {:event
+                    {:text "<@U001> update my-rota <@U456> <@U789> <@U321> New description"
+                     :ts "1640250011.000100"
+                     :team "T123"
+                     :channel "C123"}})})
+          _ (http/request update-request)
+          who-updated-response
+          (http/request
+           (merge
+            events-request-base
+            {:body
+             (json/generate-string
+              {:event
+               {:text "<@U001> who my-rota"
+                :ts "1640250011.000100"
+                :team "T123"
+                :channel "C123"}})}))]
+      (is (=
+           {:channel "C123"
+            :text "Hey <@U123>, you are an on-call person for `my-rota` rotation.\nTest description"}
+           (-> who-created-response
+               :body
+               (json/parse-string true))))
+      (is (=
+           {:channel "C123"
+            :text "Hey <@U456>, you are an on-call person for `my-rota` rotation.\nNew description"}
+           (-> who-updated-response
                :body
                (json/parse-string true)))))))
 

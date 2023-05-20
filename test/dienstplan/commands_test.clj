@@ -81,6 +81,11 @@
      :users ["<@U1KF3FG75>" "<@U01NT7XLST0>" "<@U01P02NDVSN>"]
      :description "On-call backend engineer's duty \n- Check <#C02PJGR5LLB>\n- Check Sentry alerts\n- Check Grafana metrics"}
     "Create"]
+   [{:user-id "U02HXENLLPN" :command :update :rest "backend-rota <@U1KF3FG75> <@U01NT7XLST0> <@U01P02NDVSN>\nOn-call backend engineer's duty \n- Check <#C02PJGR5LLB>\n- Check Sentry alerts\n- Check Grafana metrics"}
+    {:rotation "backend-rota"
+     :users ["<@U1KF3FG75>" "<@U01NT7XLST0>" "<@U01P02NDVSN>"]
+     :description "On-call backend engineer's duty \n- Check <#C02PJGR5LLB>\n- Check Sentry alerts\n- Check Grafana metrics"}
+    "Update"]
    [{:command :create :rest "backend rotation\u00a0<@U123>\u00a0<@U456>\u00a0<@U789>\u00a0On-call backend engineer's duty:\n- Check support questions\n- Check alerts\n- Check metrics"}
     {:rotation "backend rotation"
      :users ["<@U123>" "<@U456>" "<@U789>"]

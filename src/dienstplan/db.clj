@@ -169,6 +169,40 @@
                 error)))]
       result)))
 
+;; FIXME test cases:
+;; - select didn't find anything
+;; - delete failed
+(defn rota-update!
+  [params]
+  (jdbc/with-db-transaction [conn db]
+    (try
+      (let
+          [rota-id
+           (:rota_id
+            (first
+             (jdbc/query
+              conn
+              (sql/format
+               {:select [[:r/id :rota_id]]
+                :from [[:rota :r]]
+                :where [:and
+                        [:= :r/channel (get-in params [:rota :channel])]
+                        [:= :r/name (get-in params [:rota :name])]]
+                :for [:update]}
+               sql-params))))
+           _
+           (jdbc/update!
+            conn
+            :rota
+            (:rota params)
+            ["id = ?" rota-id])
+           mention-params (map #(assoc % :rota_id rota-id) (:mention params))
+           _ (jdbc/delete! db :mention ["rota_id = ?" rota-id])
+           _ (jdbc/insert-multi! conn :mention mention-params)]
+          {:ok true})
+      (catch PSQLException e
+        {:ok false :error {:message (.getMessage e)}}))))
+
 (defn- assign
   [users next-duty]
   (if (not (some #{next-duty} users))

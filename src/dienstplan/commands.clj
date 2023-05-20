@@ -73,12 +73,17 @@ Commands:
 @dienstplan delete <rotation name>
 ```
 
-8. List channel's rotations
+8. Update a rotation
+```
+@dienstplan update <rotation name> <list of user mentions> <duties description>
+```
+
+9. List channel's rotations
 ```
 @dienstplan list
 ```
 
-9. Show a help message
+10. Show a help message
 ```
 @dienstplan help
 ```
@@ -125,6 +130,17 @@ On-call engineer's duties:
 - Check service health metrics
 - Casual code refactoring
 - Follow the boy scout rule: always leave the campground cleaner than you found it
+```")
+
+(def help-cmd-update
+  "Usage:
+```
+@dienstplan update <rotation name> <list of user mentions> <duties description>
+```
+
+Example:
+```
+@dienstplan update my-rota @user1 @user2 @user3 My updated description of the existing rota
 ```")
 
 (def help-cmd-rotate
@@ -214,8 +230,10 @@ Example:
   #"^[^<@]*(?s)(?<userid><@[^>]+>)[\u00A0|\u2007|\u202F|\s]+(?<command>\w+)[\u00A0|\u2007|\u202F|\s]*(?<rest>.*)")
 
 (def commands->data
-  {:create {:spec ::spec/bot-cmd-create
+  {:create {:spec ::spec/bot-cmd-create-or-update
             :help help-cmd-create}
+   :update {:spec ::spec/bot-cmd-create-or-update
+            :help help-cmd-update}
    :rotate {:spec ::spec/bot-cmd-default
             :help help-cmd-rotate}
    :assign {:spec ::spec/bot-cmd-assign
@@ -350,7 +368,8 @@ Example:
   "Parse command arguments for app mention"
   (fn [command-parsed] (get command-parsed :command)))
 
-(defmethod parse-args :create [command-parsed]
+(defn parse-args-create-or-update-cmd
+  [command-parsed]
   (let [args (get-command-args command-parsed)
         splitted (string/split args regex-user-mention)
         rotation (->
@@ -362,6 +381,12 @@ Example:
     {:rotation rotation
      :users users
      :description description}))
+
+(defmethod parse-args :create [command-parsed]
+  (parse-args-create-or-update-cmd command-parsed))
+
+(defmethod parse-args :update [command-parsed]
+  (parse-args-create-or-update-cmd command-parsed))
 
 (defmethod parse-args :assign [command-parsed]
   (let [args (get-command-args command-parsed)
@@ -442,7 +467,7 @@ Example:
 (defmethod command-exec! :shout [command-map]
   (let [{:keys [channel rotation]} (get-channel-rotation command-map)
         rota (first (db/duty-get channel rotation))
-        {:keys [duty description]} rota
+        {:keys [duty]} rota
         text
         (or
          duty
@@ -510,6 +535,30 @@ Example:
           (format
            "Rotation `%s` for channel %s created successfully"
            rotation channel-formatted))]
+    result))
+
+(defmethod command-exec! :update [command-map]
+  (let [now (get-now-ts)
+        {:keys [channel rotation]} (get-channel-rotation command-map)
+        channel-formatted (slack-mention-channel channel)
+        users (get-in command-map [:args :users])
+        mentions (users->mention-table-rows users)
+        rota-params {:channel channel
+                     :name rotation
+                     :description (get-in command-map [:args :description])
+                     :updated_on now}
+        updated (db/rota-update! {:rota rota-params :mention mentions})
+        error-msg (get-in updated [:error :message])
+        result
+        (if (:ok updated)
+          (format
+           "Rotation `%s` for channel %s updated successfully"
+           rotation channel-formatted)
+          (do
+            (log/error error-msg)
+            (format
+             "Cannot update rotation `%s` for channel %s: %s"
+             rotation channel-formatted error-msg)))]
     result))
 
 (defmethod command-exec! :list [command-map]

@@ -204,7 +204,7 @@
    [:bot-cmd-common/context
     :bot-cmd-common/command]))
 
-(s/def :bot-cmd-create/args
+(s/def :bot-cmd-create-or-update/args
   (s/keys
    :req-un
    [:bot-cmd-args/rotation
@@ -217,12 +217,12 @@
    [:bot-cmd-args/rotation
     :bot-cmd-args/user]))
 
-(s/def ::bot-cmd-create
+(s/def ::bot-cmd-create-or-update
   (s/keys
    :req-un
    [:bot-cmd-common/context
     :bot-cmd-common/command
-    :bot-cmd-create/args]))
+    :bot-cmd-create-or-update/args]))
 
 (s/def ::bot-cmd-assign
   (s/keys
