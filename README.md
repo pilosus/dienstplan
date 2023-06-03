@@ -112,12 +112,17 @@ Commands:
 @dienstplan delete <rotation name>
 ```
 
-8. List channel's rotations
+8. Update a rotation
+```
+@dienstplan update <rotation name> <list of user mentions> <duties description>
+```
+
+9. List channel's rotations
 ```
 @dienstplan list
 ```
 
-9. Show a help message
+10. Show a help message
 ```
 @dienstplan help
 ```
