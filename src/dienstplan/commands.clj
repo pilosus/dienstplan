@@ -376,8 +376,11 @@ Example:
                   (first splitted)
                   str-trim
                   nilify)
-        description (->> (last splitted) str-trim)
-        users (parse-user-mentions args)]
+        users (parse-user-mentions args)
+        ;; without user mentions description will be erroneously
+        ;; matched against rota name.
+        ;; description without mentions doesn't make any sense
+        description (when users (->> (last splitted) str-trim))]
     {:rotation rotation
      :users users
      :description description}))

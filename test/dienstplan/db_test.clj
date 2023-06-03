@@ -15,8 +15,12 @@
 
 (ns dienstplan.db-test
   (:require
-   [clojure.test :refer [deftest is testing]]
-   [dienstplan.db :as db]))
+   [clojure.test :refer [deftest is testing use-fixtures]]
+   [dienstplan.db :as db]
+   [dienstplan.fixtures-test :as fix]))
+
+(use-fixtures :once fix/fix-run-server)
+(use-fixtures :each fix/fix-db-rollback)
 
 (def params-rotate-users
   [[[] [] "Empty list"]
@@ -158,3 +162,45 @@
     (doseq [[users expected description] params-get-duty-user-name]
       (testing description
         (is (= expected (db/get-duty-user-name users)))))))
+
+(def rota-channel "my-channel")
+(def rota-name "my-rota")
+(def timestamp-1 (java.sql.Timestamp. 1495636054438))
+(def timestamp-2 (java.sql.Timestamp. 1595636054438))
+
+(def param-rota-1
+  {:rota
+   {:channel rota-channel
+    :name rota-name
+    :description "my-description-1"
+    :created_on timestamp-1
+    :updated_on timestamp-1}
+   :mention [{:name "user-a", :duty false}
+             {:name "user-b", :duty true}
+             {:name "user-c", :duty false}]})
+
+(def param-rota-2
+  {:rota
+   {:channel rota-channel
+    :name rota-name
+    :description "my-description-2"
+    :created_on timestamp-2
+    :updated_on timestamp-2}
+   :mention [{:name "user-x", :duty true}
+             {:name "user-y", :duty false}]})
+
+(def params-rota-update!
+  [[param-rota-1
+    param-rota-2
+    {:description "my-description-2"
+     :duty "user-x"}
+    "Description and mentions updated"]])
+
+(deftest test-rota-update!
+  (testing "Update rota"
+    (doseq [[before after expected description] params-rota-update!]
+      (testing description
+        (db/rota-insert! before)
+        (db/rota-update! after)
+        (let [rota (first (db/duty-get rota-channel rota-name))]
+          (is (= expected (dissoc rota :rota_id))))))))

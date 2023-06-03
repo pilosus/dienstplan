@@ -43,6 +43,9 @@
    ["<@U001>\u00a0create backend rotation\u00a0<@U123>\u00a0<@U456>\u00a0<@U789>\u00a0On-call backend engineer's duty:\n- Check support questions\n- Check alerts\n- Check metrics"
     {:command :create :rest "backend rotation\u00a0<@U123>\u00a0<@U456>\u00a0<@U789>\u00a0On-call backend engineer's duty:\n- Check support questions\n- Check alerts\n- Check metrics"}
     "Unicode whitespaces"]
+   ["<@U02HXENLLPN> create rota"
+    {:command :create :rest "rota"}
+    "Create command with no mentions and no description"]
    ["  <@U123> rotate "
     {:command :rotate :rest nil}
     "No args parsed"]
@@ -76,54 +79,70 @@
         (is (= expected (cmd/parse-user-mentions text)))))))
 
 (def params-parse-args
-  [[{:user-id "U02HXENLLPN" :command :create :rest "backend-rota <@U1KF3FG75> <@U01NT7XLST0> <@U01P02NDVSN>\nOn-call backend engineer's duty \n- Check <#C02PJGR5LLB>\n- Check Sentry alerts\n- Check Grafana metrics"}
+  [["<@U02HXENLLPN> create backend-rota <@U1KF3FG75> <@U01NT7XLST0> <@U01P02NDVSN>\nOn-call backend engineer's duty \n- Check <#C02PJGR5LLB>\n- Check Sentry alerts\n- Check Grafana metrics"
     {:rotation "backend-rota"
      :users ["<@U1KF3FG75>" "<@U01NT7XLST0>" "<@U01P02NDVSN>"]
      :description "On-call backend engineer's duty \n- Check <#C02PJGR5LLB>\n- Check Sentry alerts\n- Check Grafana metrics"}
     "Create"]
-   [{:user-id "U02HXENLLPN" :command :update :rest "backend-rota <@U1KF3FG75> <@U01NT7XLST0> <@U01P02NDVSN>\nOn-call backend engineer's duty \n- Check <#C02PJGR5LLB>\n- Check Sentry alerts\n- Check Grafana metrics"}
+   ["<@U02HXENLLPN> update backend-rota <@U01NT7XLST0> <@U01P02NDVSN>\nBrand new description"
     {:rotation "backend-rota"
-     :users ["<@U1KF3FG75>" "<@U01NT7XLST0>" "<@U01P02NDVSN>"]
-     :description "On-call backend engineer's duty \n- Check <#C02PJGR5LLB>\n- Check Sentry alerts\n- Check Grafana metrics"}
+     :users ["<@U01NT7XLST0>" "<@U01P02NDVSN>"]
+     :description "Brand new description"}
     "Update"]
-   [{:command :create :rest "backend rotation\u00a0<@U123>\u00a0<@U456>\u00a0<@U789>\u00a0On-call backend engineer's duty:\n- Check support questions\n- Check alerts\n- Check metrics"}
+   ["<@U02HXENLLPN> update backend-rota <@U01NT7XLST0> <@U01P02NDVSN> "
+    {:rotation "backend-rota"
+     :users ["<@U01NT7XLST0>" "<@U01P02NDVSN>"]
+     :description ""}
+    "Update with missing description"]
+   ["<@U02HXENLLPN> update backend-rota description"
+    {:rotation "backend-rota description"
+     :users nil
+     :description nil}
+    "Update with missing mentions, rota name detection fails"]
+   ["<@U02HXENLLPN> update rota"
+    {:rotation "rota"
+     :users nil
+     :description nil}
+    "Update with missing mentions and description"]
+   ["<@U02HXENLLPN> create backend rotation\u00a0<@U123>\u00a0<@U456>\u00a0<@U789>\u00a0On-call backend engineer's duty:\n- Check support questions\n- Check alerts\n- Check metrics"
     {:rotation "backend rotation"
      :users ["<@U123>" "<@U456>" "<@U789>"]
      :description "On-call backend engineer's duty:\n- Check support questions\n- Check alerts\n- Check metrics"}
     "Unicode whitespaces"]
-   [{:user-id "U123" :command :help :rest nil}
+   ["<@U02HXENLLPN> help"
     {:description cmd/help-msg}
     "Help"]
-   [{:user-id "U123" :command :delete :rest " backend-rota "}
+   ["<@U02HXENLLPN> delete backend-rota "
     {:rotation "backend-rota"}
     "Delete"]
-   [{:user-id "U123" :command :about :rest " backend-rota "}
+   ["<@U02HXENLLPN>  about backend-rota "
     {:rotation "backend-rota"}
     "About"]
-   [{:user-id "U123" :command :rotate :rest " backend-rota "}
+   ["<@U02HXENLLPN> rotate backend-rota "
     {:rotation "backend-rota"}
     "Rotate"]
-   [{:user-id "U123" :command :assign :rest " backend-rota <@U456>"}
+   ["<@U02HXENLLPN> assign backend-rota <@U456>"
     {:rotation "backend-rota" :user "<@U456>"}
     "Assign"]
-   [{:user-id "U123" :command :assign :rest "<@U456>"}
+   ["<@U02HXENLLPN> assign <@U456>"
     {:rotation nil :user "<@U456>"}
     "Assign with no rota name"]
-   [{:user-id "U123" :command :who :rest " backend-rota "}
+   ["<@U02HXENLLPN> who backend-rota "
     {:rotation "backend-rota"}
     "Who"]
-   [{:user-id "U123" :command :shout :rest " backend-rota "}
+   ["<@U02HXENLLPN> shout backend-rota "
     {:rotation "backend-rota"}
     "Shout"]
-   [{:user-id "U123" :command :something :rest " backend-rota "}
+   ["<@U02HXENLLPN> something backend-rota "
     nil
     "Unrecognized command"]])
 
 (deftest test-parse-args
   (testing "Parse command arguments"
-    (doseq [[args expected description] params-parse-args]
+    (doseq [[message expected description] params-parse-args]
       (testing description
-        (is (= expected (cmd/parse-args args)))))))
+        (let [parsed (-> message cmd/parse-command cmd/parse-args)]
+          (is (= expected parsed)))))))
 
 (def request-app-mention
   {:request-id "1469a826-8221-498d-a8ac-39621f36a9c6"
@@ -257,6 +276,33 @@
             :description "test"}
      :error cmd/help-cmd-create}
     "Create with no rotation name"]
+   [{:params {:event {:text "<@U001> create backend-rota <@U123> <@U456>"
+                      :ts "1640250011.000100"
+                      :team "T123"
+                      :channel "C123"}}}
+    {:context
+     {:ts "1640250011.000100"
+      :team "T123"
+      :channel "C123"}
+     :command :create
+     :args {:rotation "backend-rota"
+            :users ["<@U123>" "<@U456>"]
+            :description ""}}
+    "Create with no description"]
+   [{:params {:event {:text "<@U001> create rota"
+                      :ts "1640250011.000100"
+                      :team "T123"
+                      :channel "C123"}}}
+    {:context
+     {:ts "1640250011.000100"
+      :team "T123"
+      :channel "C123"}
+     :command :create
+     :args {:rotation "rota"
+            :users nil
+            :description nil}
+     :error cmd/help-cmd-create}
+    "Create with no user mentions and description"]
    [{:params {:event {:text "  <@UNX01> who backend-rota"
                       :ts "1640250011.000100"
                       :team "T123"

@@ -18,60 +18,14 @@
   (:require
    [cheshire.core :as json]
    [clj-http.client :as http]
-   [clojure.java.jdbc :as jdbc]
    [clojure.test :refer [deftest is testing use-fixtures]]
-   [clojure.tools.logging :as log]
-   [dienstplan.config :refer [config]]
    [dienstplan.core]
    [dienstplan.commands :as cmd]
    [dienstplan.db]
-   [dienstplan.slack :as slack]
-   [dienstplan.verify :as verify]
-   [hikari-cp.core :as cp]
-   [mount.core :as mount :refer [defstate]]))
+   [dienstplan.fixtures-test :as fix]))
 
-;; Fixtures
-
-(defn fix-run-server
-  [test]
-  (log/info "[fix-run-server] start")
-  (mount/start)
-  (test)
-  (mount/stop)
-  (log/info "[fix-run-server] stop"))
-
-(defn fix-mock-slack-api-request
-  [test]
-  (with-redefs
-   [slack/slack-api-request (constantly {:ok? true :status 200 :date nil})
-    verify/request-verified? (constantly true)]
-    (test)))
-
-(defstate db-test
-  "Separate DB component with transaction rollback for tests"
-  :start
-  (let [db-opts (:db config)
-        datasource (cp/make-datasource db-opts)]
-    {:datasource datasource})
-  :stop
-  (-> db-test :datasource cp/close-datasource))
-
-(defn fix-db-rollback
-  [test]
-  (log/info "[fix-db-rollback] start")
-  (mount/start #'db-test)
-  (jdbc/with-db-transaction [txn db-test]
-    (jdbc/db-set-rollback-only! txn)
-    (-> (mount/only [#'dienstplan.db/db])
-        (mount/swap {#'dienstplan.db/db txn})
-        (mount/start))
-    (test)
-    (mount/stop #'dienstplan.db/db))
-  (mount/stop #'db-test)
-  (log/info "[fix-db-rollback] stop"))
-
-(use-fixtures :once fix-run-server fix-mock-slack-api-request)
-(use-fixtures :each fix-db-rollback)
+(use-fixtures :once fix/fix-run-server fix/fix-mock-slack-api-request)
+(use-fixtures :each fix/fix-db-rollback)
 
 ;; Tests
 
