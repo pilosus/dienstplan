@@ -15,6 +15,9 @@ file. This change log follows the conventions of
   `delete` and `create` commands for the same rotation name.
   ([#66](https://github.com/pilosus/dienstplan/issues/66))
 
+### Changed
+- Local development migrated to `docker-compose` v2.
+
 ## [0.3.0] - 2022-10-30
 ### Changed
 - Base docker images for production and testing moved to Linux
