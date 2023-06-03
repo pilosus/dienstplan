@@ -21,7 +21,7 @@
                  [ch.qos.logback/logback-classic "1.2.6"]
 
                  ;; Alerts
-                 [io.sentry/sentry-clj "5.4.161"]
+                 [io.sentry/sentry-clj "5.5.164"]
 
                  ;; Validation
                  [expound "0.8.10"]
