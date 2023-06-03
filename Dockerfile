@@ -10,7 +10,7 @@
 ### Build stage ###
 ###################
 
-FROM clojure:temurin-17-lein-alpine@sha256:37968e7afb62937499c3773e9b713400da4abb358e6beb0ec9bae41a59715111 AS build
+FROM clojure:temurin-17-lein-alpine AS build
 
 # Create a working directory
 RUN mkdir -p /usr/src/app
@@ -28,7 +28,7 @@ RUN mv "$(lein uberjar | sed -n 's/^Created \(.*standalone\.jar\)/\1/p')" app.ja
 ### Run stage ###
 #################
 
-FROM eclipse-temurin:17-jre-alpine@sha256:e1506ba20f0cb2af6f23e24c7f8855b417f0b085708acd9b85344a884ba77767 AS run
+FROM eclipse-temurin:17-jre-alpine AS run
 
 # Create app directory for unpriviledged user
 RUN mkdir -p /usr/src/app

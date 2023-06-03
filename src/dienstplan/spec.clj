@@ -185,6 +185,7 @@
 (s/def :bot-cmd-args/user ::non-empty-str)
 (s/def :bot-cmd-args/description ::nillable-str)
 (s/def :bot-cmd-args/users (s/nilable (s/+ ::non-empty-str)))
+(s/def :bot-cmd-args-non-empty/users (s/+ ::non-empty-str))
 
 (s/def :bot-cmd-default/args
   (s/keys
@@ -204,11 +205,11 @@
    [:bot-cmd-common/context
     :bot-cmd-common/command]))
 
-(s/def :bot-cmd-create/args
+(s/def :bot-cmd-create-or-update/args
   (s/keys
    :req-un
    [:bot-cmd-args/rotation
-    :bot-cmd-args/users
+    :bot-cmd-args-non-empty/users
     :bot-cmd-args/description]))
 
 (s/def :bot-cmd-assign/args
@@ -217,12 +218,12 @@
    [:bot-cmd-args/rotation
     :bot-cmd-args/user]))
 
-(s/def ::bot-cmd-create
+(s/def ::bot-cmd-create-or-update
   (s/keys
    :req-un
    [:bot-cmd-common/context
     :bot-cmd-common/command
-    :bot-cmd-create/args]))
+    :bot-cmd-create-or-update/args]))
 
 (s/def ::bot-cmd-assign
   (s/keys

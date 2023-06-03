@@ -169,6 +169,32 @@
                 error)))]
       result)))
 
+(defn rota-update!
+  [params]
+  (jdbc/with-db-transaction [conn db]
+    (try
+      (let
+       [rota
+        (jdbc/query
+         conn
+         (sql/format
+          {:select [[:r/id :rota_id]]
+           :from [[:rota :r]]
+           :where [:and
+                   [:= :r/channel (get-in params [:rota :channel])]
+                   [:= :r/name (get-in params [:rota :name])]]
+           :for [:update]}
+          sql-params))
+        rota-id (-> rota first :rota_id)
+        mention-params (map #(assoc % :rota_id rota-id) (:mention params))]
+        (when (not rota-id) (throw (ex-info "Rotation not found" {})))
+        (jdbc/update! conn :rota (:rota params) ["id = ?" rota-id])
+        (jdbc/delete! db :mention ["rota_id = ?" rota-id])
+        (jdbc/insert-multi! conn :mention mention-params)
+        {:ok true})
+      (catch Exception e
+        {:ok false :error {:message (.getMessage e)}}))))
+
 (defn- assign
   [users next-duty]
   (if (not (some #{next-duty} users))
