@@ -6,6 +6,15 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
+## [0.4.0] - 2023-06-03
+### Added
+- `update` command to update rotation's list of mentions and
+  description. Watch out! The command overrides current on-call person
+  even if the new list of mentions is the same as in original
+  rotation. Consider the command to be a shortcut to a sequence of
+  `delete` and `create` commands for the same rotation name.
+  ([#66](https://github.com/pilosus/dienstplan/issues/66))
+
 ## [0.3.0] - 2022-10-30
 ### Changed
 - Base docker images for production and testing moved to Linux
@@ -162,7 +171,8 @@ file. This change log follows the conventions of
 ### Added
 - Bot app MVP
 
-[Unreleased]: https://github.com/pilosus/dienstplan/compare/0.3.0...HEAD
+[Unreleased]: https://github.com/pilosus/dienstplan/compare/0.4.0...HEAD
+[0.4.0]: https://github.com/pilosus/dienstplan/compare/0.3.0...0.4.0
 [0.3.0]: https://github.com/pilosus/dienstplan/compare/0.2.12...0.3.0
 [0.2.12]: https://github.com/pilosus/dienstplan/compare/0.2.11...0.2.12
 [0.2.11]: https://github.com/pilosus/dienstplan/compare/0.2.10...0.2.11
