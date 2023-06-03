@@ -24,6 +24,10 @@
                  ;; FIXME version 6 and its underlying Java SDK seem to rely on jdk.unsupported
                  ;; that aren't in temurin JRE 17
                  [io.sentry/sentry-clj "5.7.180"]
+                 ;; In sentry-clj 5.5.165 dsn string must be non-blank
+                 ;; in the presense of context map:
+                 ;; https://github.com/getsentry/sentry-clj/compare/5.5.164...5.5.165#diff-e3b4ff05b98b80c7fa2082652c8510acf99a4bbf293d3e035b703b9720f4ca90R253
+                 ;; [io.sentry/sentry-clj "5.5.164"]
 
                  ;; Validation
                  [expound "0.9.0"]

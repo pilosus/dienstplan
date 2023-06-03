@@ -71,7 +71,8 @@
         app-name (get-in config [:application :name])
         version (get-in config [:application :version])
         release (format "%s:%s" app-name version)]
-    (sentry/init! dsn {:environment env :debug debug :release release}))
+    (when (not debug)
+      (sentry/init! dsn {:environment env :debug debug :release release})))
   :stop (sentry/close!))
 
 (defstate server
