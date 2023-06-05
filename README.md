@@ -112,7 +112,7 @@ Commands:
 @dienstplan delete <rotation name>
 ```
 
-8. Update a rotation
+8. Update a rotation. A shortcut to a sequence of `delete` and `create` commands.
 ```
 @dienstplan update <rotation name> <list of user mentions> <duties description>
 ```
@@ -133,7 +133,7 @@ Commands:
 ### Server requirements
 
 - Any server with Java 17 or higher
-- PostgreSQL 9.4 to 15.3
+- PostgreSQL 9.4 or higher
 - (Optionally) [Sentry account](https://sentry.io/) for error tracking
 
 ### Environment variables
@@ -176,7 +176,7 @@ DB__PORT_NUMBER=5432 \
 DB__DATABASE_NAME="your-postgresql-db-name" \
 DB__USERNAME="your-postgresql-db-username" \
 DB__PASSWORD="your-postgresql-db-passwords" \
-java -jar /path/to/repo/target/uberjar/dienstplan-0.1.0-standalone.jar
+java -jar /path/to/repo/target/uberjar/dienstplan-0.4.0-standalone.jar
 ```
 - Apply database migrations with the `--mode migrate` option or rollback with `--mode rollback`, e.g.:
 
@@ -211,7 +211,7 @@ docker run \
 Docker compose is also supported with:
 
 ```
-docker-compose up
+docker compose up
 ```
 
 or use `Makefile` to ease building, running services and applying DB migrations:
