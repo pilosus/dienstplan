@@ -73,7 +73,7 @@ Commands:
 @dienstplan delete <rotation name>
 ```
 
-8. Update a rotation
+8. Update a rotation. A shortcut to a sequence of `delete` and `create` commands.
 ```
 @dienstplan update <rotation name> <list of user mentions> <duties description>
 ```
