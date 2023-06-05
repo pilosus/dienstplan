@@ -1,4 +1,4 @@
-(defproject dienstplan "0.4.0"
+(defproject dienstplan "0.4.1"
   :description "Duty rotation slack bot"
   :url "https://github.com/pilosus/dienstplan"
   :license {:name "EPL-2.0 OR GPL-2.0-or-later WITH Classpath-exception-2.0"
@@ -21,9 +21,7 @@
                  [ch.qos.logback/logback-classic "1.4.7"]
 
                  ;; Alerts
-                 ;; FIXME version 6 and its underlying Java SDK seem to rely on jdk.unsupported
-                 ;; that aren't in temurin JRE 17
-                 [io.sentry/sentry-clj "5.7.180"]
+                 [io.sentry/sentry-clj "6.21.196"]
 
                  ;; Validation
                  [expound "0.9.0"]
