@@ -34,7 +34,7 @@ test:
 	docker compose run --rm --no-deps dienstplan clojure -M:dev:test ${TEST_ARGS}
 
 cloverage:
-	docker compose run --rm --no-deps dienstplan clojure -X:dev:test:cloverage
+	docker compose run --rm --no-deps dienstplan clojure -X:dev:test:cloverage ${TEST_ARGS}
 
 migrate:
 	docker compose run --rm --no-deps dienstplan clojure -X:migrate
