@@ -1,6 +1,7 @@
-.PHONY: lint test test-all cloverage
+.PHONY: all build up down cljfmtfix cljfmtcheck eastwood check test cloverage migrate rollback
 
-all: build up migrate lint test
+lint: eastwood cljfmtfix
+all: build up migrate lint clovarage
 
 build:
 	docker compose build
@@ -11,17 +12,32 @@ up:
 down:
 	docker compose down
 
-lint:
-	docker compose run --rm dienstplan lein cljfmt fix
+uberjar:
+	clojure -T:build uberjar
+
+repl:
+	clojure -M:dev:repl
+
+cljfmtfix:
+	docker compose run --rm --no-deps dienstplan clojure -X:dev:cljfmtfix
+
+cljfmtcheck:
+	docker compose run --rm --no-deps dienstplan clojure -X:dev:cljfmtcheck
+
+eastwood:
+	docker compose run --rm --no-deps dienstplan clojure -M:dev:eastwood
+
+check:
+	docker compose run --rm --no-deps dienstplan clojure -M:check
 
 test:
-	docker compose run --rm --no-deps dienstplan lein test ${TEST_ARGS}
+	docker compose run --rm --no-deps dienstplan clojure -M:dev:test ${TEST_ARGS}
 
 cloverage:
-	docker compose run --rm dienstplan lein cloverage ${TEST_ARGS}
+	docker compose run --rm --no-deps dienstplan clojure -X:dev:test:cloverage ${TEST_ARGS}
 
 migrate:
-	docker compose run --rm --no-deps dienstplan lein run --mode migrate
+	docker compose run --rm --no-deps dienstplan clojure -X:migrate
 
 rollback:
-	docker compose run --rm --no-deps dienstplan lein run --mode rollback
+	docker compose run --rm --no-deps dienstplan clojure -X:rollback

@@ -10,19 +10,18 @@
 ### Build stage ###
 ###################
 
-FROM clojure:temurin-17-lein-alpine AS build
+FROM clojure:temurin-17-tools-deps-alpine AS build
 
 # Create a working directory
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
 # Install deps as a separate step for layer caching
-COPY project.clj /usr/src/app/
-RUN lein deps
+COPY deps.edn /usr/src/app/
 
 # Compile uber-jar
 COPY . /usr/src/app
-RUN mv "$(lein uberjar | sed -n 's/^Created \(.*standalone\.jar\)/\1/p')" app.jar
+RUN clojure -T:build uberjar :uber-file '"app.jar"'
 
 #################
 ### Run stage ###

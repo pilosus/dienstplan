@@ -159,10 +159,10 @@ The app relies on a bunch of environment variables (envs) to operate:
 
 ### Up & Running
 
-- Get [leiningen](https://leiningen.org/) to compile the app
+- Get [Clojure](https://www.clojure.org/guides/install_clojure) to compile the app
 - Clone the GitHub repository
-- In the repo directory complile a standalone `jar` file with `lein uberjar`
-- Run the app (**NB** fix the app version as per `project.clj` file):
+- In the repo directory complile a standalone `jar` file with `make uberjar`
+- Run the app:
 
 ```
 APP__DEBUG=false \
@@ -176,12 +176,12 @@ DB__PORT_NUMBER=5432 \
 DB__DATABASE_NAME="your-postgresql-db-name" \
 DB__USERNAME="your-postgresql-db-username" \
 DB__PASSWORD="your-postgresql-db-passwords" \
-java -jar /path/to/repo/target/uberjar/dienstplan-0.4.0-standalone.jar
+java -jar /path/to/repo/target/uberjar/dienstplan-0.5.0-standalone.jar
 ```
 - Apply database migrations with the `--mode migrate` option or rollback with `--mode rollback`, e.g.:
 
 ```
-java -jar /path/to/repo/target/uberjar/dienstplan-0.1.0-standalone.jar --mode migrate
+java -jar /path/to/repo/target/uberjar/dienstplan-0.5.0-standalone.jar --mode migrate
 ```
 
 Alternatively, use containerized app version as follows:
@@ -220,7 +220,7 @@ or use `Makefile` to ease building, running services and applying DB migrations:
 make all
 ```
 
-### Server Setup & App Deploy Scripts
+### Ansible Sciprts for Server Setup & App Deploy
 
 You can get a full set of scripts needed to:
 
@@ -280,7 +280,7 @@ guide.
 
 ## License
 
-Copyright (c) 2021-2022 Vitaly Samigullin and contributors. All rights reserved.
+Copyright (c) 2021-2023 Vitaly Samigullin and contributors. All rights reserved.
 
 This program and the accompanying materials are made available under the
 terms of the Eclipse Public License 2.0 which is available at

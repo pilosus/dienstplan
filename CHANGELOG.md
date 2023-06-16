@@ -6,6 +6,11 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
+## [0.5.0] - 2023-06-16
+### Changed
+- Moved from `lein` to Clojure CLI tool for project builing & testing
+  ([#68](https://github.com/pilosus/dienstplan/issues/68)).
+
 ## [0.4.0] - 2023-06-03
 ### Added
 - `update` command to update rotation's list of mentions and
@@ -174,7 +179,8 @@ file. This change log follows the conventions of
 ### Added
 - Bot app MVP
 
-[Unreleased]: https://github.com/pilosus/dienstplan/compare/0.4.0...HEAD
+[Unreleased]: https://github.com/pilosus/dienstplan/compare/0.5.0...HEAD
+[0.5.0]: https://github.com/pilosus/dienstplan/compare/0.4.0...0.5.0
 [0.4.0]: https://github.com/pilosus/dienstplan/compare/0.3.0...0.4.0
 [0.3.0]: https://github.com/pilosus/dienstplan/compare/0.2.12...0.3.0
 [0.2.12]: https://github.com/pilosus/dienstplan/compare/0.2.11...0.2.12
