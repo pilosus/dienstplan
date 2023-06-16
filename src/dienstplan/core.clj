@@ -132,5 +132,5 @@
       (exit (if ok? 0 1) exit-message)
       (case mode
         :server (mount/start)
-        :migrate (db/migrate)
-        :rollback (db/rollback)))))
+        :migrate (db/migrate nil)
+        :rollback (db/rollback nil)))))

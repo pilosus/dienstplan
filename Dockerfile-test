@@ -1,7 +1,8 @@
-FROM clojure:temurin-17-lein-alpine
+FROM clojure:temurin-17-tools-deps-alpine
 RUN mkdir -p /usr/src/app
-COPY project.clj /usr/src/app/
+COPY deps.edn /usr/src/app/
 WORKDIR /usr/src/app
-RUN lein deps
+RUN clojure -X:deps prep
+RUN clojure -M:dev
 COPY . /usr/src/app
-CMD ["lein", "run"]
+CMD ["clojure", "-M:run"]

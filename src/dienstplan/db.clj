@@ -48,10 +48,10 @@
   {:datastore  (ragtime-jdbc/sql-database db)
    :migrations (ragtime-jdbc/load-resources "migrations")})
 
-(defn migrate []
+(defn migrate [_]
   (ragtime-repl/migrate (get-migration-config)))
 
-(defn rollback []
+(defn rollback [_]
   (ragtime-repl/rollback (get-migration-config)))
 
 ;; JSONB support

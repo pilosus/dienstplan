@@ -16,6 +16,8 @@ pom.xml.asc
 .cpcache/
 .idea/
 dienstplan.iml
+.eastwood
+.rebel_readline_history
 
 ### Emacs ###
 
