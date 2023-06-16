@@ -15,6 +15,9 @@ down:
 uberjar:
 	clojure -T:build uberjar
 
+repl:
+	clojure -M:dev:repl
+
 cljfmtfix:
 	docker compose run --rm --no-deps dienstplan clojure -X:dev:cljfmtfix
 
