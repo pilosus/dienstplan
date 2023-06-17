@@ -1,3 +1,7 @@
+;; See for more deps.edn inspiration:
+;; https://github.com/practicalli/clojure-cli-config
+;; https://github.com/seancorfield/dot-clojure
+
 {:paths ["src" "resources"]
  :deps
  { ;; clojure
@@ -14,7 +18,7 @@
 
   ;; Logging
   org.clojure/tools.logging {:mvn/version "1.2.4"}
-  ch.qos.logback/logback-classic {:mvn/version "1.4.7"}
+  ch.qos.logback/logback-classic {:mvn/version "1.4.8"}
 
   ;; alerts
   io.sentry/sentry-clj {:mvn/version "6.21.196"}
@@ -37,7 +41,7 @@
   org.postgresql/postgresql {:mvn/version "42.6.0"}
   hikari-cp/hikari-cp {:mvn/version "3.0.1"}
   dev.weavejester/ragtime {:mvn/version "0.9.3"}
-  com.github.seancorfield/honeysql {:mvn/version "2.4.1026"}
+  com.github.seancorfield/honeysql {:mvn/version "2.4.1033"}
 
   ;; Cryptography
   buddy/buddy-core {:mvn/version "1.11.418"}}
@@ -144,7 +148,19 @@
    :exec-args {}}
 
   ;; Dependency bumps
-  ;; clojure -M:outdated
+  ;; clojure -T:outdated
+  ;; clojure -T:outdated :upgrade true :force true
   :outdated
-  {:deps {com.github.liquidz/antq {:mvn/version "2.4.1070"}}
-   :main-opts ["-m" "antq.core"]}}}
+  {:replace-paths ["."]
+   :replace-deps  {com.github.liquidz/antq {:mvn/version "2.5.1089"}
+                   org.slf4j/slf4j-nop {:mvn/version "2.0.7"}}
+   :exec-fn antq.tool/outdated
+   :exec-args {:directory ["."] ;; default
+               :exclude ["org.clojure/tools.deps.alpha"]
+               ;; :focus ["com.github.liquidz/antq"]
+               :skip ["boot" "leiningen"]
+               :reporter "table" ;; json edn format
+               :verbose false
+               :upgrade false
+               :force false}}
+  }}

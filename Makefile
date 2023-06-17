@@ -1,7 +1,7 @@
-.PHONY: all build up down cljfmtfix cljfmtcheck eastwood check test cloverage migrate rollback
+.PHONY: all build up down cljfmtfix cljfmtcheck eastwood check test cloverage migrate rollback depscheck depsbump
 
 lint: eastwood cljfmtfix
-all: build up migrate lint clovarage
+all: build up migrate lint cloverage
 
 build:
 	docker compose build
@@ -41,3 +41,9 @@ migrate:
 
 rollback:
 	docker compose run --rm --no-deps dienstplan clojure -X:rollback
+
+depscheck:
+	clojure -T:outdated
+
+depsbump:
+	clojure -T:outdated :upgrade true :force true
