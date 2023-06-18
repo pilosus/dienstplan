@@ -5,6 +5,9 @@ file. This change log follows the conventions of
 [keepachangelog.com](http://keepachangelog.com/).
 
 ## [Unreleased]
+### Change
+- Bump outdated dependencies
+- Improve CLI task for finding and bumping outdated dependencies
 
 ## [0.5.0] - 2023-06-16
 ### Changed
