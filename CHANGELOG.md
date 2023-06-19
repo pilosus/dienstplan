@@ -5,7 +5,11 @@ file. This change log follows the conventions of
 [keepachangelog.com](http://keepachangelog.com/).
 
 ## [Unreleased]
-### Change
+### Fixed
+- Addressed usage example for `assign` command
+  ([#60](https://github.com/pilosus/dienstplan/issues/60)).
+
+### Changed
 - Bump outdated dependencies
 - Improve CLI task for finding and bumping outdated dependencies
 
