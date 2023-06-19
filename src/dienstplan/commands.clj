@@ -162,7 +162,7 @@ Example:
 
 Example:
 ```
-@dienstplan rotate my-rota @user1
+@dienstplan assign my-rota @user1
 ```")
 
 (def help-cmd-who
