@@ -190,7 +190,7 @@ Alternatively, use containerized app version as follows:
 docker pull pilosus/dienstplan
 
 docker run \
-  -e APP__VERSION="0.1.0" \
+  -e APP__VERSION="0.5.0" \
   -e APP__ENV="production" \
   -e APP__DEBUG=false \
   -e SLACK__TOKEN="xoxb-Your-Bot-User-OAuth-Token" \

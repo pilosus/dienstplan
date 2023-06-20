@@ -455,8 +455,9 @@ Example:
 
 (defmethod command-exec! :who [command-map]
   (let [{:keys [channel rotation]} (get-channel-rotation command-map)
-        rota (first (db/duty-get channel rotation))
-        {:keys [duty description]} rota
+        rota (db/duty-get channel rotation)
+        duty (get rota :mention/duty)
+        description (get rota :rota/description)
         text
         (if duty
           (format
@@ -469,8 +470,8 @@ Example:
 
 (defmethod command-exec! :shout [command-map]
   (let [{:keys [channel rotation]} (get-channel-rotation command-map)
-        rota (first (db/duty-get channel rotation))
-        {:keys [duty]} rota
+        rota (db/duty-get channel rotation)
+        duty (get rota :mention/duty)
         text
         (or
          duty
@@ -481,12 +482,14 @@ Example:
 
 (defmethod command-exec! :about [command-map]
   (let [{:keys [channel rotation]} (get-channel-rotation command-map)
-        about (first (db/rota-about-get channel rotation))
-        {:keys [created_on description users]} about
+        about (db/rota-about-get channel rotation)
+        created_on (:created_on about)
+        description (:rota/description about)
+        users (:users about)
         text
         (if about
           (format
-           "Rotation `%s` [%s] list: %s.\n%s"
+           "Rotation `%s` [%s]: %s.\n%s"
            rotation created_on users description)
           (format
            "Rotation `%s` not found in channel %s"
@@ -495,13 +498,13 @@ Example:
 
 (defmethod command-exec! :delete [command-map]
   (let [{:keys [channel rotation]} (get-channel-rotation command-map)
-        deleted? (> (first (db/rota-delete! channel rotation)) 0)
+        deleted (db/rota-delete! channel rotation)
+        deleted? (> (:next.jdbc/update-count deleted) 0)
         text
         (if deleted?
           (format "Rotation `%s` has been deleted" rotation)
-          (format
-           "Rotation `%s` not found in channel %s"
-           rotation (slack-mention-channel channel)))]
+          (format "Rotation `%s` not found in channel %s"
+                  rotation (slack-mention-channel channel)))]
     text))
 
 (defmethod command-exec! :create [command-map]
@@ -571,7 +574,7 @@ Example:
         rota-list
         (->>
          rotations
-         (map #(format "- `%s` [%s]" (:name %) (:created_on %)))
+         (map #(format "- `%s` [%s]" (:rota/name %) (:created_on %)))
          (string/join \newline)
          nilify)
         text
@@ -680,7 +683,6 @@ Example:
         body (json/generate-string body-map)
         {:keys [ok? status data]}
         (slack/slack-api-request {:method :chat.postMessage :body body})
-        log-level (if ok? :info :error)
-        log-msg (format "Post message to Slack: status %s body %s" status data)
-        _ (log/log log-level log-msg)]
+        _ (log/info
+           (format "Post message to Slack: status %s body %s" status data))]
     body-map))

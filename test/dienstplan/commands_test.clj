@@ -15,12 +15,12 @@
 
 (ns dienstplan.commands-test
   (:require
-   [clojure.test :refer [deftest is testing]]
+   [clj-http.client :as http]
    [clojure.spec.test.alpha :refer [instrument]]
+   [clojure.test :refer [deftest is testing use-fixtures]]
    [dienstplan.commands :as cmd]
    [dienstplan.db :as db]
-   [dienstplan.slack :as slack]
-   [clj-http.client :as http]))
+   [dienstplan.slack :as slack]))
 
 ;; Instrumenting functions with specs
 
@@ -469,7 +469,7 @@
 
 (def params-command-exec!-who
   [[{:context {:channel "channel" :ts "1640250011.000100"} :command :who :args {:rotation "rota"}}
-    [{:duty "user1" :description "Do what thou wilt shall be the whole of the Law"}]
+    {:mention/duty "user1" :rota/description "Do what thou wilt shall be the whole of the Law"}
     "Hey user1, you are an on-call person for `rota` rotation.\nDo what thou wilt shall be the whole of the Law"
     "Rota found"]
    [{:context {:channel "channel" :ts "1640250011.000100"} :command :who :args {:rotation "rota"}}
@@ -486,7 +486,7 @@
 
 (def params-command-exec!-shout
   [[{:context {:channel "channel" :ts "1640250011.000100"} :command :shout :args {:rotation "rota"}}
-    [{:duty "user1" :description "Do what thou wilt shall be the whole of the Law"}]
+    {:mention/duty "user1" :rota/description "Do what thou wilt shall be the whole of the Law"}
     "user1"
     "Rota found"]
    [{:context {:channel "channel" :ts "1640250011.000100"} :command :shout :args {:rotation "rota"}}
@@ -503,11 +503,11 @@
 
 (def params-command-exec!-about
   [[{:context {:channel "channel" :ts "1640250011.000100"} :command :about :args {:rotation "rota"}}
-    [{:created_on "2021-01-01" :description "Test" :users "<U123> <U456> <U789>"}]
-    "Rotation `rota` [2021-01-01] list: <U123> <U456> <U789>.\nTest"
+    {:created_on "2021-01-01" :rota/description "Test" :users "<U123> <U456> <U789>"}
+    "Rotation `rota` [2021-01-01]: <U123> <U456> <U789>.\nTest"
     "Rota found"]
    [{:context {:channel "channel" :ts "1640250011.000100"} :command :about :args {:rotation "non-existent"}}
-    []
+    nil
     "Rotation `non-existent` not found in channel <#channel>"
     "Rota not found"]])
 
@@ -520,11 +520,11 @@
 
 (def params-command-exec!-delete
   [[{:context {:channel "channel" :ts "1640250011.000100"} :command :delete :args {:rotation "rota"}}
-    [1]
+    {:next.jdbc/update-count 1}
     "Rotation `rota` has been deleted"
     "Deleted"]
    [{:context {:channel "channel" :ts "1640250011.000100"} :command :delete :args {:rotation "rota"}}
-    [0]
+    {:next.jdbc/update-count 0}
     "Rotation `rota` not found in channel <#channel>"
     "Rotation not found"]])
 
@@ -556,9 +556,26 @@
         (with-redefs [db/rota-insert! (constantly inserted)]
           (is (= expected (cmd/command-exec! command))))))))
 
+(def params-command-exec!-update
+  [[{:context {:channel "channel" :ts "1640250011.000100"} :command :update :args {:rotation "rota" :description "todo" :users ["<@U123>" "<@456>"]}}
+    {:ok true}
+    "Rotation `rota` for channel <#channel> updated successfully"
+    "Updated"]
+   [{:context {:channel "channel" :ts "1640250011.000100"} :command :update :args {:rotation "rota" :description "todo" :users ["<@U123>" "<@456>"]}}
+    {:error {:message "Something went terribly wrong!"}}
+    "Cannot update rotation `rota` for channel <#channel>: Something went terribly wrong!"
+    "Error"]])
+
+(deftest test-command-exec!-update
+  (testing "Test command-exec! create"
+    (doseq [[command updated expected description] params-command-exec!-update]
+      (testing description
+        (with-redefs [db/rota-update! (constantly updated)]
+          (is (= expected (cmd/command-exec! command))))))))
+
 (def params-command-exec!-list
   [[{:context {:channel "channel" :ts "1640250011.000100"} :command :list}
-    [{:name "rota 1" :created_on "2021-01-30"} {:name "rota 2" :created_on "2021-11-15"}]
+    [{:rota/name "rota 1" :created_on "2021-01-30"} {:rota/name "rota 2" :created_on "2021-11-15"}]
     "Rotations created in channel <#channel>:\n- `rota 1` [2021-01-30]\n- `rota 2` [2021-11-15]"
     "Rotations found"]
    [{:context {:channel "channel" :ts "1640250011.000100"} :command :list}
@@ -601,7 +618,7 @@
     "User <@U123> is not found in rotation `rota` of channel <#channel>"
     "User not found"]
    [{:context {:channel "channel" :ts "1640250011.000100"} :command :assign :args {:rotation "rota" :user "<@U123>"}}
-    [{:id 1 :user "<@U123>" :duty true}]
+    [{:mention/id 1 :mention/user "<@U123>" :mention/duty true}]
     "Assigned user <@U123> in rotation `rota` of channel <#channel>"
     "Assigned"]])
 
