@@ -1,8 +1,7 @@
 # dienstplan
 
 [![codecov](https://codecov.io/gh/pilosus/dienstplan/branch/main/graph/badge.svg?token=2ouqzEwhLc)](https://codecov.io/gh/pilosus/dienstplan)
-[![Docker Image Version (latest semver)](https://img.shields.io/docker/v/pilosus/dienstplan?label=docker)](https://hub.docker.com/r/pilosus/dienstplan)
-[![Hits-of-Code](https://hitsofcode.com/github/pilosus/dienstplan?branch=main)](https://hitsofcode.com/github/pilosus/dienstplan/view?branch=main)
+![Docker Image Version (tag latest semver)](https://img.shields.io/docker/v/pilosus/dienstplan/0.5.0)
 
 Slack bot for duty rotations.
 
@@ -187,7 +186,7 @@ java -jar /path/to/repo/target/uberjar/dienstplan-0.5.0-standalone.jar --mode mi
 Alternatively, use containerized app version as follows:
 
 ```
-docker pull pilosus/dienstplan
+docker pull pilosus/dienstplan:0.5.0
 
 docker run \
   -e APP__VERSION="0.5.0" \
@@ -280,17 +279,4 @@ guide.
 
 ## License
 
-Copyright (c) 2021-2023 Vitaly Samigullin and contributors. All rights reserved.
-
-This program and the accompanying materials are made available under the
-terms of the Eclipse Public License 2.0 which is available at
-http://www.eclipse.org/legal/epl-2.0.
-
-This Source Code may also be made available under the following Secondary
-Licenses when the conditions for such availability set forth in the Eclipse
-Public License, v. 2.0 are satisfied: GNU General Public License as published by
-the Free Software Foundation, either version 2 of the License, or (at your
-option) any later version, with the GNU Classpath Exception which is available
-at https://www.gnu.org/software/classpath/license.html.
-
-SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
+See [LICENSE](https://github.com/pilosus/dienstplan/tree/main/LICENSE)
