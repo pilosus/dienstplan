@@ -27,3 +27,17 @@ make all
 - Write your updates under `Unreleased` section
 - Add a link to the GitHub issue your code is solving
 - Add a link to your GitHub profile for credits
+
+
+### Release manager
+
+1. Select the next realease [SemVer](https://semver.org/) number.
+2. Update `CHANGELOG.md`:
+
+- Move changes from `Unreleased` section to a new release section
+- Add a link to `git diff`
+
+3. Update current tag mentions in `README.md`:
+
+- Docker version
+- Usage examples
