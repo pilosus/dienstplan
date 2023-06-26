@@ -37,7 +37,9 @@ make all
 - Move changes from `Unreleased` section to a new release section
 - Add a link to `git diff`
 
-3. Update current tag mentions in `README.md`:
+3. Update tag in `build.clj` (see `version`)
+
+4. Update current tag mentions in `README.md`:
 
 - Docker version
 - Usage examples
