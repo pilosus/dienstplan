@@ -77,6 +77,7 @@
 (s/def ::ephemeral-port (s/and ::->int (s/int-in 1024 (inc 65535))))
 (s/def ::pool-size (s/and ::->int (s/int-in 1 (inc pool-size-max))))
 (s/def ::timeout (s/and ::->int (s/int-in 1000 (inc timeout-max-ms))))
+(s/def ::lifetime (s/and ::->int (s/int-in 0 (inc timeout-max-ms))))
 
 (s/def ::http-status-code (s/int-in 100 (inc 599)))
 (s/def ::http-method #{:get :post :delete :put :patch :head})
@@ -140,28 +141,32 @@
 
 ;; DB
 
-(s/def :db/adapter #{"postgresql"})
-(s/def :db/server-name ::non-empty-str)
-(s/def :db/port-number ::ephemeral-port)
-(s/def :db/database-name ::non-empty-str)
+(s/def :db/dbtype #{"postgres" "postgresql"})
+(s/def :db/host ::non-empty-str)
+(s/def :db/port ::ephemeral-port)
+(s/def :db/dbname ::non-empty-str)
 (s/def :db/username ::non-empty-str)
 (s/def :db/password ::non-empty-str)
-(s/def :db/minimum-idle ::pool-size)
-(s/def :db/maximum-pool-size ::pool-size)
-(s/def :db/connection-timeout ::timeout)
+(s/def :db/maximumPoolSize ::pool-size)
+(s/def :db/minimumIdle ::pool-size)
+(s/def :db/connectionTimeout ::timeout)
+(s/def :db/maxLifetime ::lifetime)
+(s/def :db/keepaliveTime ::lifetime)
 
 (s/def ::db
   (s/keys
    :req-un
-   [:db/adapter
-    :db/server-name
-    :db/port-number
-    :db/database-name
+   [:db/dbtype
+    :db/host
+    :db/port
+    :db/dbname
     :db/username
     :db/password
-    :db/minimum-idle
-    :db/maximum-pool-size
-    :db/connection-timeout]))
+    :db/maximumPoolSize
+    :db/minimumIdle
+    :db/connectionTimeout
+    :db/maxLifetime
+    :db/keepaliveTime]))
 
 ;;;;;;;;;;;;;;;;;;
 ;; Bot Commands ;;

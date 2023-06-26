@@ -17,90 +17,91 @@
   (:require
    [clojure.test :refer [deftest is testing use-fixtures]]
    [dienstplan.db :as db]
-   [dienstplan.fixtures-test :as fix]))
+   [dienstplan.fixture :as fix]
+   [next.jdbc :as jdbc]))
 
-(use-fixtures :once fix/fix-run-server)
+(use-fixtures :once fix/fix-server-run)
 (use-fixtures :each fix/fix-db-rollback)
 
 (def params-rotate-users
   [[[] [] "Empty list"]
-   [[{:duty false} {:duty false}]
-    [{:duty false} {:duty false}]
+   [[{:mention/duty false} {:mention/duty false}]
+    [{:mention/duty false} {:mention/duty false}]
     "No duty true, leave the list as it is"]
-   [[{:id 12, :rota_id 10, :user "a", :duty true}
-     {:id 14, :rota_id 10, :user "b", :duty false}
-     {:id 15, :rota_id 10, :user "c", :duty false}
-     {:id 16, :rota_id 10, :user "d", :duty false}
-     {:id 17, :rota_id 10, :user "e", :duty false}
-     {:id 20, :rota_id 10, :user "f", :duty false}
-     {:id 22, :rota_id 10, :user "g", :duty false}]
-    [{:id 12, :rota_id 10, :user "a", :duty false}
-     {:id 14, :rota_id 10, :user "b", :duty true}
-     {:id 15, :rota_id 10, :user "c", :duty false}
-     {:id 16, :rota_id 10, :user "d", :duty false}
-     {:id 17, :rota_id 10, :user "e", :duty false}
-     {:id 20, :rota_id 10, :user "f", :duty false}
-     {:id 22, :rota_id 10, :user "g", :duty false}]
+   [[{:mention/id 12, :mention/rota_id 10, :mention/user "a", :mention/duty true}
+     {:mention/id 14, :mention/rota_id 10, :mention/user "b", :mention/duty false}
+     {:mention/id 15, :mention/rota_id 10, :mention/user "c", :mention/duty false}
+     {:mention/id 16, :mention/rota_id 10, :mention/user "d", :mention/duty false}
+     {:mention/id 17, :mention/rota_id 10, :mention/user "e", :mention/duty false}
+     {:mention/id 20, :mention/rota_id 10, :mention/user "f", :mention/duty false}
+     {:mention/id 22, :mention/rota_id 10, :mention/user "g", :mention/duty false}]
+    [{:mention/id 12, :mention/rota_id 10, :mention/user "a", :mention/duty false}
+     {:mention/id 14, :mention/rota_id 10, :mention/user "b", :mention/duty true}
+     {:mention/id 15, :mention/rota_id 10, :mention/user "c", :mention/duty false}
+     {:mention/id 16, :mention/rota_id 10, :mention/user "d", :mention/duty false}
+     {:mention/id 17, :mention/rota_id 10, :mention/user "e", :mention/duty false}
+     {:mention/id 20, :mention/rota_id 10, :mention/user "f", :mention/duty false}
+     {:mention/id 22, :mention/rota_id 10, :mention/user "g", :mention/duty false}]
     "Rotate the first item"]
-   [[{:id 12, :rota_id 10, :user "a", :duty false}
-     {:id 14, :rota_id 10, :user "b", :duty false}
-     {:id 15, :rota_id 10, :user "c", :duty false}
-     {:id 16, :rota_id 10, :user "d", :duty false}
-     {:id 17, :rota_id 10, :user "e", :duty true}
-     {:id 20, :rota_id 10, :user "f", :duty false}
-     {:id 22, :rota_id 10, :user "g", :duty false}]
-    [{:id 12, :rota_id 10, :user "a", :duty false}
-     {:id 14, :rota_id 10, :user "b", :duty false}
-     {:id 15, :rota_id 10, :user "c", :duty false}
-     {:id 16, :rota_id 10, :user "d", :duty false}
-     {:id 17, :rota_id 10, :user "e", :duty false}
-     {:id 20, :rota_id 10, :user "f", :duty true}
-     {:id 22, :rota_id 10, :user "g", :duty false}]
+   [[{:mention/id 12, :mention/rota_id 10, :mention/user "a", :mention/duty false}
+     {:mention/id 14, :mention/rota_id 10, :mention/user "b", :mention/duty false}
+     {:mention/id 15, :mention/rota_id 10, :mention/user "c", :mention/duty false}
+     {:mention/id 16, :mention/rota_id 10, :mention/user "d", :mention/duty false}
+     {:mention/id 17, :mention/rota_id 10, :mention/user "e", :mention/duty true}
+     {:mention/id 20, :mention/rota_id 10, :mention/user "f", :mention/duty false}
+     {:mention/id 22, :mention/rota_id 10, :mention/user "g", :mention/duty false}]
+    [{:mention/id 12, :mention/rota_id 10, :mention/user "a", :mention/duty false}
+     {:mention/id 14, :mention/rota_id 10, :mention/user "b", :mention/duty false}
+     {:mention/id 15, :mention/rota_id 10, :mention/user "c", :mention/duty false}
+     {:mention/id 16, :mention/rota_id 10, :mention/user "d", :mention/duty false}
+     {:mention/id 17, :mention/rota_id 10, :mention/user "e", :mention/duty false}
+     {:mention/id 20, :mention/rota_id 10, :mention/user "f", :mention/duty true}
+     {:mention/id 22, :mention/rota_id 10, :mention/user "g", :mention/duty false}]
     "Rotate item in the middle of the list"]
-   [[{:id 12, :rota_id 10, :user "a", :duty false}
-     {:id 14, :rota_id 10, :user "b", :duty false}
-     {:id 15, :rota_id 10, :user "c", :duty false}
-     {:id 16, :rota_id 10, :user "d", :duty false}
-     {:id 17, :rota_id 10, :user "e", :duty false}
-     {:id 20, :rota_id 10, :user "f", :duty true}
-     {:id 22, :rota_id 10, :user "g", :duty false}]
-    [{:id 12, :rota_id 10, :user "a", :duty false}
-     {:id 14, :rota_id 10, :user "b", :duty false}
-     {:id 15, :rota_id 10, :user "c", :duty false}
-     {:id 16, :rota_id 10, :user "d", :duty false}
-     {:id 17, :rota_id 10, :user "e", :duty false}
-     {:id 20, :rota_id 10, :user "f", :duty false}
-     {:id 22, :rota_id 10, :user "g", :duty true}]
+   [[{:mention/id 12, :mention/rota_id 10, :mention/user "a", :mention/duty false}
+     {:mention/id 14, :mention/rota_id 10, :mention/user "b", :mention/duty false}
+     {:mention/id 15, :mention/rota_id 10, :mention/user "c", :mention/duty false}
+     {:mention/id 16, :mention/rota_id 10, :mention/user "d", :mention/duty false}
+     {:mention/id 17, :mention/rota_id 10, :mention/user "e", :mention/duty false}
+     {:mention/id 20, :mention/rota_id 10, :mention/user "f", :mention/duty true}
+     {:mention/id 22, :mention/rota_id 10, :mention/user "g", :mention/duty false}]
+    [{:mention/id 12, :mention/rota_id 10, :mention/user "a", :mention/duty false}
+     {:mention/id 14, :mention/rota_id 10, :mention/user "b", :mention/duty false}
+     {:mention/id 15, :mention/rota_id 10, :mention/user "c", :mention/duty false}
+     {:mention/id 16, :mention/rota_id 10, :mention/user "d", :mention/duty false}
+     {:mention/id 17, :mention/rota_id 10, :mention/user "e", :mention/duty false}
+     {:mention/id 20, :mention/rota_id 10, :mention/user "f", :mention/duty false}
+     {:mention/id 22, :mention/rota_id 10, :mention/user "g", :mention/duty true}]
     "Rotate second to last item"]
-   [[{:id 12, :rota_id 10, :user "a", :duty false}
-     {:id 14, :rota_id 10, :user "b", :duty false}
-     {:id 15, :rota_id 10, :user "c", :duty false}
-     {:id 16, :rota_id 10, :user "d", :duty false}
-     {:id 17, :rota_id 10, :user "e", :duty false}
-     {:id 20, :rota_id 10, :user "f", :duty false}
-     {:id 22, :rota_id 10, :user "g", :duty true}]
-    [{:id 12, :rota_id 10, :user "a", :duty true}
-     {:id 14, :rota_id 10, :user "b", :duty false}
-     {:id 15, :rota_id 10, :user "c", :duty false}
-     {:id 16, :rota_id 10, :user "d", :duty false}
-     {:id 17, :rota_id 10, :user "e", :duty false}
-     {:id 20, :rota_id 10, :user "f", :duty false}
-     {:id 22, :rota_id 10, :user "g", :duty false}]
+   [[{:mention/id 12, :mention/rota_id 10, :mention/user "a", :mention/duty false}
+     {:mention/id 14, :mention/rota_id 10, :mention/user "b", :mention/duty false}
+     {:mention/id 15, :mention/rota_id 10, :mention/user "c", :mention/duty false}
+     {:mention/id 16, :mention/rota_id 10, :mention/user "d", :mention/duty false}
+     {:mention/id 17, :mention/rota_id 10, :mention/user "e", :mention/duty false}
+     {:mention/id 20, :mention/rota_id 10, :mention/user "f", :mention/duty false}
+     {:mention/id 22, :mention/rota_id 10, :mention/user "g", :mention/duty true}]
+    [{:mention/id 12, :mention/rota_id 10, :mention/user "a", :mention/duty true}
+     {:mention/id 14, :mention/rota_id 10, :mention/user "b", :mention/duty false}
+     {:mention/id 15, :mention/rota_id 10, :mention/user "c", :mention/duty false}
+     {:mention/id 16, :mention/rota_id 10, :mention/user "d", :mention/duty false}
+     {:mention/id 17, :mention/rota_id 10, :mention/user "e", :mention/duty false}
+     {:mention/id 20, :mention/rota_id 10, :mention/user "f", :mention/duty false}
+     {:mention/id 22, :mention/rota_id 10, :mention/user "g", :mention/duty false}]
     "Rotate the last item"]
-   [[{:id 12, :rota_id 10, :user "a", :duty false}
-     {:id 14, :rota_id 10, :user "b", :duty false}
-     {:id 15, :rota_id 10, :user "c", :duty true}
-     {:id 16, :rota_id 10, :user "d", :duty false}
-     {:id 17, :rota_id 10, :user "e", :duty false}
-     {:id 20, :rota_id 10, :user "f", :duty true}
-     {:id 22, :rota_id 10, :user "g", :duty true}]
-    [{:id 12, :rota_id 10, :user "a", :duty false}
-     {:id 14, :rota_id 10, :user "b", :duty false}
-     {:id 15, :rota_id 10, :user "c", :duty false}
-     {:id 16, :rota_id 10, :user "d", :duty true}
-     {:id 17, :rota_id 10, :user "e", :duty false}
-     {:id 20, :rota_id 10, :user "f", :duty false}
-     {:id 22, :rota_id 10, :user "g", :duty false}]
+   [[{:mention/id 12, :mention/rota_id 10, :mention/user "a", :mention/duty false}
+     {:mention/id 14, :mention/rota_id 10, :mention/user "b", :mention/duty false}
+     {:mention/id 15, :mention/rota_id 10, :mention/user "c", :mention/duty true}
+     {:mention/id 16, :mention/rota_id 10, :mention/user "d", :mention/duty false}
+     {:mention/id 17, :mention/rota_id 10, :mention/user "e", :mention/duty false}
+     {:mention/id 20, :mention/rota_id 10, :mention/user "f", :mention/duty true}
+     {:mention/id 22, :mention/rota_id 10, :mention/user "g", :mention/duty true}]
+    [{:mention/id 12, :mention/rota_id 10, :mention/user "a", :mention/duty false}
+     {:mention/id 14, :mention/rota_id 10, :mention/user "b", :mention/duty false}
+     {:mention/id 15, :mention/rota_id 10, :mention/user "c", :mention/duty false}
+     {:mention/id 16, :mention/rota_id 10, :mention/user "d", :mention/duty true}
+     {:mention/id 17, :mention/rota_id 10, :mention/user "e", :mention/duty false}
+     {:mention/id 20, :mention/rota_id 10, :mention/user "f", :mention/duty false}
+     {:mention/id 22, :mention/rota_id 10, :mention/user "g", :mention/duty false}]
     "Auto-correct multiple duty true"]])
 
 (deftest test-rotate-users
@@ -111,26 +112,26 @@
 
 (def params-assign-user
   [[[] "John" :user-not-found "Empty list"]
-   [[{:id 1 :user "Ivan" :duty false}
-     {:id 2 :user "Saqib" :duty false}]
+   [[{:mention/id 1 :mention/user "Ivan" :mention/duty false}
+     {:mention/id 2 :mention/user "Saqib" :mention/duty false}]
     "John"
     :user-not-found
     "User not found"]
-   [[{:id 12, :rota_id 10, :user "John", :duty true}
-     {:id 14, :rota_id 10, :user "Ivan", :duty false}
-     {:id 15, :rota_id 10, :user "Saqib", :duty false}]
+   [[{:mention/id 12, :mention/rota_id 10, :mention/user "John", :mention/duty true}
+     {:mention/id 14, :mention/rota_id 10, :mention/user "Ivan", :mention/duty false}
+     {:mention/id 15, :mention/rota_id 10, :mention/user "Saqib", :mention/duty false}]
     "John"
-    [{:id 12, :rota_id 10, :user "John", :duty true}
-     {:id 14, :rota_id 10, :user "Ivan", :duty false}
-     {:id 15, :rota_id 10, :user "Saqib", :duty false}]
+    [{:mention/id 12, :mention/rota_id 10, :mention/user "John", :mention/duty true}
+     {:mention/id 14, :mention/rota_id 10, :mention/user "Ivan", :mention/duty false}
+     {:mention/id 15, :mention/rota_id 10, :mention/user "Saqib", :mention/duty false}]
     "Already on duty"]
-   [[{:id 12, :rota_id 10, :user "John", :duty true}
-     {:id 14, :rota_id 10, :user "Ivan", :duty false}
-     {:id 15, :rota_id 10, :user "Saqib", :duty false}]
+   [[{:mention/id 12, :mention/rota_id 10, :mention/user "John", :mention/duty true}
+     {:mention/id 14, :mention/rota_id 10, :mention/user "Ivan", :mention/duty false}
+     {:mention/id 15, :mention/rota_id 10, :mention/user "Saqib", :mention/duty false}]
     "Saqib"
-    [{:id 12, :rota_id 10, :user "John", :duty false}
-     {:id 14, :rota_id 10, :user "Ivan", :duty false}
-     {:id 15, :rota_id 10, :user "Saqib", :duty true}]
+    [{:mention/id 12, :mention/rota_id 10, :mention/user "John", :mention/duty false}
+     {:mention/id 14, :mention/rota_id 10, :mention/user "Ivan", :mention/duty false}
+     {:mention/id 15, :mention/rota_id 10, :mention/user "Saqib", :mention/duty true}]
     "New user"]])
 
 (deftest test-assign-user
@@ -140,20 +141,20 @@
         (is (= expected (db/assign-user users name)))))))
 
 (def params-get-duty-user-name
-  [[[{:id 12, :rota_id 10, :user "a", :duty false}
-     {:id 14, :rota_id 10, :user "b", :duty false}
-     {:id 15, :rota_id 10, :user "c", :duty false}
-     {:id 16, :rota_id 10, :user "d", :duty true}
-     {:id 17, :rota_id 10, :user "e", :duty false}
-     {:id 20, :rota_id 10, :user "f", :duty false}
-     {:id 22, :rota_id 10, :user "g", :duty false}]
+  [[[{:mention/id 12, :mention/rota_id 10, :mention/user "a", :mention/duty false}
+     {:mention/id 14, :mention/rota_id 10, :mention/user "b", :mention/duty false}
+     {:mention/id 15, :mention/rota_id 10, :mention/user "c", :mention/duty false}
+     {:mention/id 16, :mention/rota_id 10, :mention/user "d", :mention/duty true}
+     {:mention/id 17, :mention/rota_id 10, :mention/user "e", :mention/duty false}
+     {:mention/id 20, :mention/rota_id 10, :mention/user "f", :mention/duty false}
+     {:mention/id 22, :mention/rota_id 10, :mention/user "g", :mention/duty false}]
     "d"
     "Normal user list"]
    [[] nil "Empty user list"]
-   [[{:id 15, :rota_id 10, :user "c", :duty false}
-     {:id 16, :rota_id 10, :user "d", :duty true}
-     {:id 17, :rota_id 10, :user "e", :duty false}
-     {:id 18, :rota_id 10, :user "f", :duty true}]
+   [[{:mention/id 15, :mention/rota_id 10, :mention/user "c", :mention/duty false}
+     {:mention/id 16, :mention/rota_id 10, :mention/user "d", :mention/duty true}
+     {:mention/id 17, :mention/rota_id 10, :mention/user "e", :mention/duty false}
+     {:mention/id 18, :mention/rota_id 10, :mention/user "f", :mention/duty true}]
     "d"
     "Get the first duty in the list wit multiple duty users"]])
 
@@ -192,15 +193,16 @@
 (def params-rota-update!
   [[param-rota-1
     param-rota-2
-    {:description "my-description-2"
-     :duty "user-x"}
+    {:rota/description "my-description-2"
+     :mention/duty "user-x"}
     "Description and mentions updated"]])
 
-(deftest test-rota-update!
+(deftest ^:integration test-rota-update!
   (testing "Update rota"
     (doseq [[before after expected description] params-rota-update!]
       (testing description
-        (db/rota-insert! before)
-        (db/rota-update! after)
-        (let [rota (first (db/duty-get rota-channel rota-name))]
-          (is (= expected (dissoc rota :rota_id))))))))
+        (jdbc/with-transaction [conn db/db]
+          (let [_ (db/rota-insert! before)
+                _ (db/rota-update! after)
+                rota (db/duty-get rota-channel rota-name)]
+            (is (= expected (dissoc rota :rota/id)))))))))

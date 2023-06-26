@@ -17,6 +17,7 @@ services:
       - ".:/usr/src/app"
     ports:
       - "8080:8080"
+      - "16543:6543"
     depends_on:
       - postgres
     env_file:

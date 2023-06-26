@@ -5,13 +5,25 @@ file. This change log follows the conventions of
 [keepachangelog.com](http://keepachangelog.com/).
 
 ## [Unreleased]
+
+### Changed
+- JDBC-access to a database migrated from
+  [java.jdbc](https://github.com/clojure/java.jdbc) to
+  [next.jdbc](https://github.com/seancorfield/next-jdbc)
+  ([#67](https://github.com/pilosus/dienstplan/issues/67)).
+- Database connection pooling migrated from
+  [HikariCP Clojure wrapper](https://github.com/tomekw/hikari-cp) to original
+  [HikariCP for Java](https://github.com/brettwooldridge/HikariCP).
+- Outdated dependencies bumped
+
 ### Fixed
 - Addressed usage example for `assign` command
   ([#60](https://github.com/pilosus/dienstplan/issues/60)).
 
-### Changed
-- Bump outdated dependencies
-- Improve CLI task for finding and bumping outdated dependencies
+### Added
+- Database connection pool options extended with: `minimumIdle`,
+  `connectionTimeout`, `maxLifetime`, `keepaliveTime` (see [docs](https://github.com/brettwooldridge/HikariCP) for more details)
+- Developer tools improved: `make` task for bumping outdated deps added
 
 ## [0.5.0] - 2023-06-16
 ### Changed

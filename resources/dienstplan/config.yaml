@@ -18,12 +18,14 @@ alerts:
   sentry: !envvar ALERTS__SENTRY_DSN
 
 db:
-  adapter: "postgresql"
-  server-name: !envvar DB__SERVER_NAME
-  port-number: !envvar [DB__PORT_NUMBER, 5432]
-  database-name: !envvar DB__DATABASE_NAME
+  dbtype: "postgres"
+  host: !envvar DB__SERVER_NAME
+  port: !envvar [DB__PORT_NUMBER, 5432]
+  dbname: !envvar DB__DATABASE_NAME
   username: !envvar DB__USERNAME
   password: !envvar DB__PASSWORD
-  minimum-idle: !envvar [DB__POOL_MIN_IDLE, 10]
-  maximum-pool-size: !envvar [DB__POOL_MAX_SIZE, 20]
-  connection-timeout: !envvar [DB__TIMEOUT_MS_CONNECTION, 10000]
+  maximumPoolSize: !envvar [DB__POOL_MAX_SIZE, 20]
+  minimumIdle: !envvar [DB__POOL_MIN_IDLE, 20]
+  connectionTimeout: !envvar [DB__TIMEOUT_MS_CONNECTION, 10000]
+  maxLifetime: !envvar [DB__LIFETIME_MAX_MS_CONNECTION, 1800000]
+  keepaliveTime: !envvar [DB__LIFETIME_KEEPALIVE_MS_CONNECTION, 0]

@@ -31,7 +31,13 @@ check:
 	docker compose run --rm --no-deps dienstplan clojure -M:check
 
 test:
-	docker compose run --rm --no-deps dienstplan clojure -M:dev:test ${TEST_ARGS}
+# example with make args:
+# make TEST_ARGS=":vars '[dienstplan.db-test/test-rota-update\!]'" test
+# or inside container:
+# clojure -X:dev:test :vars '[dienstplan.db-test/test-rota-update!]'
+# clojure -X:dev:test :nses '[dienstplan.api-test]'
+# clojure -X:dev:test :includes '[:integration]'
+	docker compose run --rm --no-deps dienstplan clojure -X:dev:test ${TEST_ARGS}
 
 cloverage:
 	docker compose run --rm --no-deps dienstplan clojure -X:dev:test:cloverage ${TEST_ARGS}
