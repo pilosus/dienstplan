@@ -65,7 +65,7 @@ Second, remind duties to a current on-call person:
 
 ## Help
 
-See [documentation](https://dienstplan.github.io/) for more details on
+See [documentation](https://dienstplan.readthedocs.io/) for more details on
 installation and usage.
 
 ## Contributing
