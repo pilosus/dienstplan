@@ -16,6 +16,7 @@
 (ns dienstplan.spec
   (:gen-class)
   (:require
+   [clojure.instant :refer [read-instant-date]]
    [clojure.spec.alpha :as s]))
 
 ;;;;;;;;;;;;;;;;;;;;;
@@ -65,11 +66,11 @@
 
 (def pg-timestamp-from
   ;; shall we support 4713 BC as PG does?
-  (clojure.instant/read-instant-date "0001-01-01T00:00:00.000"))
+  (read-instant-date "0001-01-01T00:00:00.000"))
 
 (def pg-timestamp-to
   ;; shall we support 294276 AD as PG does?
-  (clojure.instant/read-instant-date "3000-01-01T00:00:00.000"))
+  (read-instant-date "3000-01-01T00:00:00.000"))
 
 (defn instant-in?
   [from to instant]
