@@ -21,6 +21,7 @@ file. This change log follows the conventions of
   ([#60](https://github.com/pilosus/dienstplan/issues/60)).
 
 ### Added
+- Project documentation [added](https://dienstplan.github.io/) ([#82](https://github.com/pilosus/dienstplan/issues/82))
 - Database connection pool options extended with: `minimumIdle`,
   `connectionTimeout`, `maxLifetime`, `keepaliveTime` (see [docs](https://github.com/brettwooldridge/HikariCP) for more details)
 - Developer tools improved: `make` task for bumping outdated deps added

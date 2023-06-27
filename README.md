@@ -1,10 +1,9 @@
-# dienstplan
+# dienstplan: slack duty rotations made easy
 
 [![codecov](https://codecov.io/gh/pilosus/dienstplan/branch/main/graph/badge.svg?token=2ouqzEwhLc)](https://codecov.io/gh/pilosus/dienstplan)
 [![Docker version](https://img.shields.io/docker/v/pilosus/dienstplan/0.5.0?logo=docker&label=Docker)](https://hub.docker.com/r/pilosus/dienstplan/tags)
 
 Slack bot for duty rotations.
-
 
 ## Why
 
@@ -12,8 +11,7 @@ Slack bot for duty rotations.
 - Follows the rule "Do One Thing and Do It Well"
 - Plays nicely with Slack [reminders](https://slack.com/resources/using-slack/how-to-use-reminders-in-slack) and [workflows](https://slack.com/features/workflow-automation)
 
-
-## Usage example
+## Quick example
 
 [![screencast](https://blog.pilosus.org/images/dienstplan.gif "Watch the screencast on YouTube")](https://youtu.be/pZWJYpsT1_w)
 
@@ -48,7 +46,7 @@ command:
 The bot iterates over the users in the list order:
 
 ```
-@user1 -> @user2 ->  @user3 -> @user1 ...
+@user1 -> @user2 ->  @user3 -> @user1 -> @user2 ...
 ```
 
 Now that you know the basics, let's automate rotation and current duty
@@ -65,219 +63,16 @@ Second, remind duties to a current on-call person:
 /remind #my-channel to "@dienstplan who my-rota" every Monday, Tuesday, Wednesday, Thursday, Friday at 10AM UTC
 ```
 
-### Bot commands
+## Help
 
-To start interacting with the bot, mention its username, provide a
-command and its arguments as follows:
-
-```
-@dienstplan <command> [<options>]
-```
-
-Commands:
-
-1. Create a rotation
-```
-@dienstplan create <rotation name> <list of user mentions> <duties description>
-```
-
-2. Rotate: move current duty to a next user
-```
-@dienstplan rotate <rotation name>
-```
-
-3. Show a current duty (on-call person and duties description)
-```
-@dienstplan who <rotation name>
-```
-
-4. Mention current on-call person. It's like `who` command, but with duties description omitted.
-```
-@dienstplan shout <rotation name>
-```
-
-5. Assign specific user for a duty. New user becomes a current on-call and the order of users remains as it was.
-```
-@dienstplan assign <rotation name> <user mention>
-```
-
-6. Show details about a rotation
-```
-@dienstplan about <rotation name>
-```
-
-7. Delete a rotation
-```
-@dienstplan delete <rotation name>
-```
-
-8. Update a rotation. A shortcut to a sequence of `delete` and `create` commands.
-```
-@dienstplan update <rotation name> <list of user mentions> <duties description>
-```
-
-9. List channel's rotations
-```
-@dienstplan list
-```
-
-10. Show a help message
-```
-@dienstplan help
-```
-
-
-## Install
-
-### Server requirements
-
-- Any server with Java 17 or higher
-- PostgreSQL 9.4 or higher
-- (Optionally) [Sentry account](https://sentry.io/) for error tracking
-
-### Environment variables
-
-The app relies on a bunch of environment variables (envs) to operate:
-
-- `APP__VERSION` - app version, used in Sentry reporting
-- `APP__ENV` [default `production`] - app environment (e.g. `test`, `stage`, `production`), used in Sentry reporting
-- `SLACK__TOKEN` - Slack Bot User OAuth Token
-- `SLACK__SIGN` - Slack Signing Secret key
-- `ALERTS__SENTRY_DSN` - Sentry config string
-- `SERVER__PORT` [default `8080`] - Jetty application server port
-- `SERVER__LOGLEVEL` [default `INFO`] - Server log level
-- `SERVER__ACCESS_LOG` [default `true`] - Server basic access logging
-- `DB__SERVER_NAME` - PostgreSQL server host name
-- `DB__PORT_NUMBER` [default `5432`] - PostgreSQL server port number
-- `DB__DATABASE_NAME` - PostgreSQL server database name
-- `DB__USERNAME` - PostgreSQL server user name
-- `DB__PASSWORD` - PostgreSQL server password
-- `DB__POOL_MIN_IDLE` [default `20`] - PostgreSQL connection pool's min number of idle connections
-- `DB__POOL_MAX_SIZE` [default `20`] - PostgreSQL connection pool's max number of connections
-- `DB__TIMEOUT_MS_CONNECTION` [default `10000`] - PostgreSQL connection timeout in milliseconds
-- `DB__LIFETIME_MAX_MS_CONNECTION` [default `1800000`] - Maximum lifetime of a connection in the pool in milliseconds
-- `DB__LIFETIME_KEEPALIVE_MS_CONNECTION` [default `0`] - Keep alive in milliseconds for idle connections in the pool
-
-### Up & Running
-
-- Get [Clojure](https://www.clojure.org/guides/install_clojure) to compile the app
-- Clone the GitHub repository
-- In the repo directory complile a standalone `jar` file with `make uberjar`
-- Run the app:
-
-```
-APP__DEBUG=false \
-SLACK__TOKEN="xoxb-Your-Bot-User-OAuth-Token" \
-SLACK__SIGN="Your-Signing-Secret" \
-ALERTS__SENTRY_DSN="https://public:private@localhost/1" \
-SERVER__PORT=8080 \
-SERVER__LOGLEVEL=INFO \
-DB__SERVER_NAME=your-postgresql.example.com \
-DB__PORT_NUMBER=5432 \
-DB__DATABASE_NAME="your-postgresql-db-name" \
-DB__USERNAME="your-postgresql-db-username" \
-DB__PASSWORD="your-postgresql-db-passwords" \
-java -jar /path/to/repo/target/uberjar/dienstplan-0.5.0-standalone.jar
-```
-- Apply database migrations with the `--mode migrate` option or rollback with `--mode rollback`, e.g.:
-
-```
-java -jar /path/to/repo/target/uberjar/dienstplan-0.5.0-standalone.jar --mode migrate
-```
-
-Alternatively, use containerized app version as follows:
-
-```
-docker pull pilosus/dienstplan:0.5.0
-
-docker run \
-  -e APP__VERSION="0.5.0" \
-  -e APP__ENV="production" \
-  -e APP__DEBUG=false \
-  -e SLACK__TOKEN="xoxb-Your-Bot-User-OAuth-Token" \
-  -e SLACK__SIGN="Your-Signing-Secret" \
-  -e ALERTS__SENTRY_DSN="https://public:private@localhost/1" \
-  -e SERVER__PORT=8080 \
-  -e SERVER__LOGLEVEL=INFO \
-  -e DB__SERVER_NAME=your-postgresql.example.com \
-  -e DB__PORT_NUMBER=5432 \
-  -e DB__DATABASE_NAME="your-postgresql-db-name" \
-  -e DB__USERNAME="your-postgresql-db-username" \
-  -e DB__PASSWORD="your-postgresql-db-passwords" \
-  -it --rm pilosus/dienstplan \
-  java -jar app.jar --mode server
-  # use --mode migrate or --mode rollback for DB migration control
-```
-
-Docker compose is also supported with:
-
-```
-docker compose up
-```
-
-or use `Makefile` to ease building, running services and applying DB migrations:
-
-```
-make all
-```
-
-### Ansible Sciprts for Server Setup & App Deploy
-
-You can get a full set of scripts needed to:
-
-- provision a server from scratch
-- set up the bot app
-- deploy the app
-
-in the [dienstplan-deploy](https://github.com/pilosus/dienstplan-deploy/) repository.
-
-### Install the bot app in Slack
-
-- Sign in to your Slack [Apps Dashboard](https://api.slack.com/apps)
-- `Create New App` -> `From an app manifest` -> `Workspace: your workspace`
-- Copy and paste the app manifest in YAML format:
-
-```
-_metadata:
-  major_version: 1
-  minor_version: 1
-display_information:
-  name: dienstplan
-  description: Slack bot for duty rotations
-  background_color: "#002087"
-features:
-  bot_user:
-    display_name: dienstplan
-    always_online: false
-oauth_config:
-  scopes:
-    bot:
-      - app_mentions:read
-      - channels:read
-      - chat:write
-      - chat:write.customize
-settings:
-  event_subscriptions:
-    request_url: https://YOUR-DOMAIN/api/events
-    bot_events:
-      - app_mention
-  org_deploy_enabled: false
-  socket_mode_enabled: false
-  token_rotation_enabled: false
-```
-- Fix `settings -> event_subscriptions -> request_url` to match your server's public url (`/api/events` url path is hardcoded in the app)
-- `Basic Information` -> `Install your app` -> `Install to Workspace`
-- `OAuth & Permissions` -> copy `OAuth Tokens for Your Workspace` to be used for `SLACK__TOKEN` env
-- `Basic Information` -> `App Credentials` -> copy `Signing Secret` to be used for `SLACK__SIGN` env
-- Make it looking nice: `Basic Information` -> `Display Information` -> upload an [app icon](https://openclipart.org/detail/233274/circle-arrow) with a public domain license
-- Deploy the app with
+See [documentation](https://dienstplan.github.io/) for more details on
+installation and usage.
 
 ## Contributing
 
 See
 [Contributing](https://github.com/pilosus/dienstplan/tree/main/CONTRIBUTING.md)
 guide.
-
 
 ## License
 
