@@ -124,7 +124,7 @@
 (def sql-params {:checking :strict})
 
 (defn duty-get
-  "Get a single rotation map"
+  "Get a map with current duty user and its rota"
   [channel rotation]
   (jdbc/with-transaction [conn db]
     (jdbc/execute-one!
@@ -142,6 +142,7 @@
       sql-params))))
 
 (defn rota-list-get
+  "Get a list of rotation in the channel"
   [channel]
   (jdbc/with-transaction [conn db]
     (jdbc/execute!
@@ -156,6 +157,7 @@
       sql-params))))
 
 (defn rota-about-get
+  "Get a map with rota and its users"
   [channel rotation]
   (jdbc/with-transaction [conn db]
     (jdbc/execute-one!
@@ -173,6 +175,7 @@
       sql-params))))
 
 (defn rota-get
+  "Get users for a rota"
   [conn channel rotation]
   (into
    []
@@ -193,11 +196,13 @@
      sql-params))))
 
 (defn rota-delete!
+  "Delete a rota"
   [channel rotation]
   (jdbc/with-transaction [conn db]
     (sql/delete! conn :rota ["channel = ? AND name = ?" channel rotation])))
 
 (defn rota-insert!
+  "Insert a rota and its users"
   [params]
   (jdbc/with-transaction [conn db]
     (try
@@ -219,6 +224,7 @@
           error)))))
 
 (defn rota-update!
+  "Update a rota and its users"
   [params]
   (jdbc/with-transaction [conn db]
     (try
@@ -251,6 +257,7 @@
         {:ok false :error {:message (.getMessage e)}}))))
 
 (defn- assign
+  "Update :mention/duty value for a new duty user in the collection"
   [users next-duty]
   (if (not (some #{next-duty} users))
     :user-not-found
@@ -278,6 +285,7 @@
        :mention/user))
 
 (defn- update-users
+  "Return number of users updated in `mention` table"
   [conn users ts]
   (let [rota_id (:mention/rota_id (first users))
         users-updated
@@ -301,6 +309,7 @@
     users-updated))
 
 (defn rotate-duty!
+  "Move current duty to the next one in the `mention` table"
   [channel rotation ts]
   (jdbc/with-transaction [conn db]
     (let
@@ -317,12 +326,12 @@
        :current-duty current-duty})))
 
 (defn assign!
+  "Set a given user mention to current and the only duty in the `mention` table"
   [channel rotation name ts]
   (jdbc/with-transaction [conn db]
     (let [users (rota-get conn channel rotation)
           assigned (assign-user users name)
-          _ (log/debug "Current rota" users)
-          _ (log/debug "Rota with a new duty assigned" assigned)]
+          _ (log/info "Rota with a new duty assigned" assigned)]
       (if (not= assigned :user-not-found)
         (update-users conn assigned ts))
       assigned)))

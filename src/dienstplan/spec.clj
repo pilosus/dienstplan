@@ -55,6 +55,27 @@
    ->uuid))
 ;;(s/conform ::->uuid "a2ab7fdb-b3f7-4aa6-bde5-7c37a0a39d71")
 
+;; Helper functions
+
+(defn varchar-length?
+  [from to s]
+  (let [length (count s)]
+    (and (>= length from)
+         (< length to))))
+
+(def pg-timestamp-from
+  ;; shall we support 4713 BC as PG does?
+  (clojure.instant/read-instant-date "0001-01-01T00:00:00.000"))
+
+(def pg-timestamp-to
+  ;; shall we support 294276 AD as PG does?
+  (clojure.instant/read-instant-date "3000-01-01T00:00:00.000"))
+
+(defn instant-in?
+  [from to instant]
+  (and (.after instant from)
+       (.before instant to)))
+
 ;;;;;;;;;;;;;;;;;;
 ;; Common specs ;;
 ;;;;;;;;;;;;;;;;;;
@@ -62,6 +83,7 @@
 ;; Basics
 
 (s/def ::map map?)
+(s/def ::nillable-map (s/nilable ::map))
 (s/def ::kw keyword?)
 (s/def ::str string?)
 (s/def ::int integer?)
@@ -81,6 +103,19 @@
 
 (s/def ::http-status-code (s/int-in 100 (inc 599)))
 (s/def ::http-method #{:get :post :delete :put :patch :head})
+
+(s/def ::db-serial (s/and ::int (s/int-in 1 (inc 2147483647))))
+(s/def ::db-varchar-not-null-255
+  (s/and
+   ::str
+   not-empty
+   (partial varchar-length? 1 256)))
+
+(s/def ::instant inst?)
+(s/def ::db-timestamp
+  (s/and
+   ::instant
+   (partial instant-in? pg-timestamp-from pg-timestamp-to)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Application Configuration ;;
@@ -397,3 +432,46 @@
     :req-un
     [:request-context/channel
      ::command-response-text])))
+
+;;;;;;;;;;;;;;;;;;;;;
+;; Database Tables ;;
+;;;;;;;;;;;;;;;;;;;;;
+
+;; rota table
+
+(s/def :rota/id ::db-serial)
+(s/def :rota/channel ::db-varchar-not-null-255)
+(s/def :rota/name ::db-varchar-not-null-255)
+(s/def :rota/description ::nillable-str)
+(s/def :rota/created_on ::instant) ;; ::db-timestamp
+(s/def :rota/updated_on ::instant) ;; ::db-timestamp
+(s/def :rota/meta ::nillable-map)
+
+(s/def ::db-rota
+  (s/keys
+   :req
+   [:rota/id
+    :rota/channel
+    :rota/name
+    :rota/created_on
+    :rota/updated_on]
+   :opt
+   [:rota/description
+    :rota/meta]))
+
+;; mention table
+
+(s/def :mention/id ::db-serial)
+(s/def :mention/rota_id ::db-serial)
+(s/def :mention/name ::db-varchar-not-null-255)
+(s/def :mention/duty ::boolean)
+
+(s/def ::db-mention
+  (s/keys
+   :req
+   [:mention/id
+    :mention/rota_id
+    :mention/name
+    :mention/duty]))
+
+;; FIXME add generative tests with org.clojure/test.check
