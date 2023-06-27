@@ -7,7 +7,7 @@
 
 (def lib 'org.pilosus/dienstplan)
 (def main 'dienstplan.core)
-(def version (format "0.5.%s" (b/git-count-revs nil)))
+(def version (format "1.0.%s" (b/git-count-revs nil)))
 (def class-dir "target/classes")
 (def src-dirs ["src" "resources"])
 (def basis (b/create-basis {:project "deps.edn"}))
