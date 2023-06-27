@@ -15,7 +15,7 @@ slack:
   sign: !envvar SLACK__SIGN
 
 alerts:
-  sentry: !envvar ALERTS__SENTRY_DSN
+  sentry: !envvar [ALERTS__SENTRY_DSN, "https://public:private@localhost/1"]
 
 db:
   dbtype: "postgres"

@@ -152,9 +152,11 @@ The app relies on a bunch of environment variables (envs) to operate:
 - `DB__DATABASE_NAME` - PostgreSQL server database name
 - `DB__USERNAME` - PostgreSQL server user name
 - `DB__PASSWORD` - PostgreSQL server password
-- `DB__POOL_MIN_IDLE` [default `10`] - PostgreSQL connection pool's min number of idle connections
+- `DB__POOL_MIN_IDLE` [default `20`] - PostgreSQL connection pool's min number of idle connections
 - `DB__POOL_MAX_SIZE` [default `20`] - PostgreSQL connection pool's max number of connections
 - `DB__TIMEOUT_MS_CONNECTION` [default `10000`] - PostgreSQL connection timeout in milliseconds
+- `DB__LIFETIME_MAX_MS_CONNECTION` [default `1800000`] - Maximum lifetime of a connection in the pool in milliseconds
+- `DB__LIFETIME_KEEPALIVE_MS_CONNECTION` [default `0`] - Keep alive in milliseconds for idle connections in the pool
 
 ### Up & Running
 
@@ -167,7 +169,7 @@ The app relies on a bunch of environment variables (envs) to operate:
 APP__DEBUG=false \
 SLACK__TOKEN="xoxb-Your-Bot-User-OAuth-Token" \
 SLACK__SIGN="Your-Signing-Secret" \
-ALERTS__SENTRY_DSN="https://your_token@something.sentry.io/project" \
+ALERTS__SENTRY_DSN="https://public:private@localhost/1" \
 SERVER__PORT=8080 \
 SERVER__LOGLEVEL=INFO \
 DB__SERVER_NAME=your-postgresql.example.com \
@@ -194,7 +196,7 @@ docker run \
   -e APP__DEBUG=false \
   -e SLACK__TOKEN="xoxb-Your-Bot-User-OAuth-Token" \
   -e SLACK__SIGN="Your-Signing-Secret" \
-  -e ALERTS__SENTRY_DSN="https://your_token@something.sentry.io/project" \
+  -e ALERTS__SENTRY_DSN="https://public:private@localhost/1" \
   -e SERVER__PORT=8080 \
   -e SERVER__LOGLEVEL=INFO \
   -e DB__SERVER_NAME=your-postgresql.example.com \
