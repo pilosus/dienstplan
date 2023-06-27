@@ -474,5 +474,3 @@
     :mention/rota_id
     :mention/name
     :mention/duty]))
-
-;; FIXME add generative tests with org.clojure/test.check
