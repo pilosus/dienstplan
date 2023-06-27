@@ -6,6 +6,11 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
+## [1.0.0] - 2023-06-27
+
+No breaking changes are expected. Some technical debt eliminated,
+documentation website added. Project has made it to the version 1.0.0!
+
 ### Changed
 - JDBC-access to a database migrated from
   [java.jdbc](https://github.com/clojure/java.jdbc) to
@@ -199,7 +204,8 @@ file. This change log follows the conventions of
 ### Added
 - Bot app MVP
 
-[Unreleased]: https://github.com/pilosus/dienstplan/compare/0.5.0...HEAD
+[Unreleased]: https://github.com/pilosus/dienstplan/compare/1.0.0...HEAD
+[1.0.0]: https://github.com/pilosus/dienstplan/compare/0.5.0...1.0.0
 [0.5.0]: https://github.com/pilosus/dienstplan/compare/0.4.0...0.5.0
 [0.4.0]: https://github.com/pilosus/dienstplan/compare/0.3.0...0.4.0
 [0.3.0]: https://github.com/pilosus/dienstplan/compare/0.2.12...0.3.0
