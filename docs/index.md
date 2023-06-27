@@ -1,9 +1,6 @@
-# dienstplan: slack duty rotations made easy
+# Slack duty rotations made easy
 
-[![codecov](https://codecov.io/gh/pilosus/dienstplan/branch/main/graph/badge.svg?token=2ouqzEwhLc)](https://codecov.io/gh/pilosus/dienstplan)
-[![Docker version](https://img.shields.io/docker/v/pilosus/dienstplan/0.5.0?logo=docker&label=Docker)](https://hub.docker.com/r/pilosus/dienstplan/tags)
-
-Slack bot for duty rotations.
+`dienstplan` is a Slack bot for duty rotations.
 
 ## Why
 
@@ -46,7 +43,7 @@ command:
 The bot iterates over the users in the list order:
 
 ```
-@user1 -> @user2 ->  @user3 -> @user1 -> @user2 ...
+@user1 -> @user2 ->  @user3 -> @user1 ...
 ```
 
 Now that you know the basics, let's automate rotation and current duty
@@ -62,18 +59,3 @@ Second, remind duties to a current on-call person:
 ```
 /remind #my-channel to "@dienstplan who my-rota" every Monday, Tuesday, Wednesday, Thursday, Friday at 10AM UTC
 ```
-
-## Help
-
-See [documentation](https://dienstplan.github.io/) for more details on
-installation and usage.
-
-## Contributing
-
-See
-[Contributing](https://github.com/pilosus/dienstplan/tree/main/CONTRIBUTING.md)
-guide.
-
-## License
-
-See [LICENSE](https://github.com/pilosus/dienstplan/tree/main/LICENSE)
