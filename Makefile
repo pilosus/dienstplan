@@ -1,4 +1,4 @@
-.PHONY: all build up down cljfmtfix cljfmtcheck eastwood check test cloverage migrate rollback depscheck depsbump
+.PHONY: all build up down cljfmtfix cljfmtcheck eastwood check test cloverage migrate rollback depscheck depsbump vuln
 
 lint: eastwood cljfmtfix
 all: build up migrate lint cloverage
@@ -53,3 +53,6 @@ depscheck:
 
 depsbump:
 	clojure -T:outdated :upgrade true :force true
+
+vuln:
+	clojure -T:watson
