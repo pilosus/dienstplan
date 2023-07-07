@@ -31,6 +31,7 @@
    opts))
 
 (defn clean [_]
+  (println "Cleaning...")
   (b/delete {:path "target"}))
 
 (defn jar
@@ -53,8 +54,8 @@
   clojure -T:build uberjar :uber-file '\"target/app.jar\"'
   "
   [opts]
-  (println "Cleaning...")
   (clean nil)
+  (println "Building with options..." opts)
   (let [opts' (build-opts opts)]
     (println "Copying files...")
     (b/copy-dir opts')
