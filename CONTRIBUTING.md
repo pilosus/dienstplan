@@ -31,15 +31,23 @@ make all
 
 ### Release manager
 
-1. Select the next realease [SemVer](https://semver.org/) number.
-2. Update `CHANGELOG.md`:
+1. Merge branches to `main`
+
+2. Check the current git rev count with `make revcount`
+
+3. Select the next realease [SemVer](https://semver.org/):
+
+- If a major or a minor part to be changed, change manually in `build.clj`
+- Patch part is rev count + 1 (assuming 1 commit to prepare the release)
+
+4. Update `CHANGELOG.md`:
 
 - Move changes from `Unreleased` section to a new release section
 - Add a link to `git diff`
 
-3. Update tag in `build.clj` (see `version`)
-
-4. Update current tag mentions in `README.md`:
+5. Update current tag mentions in `README.md`:
 
 - Docker version
 - Usage examples
+
+6. After release preparation, add a tag with `git tag X.Y.Z`
