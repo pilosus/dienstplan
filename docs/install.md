@@ -19,7 +19,7 @@ The app relies on the following environment variables (envs) to operate:
 - `ALERTS__SENTRY_DSN` - Sentry [data source name](https://docs.sentry.io/product/sentry-basics/dsn-explainer/) [default `https://public:private@localhost/1`]
 - `SERVER__PORT` [default `8080`] - Jetty application server port
 - `SERVER__LOGLEVEL` [default `INFO`] - App log level (`dienstplan` logger only)
-- `SERVER__ROOTLEVEL` [default `WARN`] - Root log level (all loggers, including DB, Jetty server, etc.)
+- `SERVER__ROOTLEVEL` [default `INFO`] - Root log level (all loggers, including DB, Jetty server, etc.)
 - `SERVER__ACCESS_LOG` [default `true`] - Enable access logging? Access logs have `INFO` level.
 - `DB__SERVER_NAME` [default `localhost`] - PostgreSQL server host name
 - `DB__PORT_NUMBER` [default `5432`] - PostgreSQL server port number

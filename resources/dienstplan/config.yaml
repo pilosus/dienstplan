@@ -7,7 +7,7 @@ application:
 server:
   port: !envvar [SERVER__PORT, 8080]
   loglevel: !envvar [SERVER__LOGLEVEL, "INFO"]
-  rootlevel: !envvar [SERVER__ROOTLEVEL, "WARN"]
+  rootlevel: !envvar [SERVER__ROOTLEVEL, "INFO"]
   access-log: !envvar [SERVER__ACCESS_LOG, true]
   block-thread: !envvar [SERVER__BLOCK_THREAD, true]
 
