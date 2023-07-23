@@ -43,4 +43,7 @@ RUN chown -R 1000:1000 /usr/src/app
 
 # Run as unpriviledged user
 USER 1000
+
+# Use system properties to configure logging, socket server, etc:
+# java -Dlogback.configurationFile=resources/logback.json.xml -jar app.jar
 CMD ["java", "-jar", "app.jar"]

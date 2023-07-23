@@ -6,6 +6,21 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
+## [1.0.81] - 2023-07-23
+
+### Added
+- Logging config for JSON structured logging added under
+  `resources/logback.json.xml` ([#90](https://github.com/pilosus/dienstplan/issues/90))
+
+### Changed
+- `SERVER__LOGLEVEL` and `SERVER__ROOTLEVEL` separated to control app
+  log level (app namespace only) and root log level (all loggers,
+  including DB, Jetty server, etc.) respectively
+  ([#91](https://github.com/pilosus/dienstplan/issues/91))
+- Access logs to API endpoints are of `INFO` level
+- Release versions use git rev-list count for the patch part (see
+  `make revcount`)
+
 ## [1.0.0] - 2023-06-27
 
 No breaking changes are expected. Some technical debt eliminated,
@@ -204,7 +219,8 @@ documentation website added. Project has made it to the version 1.0.0!
 ### Added
 - Bot app MVP
 
-[Unreleased]: https://github.com/pilosus/dienstplan/compare/1.0.0...HEAD
+[Unreleased]: https://github.com/pilosus/dienstplan/compare/1.0.81...HEAD
+[1.0.81]: https://github.com/pilosus/dienstplan/compare/1.0.0...1.0.81
 [1.0.0]: https://github.com/pilosus/dienstplan/compare/0.5.0...1.0.0
 [0.5.0]: https://github.com/pilosus/dienstplan/compare/0.4.0...0.5.0
 [0.4.0]: https://github.com/pilosus/dienstplan/compare/0.3.0...0.4.0

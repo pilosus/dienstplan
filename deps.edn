@@ -19,6 +19,9 @@
   ;; Logging
   org.clojure/tools.logging {:mvn/version "1.2.4"}
   ch.qos.logback/logback-classic {:mvn/version "1.4.8"}
+  ch.qos.logback.contrib/logback-json-classic {:mvn/version "0.1.5"}
+  ch.qos.logback.contrib/logback-jackson {:mvn/version "0.1.5"}
+  com.fasterxml.jackson.core/jackson-databind {:mvn/version "2.15.2"}
 
   ;; alerts
   io.sentry/sentry-clj {:mvn/version "6.24.198"}
@@ -56,7 +59,10 @@
   ;; Running
   ;; clojure -M:run
   :run
-  {:main-opts ["-m" "dienstplan.core"]}
+  {:main-opts ["-m" "dienstplan.core"]
+   :exec-fn dienstplan.core/-main
+   ;; See other logging configs under resources/logback.*.xml
+   :jvm-opts ["-Dlogback.configurationFile=resources/logback.xml"]}
 
   ;; Dev
   :dev

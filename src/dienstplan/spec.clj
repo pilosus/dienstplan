@@ -142,8 +142,11 @@
 
 ;; Server
 
+(def loglevels #{"TRACE" "DEBUG" "INFO" "WARN" "ERROR" "FATAL" "ALL" "OFF"})
+
 (s/def :server/port ::ephemeral-port)
-(s/def :server/loglevel #{"DEBUG" "INFO" "WARN" "ERROR" "FATAL"})
+(s/def :server/loglevel loglevels)
+(s/def :server/rootlevel loglevels)
 (s/def :server/access-log ::boolean-str)
 (s/def :server/block-thread ::boolean-str)
 
@@ -152,6 +155,7 @@
    :req-un
    [:server/port
     :server/loglevel
+    :server/rootlevel
     :server/access-log
     :server/block-thread]))
 

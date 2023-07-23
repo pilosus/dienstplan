@@ -1,4 +1,4 @@
-.PHONY: all build up down cljfmtfix cljfmtcheck eastwood check test cloverage migrate rollback depscheck depsbump vuln deps clean
+.PHONY: all build up down cljfmtfix cljfmtcheck eastwood check test cloverage migrate rollback depscheck depsbump vuln deps clean revcount
 
 lint: eastwood cljfmtfix
 all: build up migrate lint cloverage
@@ -62,3 +62,6 @@ deps:
 
 clean:
 	clojure -T:build clean
+
+revcount:
+	@git rev-list HEAD --count
