@@ -11,7 +11,7 @@
     <appender-ref ref="STDOUT" />
   </logger>
 
-  <root level="${SERVER__ROOTLEVEL:-WARN}">
+  <root level="${SERVER__ROOTLEVEL:-INFO}">
     <appender-ref ref="STDOUT" />
   </root>
 </configuration>
