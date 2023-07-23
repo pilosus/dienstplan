@@ -77,25 +77,16 @@
 
 ;; Access logs
 
-(def loglevel-str-to-kw
-  {"DEBUG" :debug
-   "INFO" :info
-   "WARN" :warn
-   "ERROR" :error
-   "FATAL" :fatal})
-
 (defn wrap-access-log
   [handler]
   (fn [request]
     (let [enable-logging? (get-in config [:server :access-log])
           {:keys [query-string request-method uri]} request
-          loglevel-str (get-in config [:server :loglevel])
-          loglevel-kw (get loglevel-str-to-kw loglevel-str)
           method (-> request-method name string/upper-case)
           query-params (if query-string (str "?" query-string) "")
           message (format "%s %s%s" method uri query-params)]
       (when enable-logging?
-        (log/log loglevel-kw message))
+        (log/log :info message))
       (handler request))))
 
 ;; Unhandled error tracking

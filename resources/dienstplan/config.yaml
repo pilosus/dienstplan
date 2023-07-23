@@ -1,29 +1,30 @@
 application:
   name: "dienstplan"
-  version: !envvar [APP__VERSION, latest]
-  env: !envvar [APP__ENV, production]
+  version: !envvar [APP__VERSION, "latest"]
+  env: !envvar [APP__ENV, "production"]
   debug: !envvar [APP__DEBUG, false]
 
 server:
   port: !envvar [SERVER__PORT, 8080]
-  loglevel: !envvar [SERVER__LOGLEVEL, INFO]
+  loglevel: !envvar [SERVER__LOGLEVEL, "INFO"]
+  rootlevel: !envvar [SERVER__ROOTLEVEL, "WARN"]
   access-log: !envvar [SERVER__ACCESS_LOG, true]
   block-thread: !envvar [SERVER__BLOCK_THREAD, true]
 
 slack:
-  token: !envvar SLACK__TOKEN
-  sign: !envvar SLACK__SIGN
+  token: !envvar [SLACK__TOKEN, "Token"]
+  sign: !envvar [SLACK__SIGN, "Secret"]
 
 alerts:
   sentry: !envvar [ALERTS__SENTRY_DSN, "https://public:private@localhost/1"]
 
 db:
   dbtype: "postgres"
-  host: !envvar DB__SERVER_NAME
+  host: !envvar [DB__SERVER_NAME, "localhost"]
   port: !envvar [DB__PORT_NUMBER, 5432]
-  dbname: !envvar DB__DATABASE_NAME
-  username: !envvar DB__USERNAME
-  password: !envvar DB__PASSWORD
+  dbname: !envvar [DB__DATABASE_NAME, "dienstplan"]
+  username: !envvar [DB__USERNAME, "dienstplan"]
+  password: !envvar [DB__PASSWORD, "dienstplan"]
   maximumPoolSize: !envvar [DB__POOL_MAX_SIZE, 20]
   minimumIdle: !envvar [DB__POOL_MIN_IDLE, 20]
   connectionTimeout: !envvar [DB__TIMEOUT_MS_CONNECTION, 10000]
