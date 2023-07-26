@@ -1,0 +1,16 @@
+{:up ["CREATE TABLE IF NOT EXISTS schedule (
+         id serial PRIMARY KEY,
+         channel VARCHAR (255) NOT NULL,
+         executable TEXT NOT NULL,
+         crontab TEXT NOT NULL,
+         run_at TIMESTAMP NOT NULL,
+         created_at TIMESTAMP DEFAULT (NOW() AT TIME ZONE 'UTC') NOT NULL,
+         updated_at TIMESTAMP DEFAULT (NOW() AT TIME ZONE 'UTC') NOT NULL
+      );"
+      "CREATE UNIQUE INDEX idx_schedule_channel_executable ON schedule (channel, executable);"
+      "CREATE INDEX idx_schedule_channel ON schedule (channel);"
+      "CREATE INDEX idx_schedule_run_at ON schedule (run_at);"]
+ :down ["DROP INDEX idx_schedule_run_at;"
+        "DROP INDEX idx_schedule_channel;"
+        "DROP INDEX idx_schedule_channel_executable;"
+        "DROP TABLE schedule;"]}

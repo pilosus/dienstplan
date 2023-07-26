@@ -270,6 +270,24 @@
     :bot-cmd-common/command
     :bot-cmd-create-or-update/args]))
 
+(s/def :bot-schedule-args/subcommand #{"create" "delete" "list"})
+(s/def :bot-schedule-args/executable ::nillable-str)
+(s/def :bot-schedule-args/crontab ::nillable-str)
+
+(s/def :bot-cmd-schedule/args
+  (s/keys
+   :req-un
+   [:bot-schedule-args/subcommand
+    :bot-schedule-args/executable
+    :bot-schedule-args/crontab]))
+
+(s/def ::bot-cmd-schedule
+  (s/keys
+   :req-un
+   [:bot-cmd-common/context
+    :bot-cmd-common/command
+    :bot-cmd-schedule/args]))
+
 (s/def ::bot-cmd-assign
   (s/keys
    :req-un

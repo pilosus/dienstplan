@@ -4,11 +4,11 @@
 
 {:paths ["src" "resources"]
  :deps
- { ;; clojure
+ { ;; Clojure
   org.clojure/clojure {:mvn/version "1.11.1"}
   org.clojure/tools.cli {:mvn/version "1.0.219"}
 
-  ;; web framework
+  ;; Web framework
   ring/ring-core {:mvn/version "1.10.0"}
   ring/ring-jetty-adapter {:mvn/version "1.10.0"}
   ring/ring-json {:mvn/version "0.5.1"}
@@ -23,7 +23,7 @@
   ch.qos.logback.contrib/logback-jackson {:mvn/version "0.1.5"}
   com.fasterxml.jackson.core/jackson-databind {:mvn/version "2.15.2"}
 
-  ;; alerts
+  ;; Alerts
   io.sentry/sentry-clj {:mvn/version "6.24.198"}
 
   ;; Validation
@@ -45,6 +45,9 @@
   com.zaxxer/HikariCP {:mvn/version "5.0.1"}
   dev.weavejester/ragtime {:mvn/version "0.9.3"}
   com.github.seancorfield/honeysql {:mvn/version "2.4.1045"}
+
+  ;; Cron
+  org.pilosus/kairos {:mvn/version "0.1.14"}
 
   ;; Cryptography
   buddy/buddy-core {:mvn/version "1.11.423"}}

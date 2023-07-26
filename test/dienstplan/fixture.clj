@@ -77,7 +77,7 @@
   (log/info "[fix-db-rollback] stop"))
 
 (def truncatable-tables
-  ["rota" "mention"])
+  ["rota" "mention" "schedule"])
 
 (defn fix-db-truncate
   "Truncate tables after the test run"

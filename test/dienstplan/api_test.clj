@@ -18,12 +18,11 @@
    [cheshire.core :as json]
    [clj-http.client :as http]
    [clojure.test :refer [deftest is testing use-fixtures]]
-   [dienstplan.core]
    [dienstplan.commands :as cmd]
-   [dienstplan.db]
-   [dienstplan.fixture :as fix]
-   [next.jdbc :as jdbc]
-   [dienstplan.db :as db]))
+   [dienstplan.core]
+   [dienstplan.db :as db]
+   [dienstplan.helpers :as helpers]
+   [dienstplan.fixture :as fix]))
 
 ;; Const
 
@@ -574,8 +573,8 @@
 (deftest ^:integration test-api-unhandled-exception
   (testing "API unhandled exception"
     (with-redefs
-     [cmd/text-trim (fn [& _]
-                      (throw (ex-info "Boom!" {:data nil})))]
+     [helpers/text-trim (fn [& _]
+                          (throw (ex-info "Boom!" {:data nil})))]
       (let [request
             (merge
              events-request-base
@@ -595,3 +594,167 @@
              (-> response
                  :body
                  (json/parse-string true))))))))
+
+;; schedule
+
+(deftest ^:integration test-schedule-ok
+  (testing "Create new schedule"
+    (let [schedule-create-rotate-response
+          (http/request
+           (merge
+            events-request-base
+            {:body
+             (json/generate-string
+              {:event
+               {:text "<@U001> schedule create \"rotate my-rota\" 5 0 * * Mon-Fri"
+                :ts "1640250011.000100"
+                :team "T123"
+                :channel "C123"}})}))
+          schedule-create-duplicate-response
+          (http/request
+           (merge
+            events-request-base
+            {:body
+             (json/generate-string
+              {:event
+               {:text "<@U001> schedule create \"rotate my-rota\" 5 0 * * Mon-Fri"
+                :ts "1640250011.000100"
+                :team "T123"
+                :channel "C123"}})}))
+          schedule-create-who-response
+          (http/request
+           (merge
+            events-request-base
+            {:body
+             (json/generate-string
+              {:event
+               {:text "<@U001> schedule create \"who my-rota\" 0 9 * * Mon-Fri"
+                :ts "1640250011.000100"
+                :team "T123"
+                :channel "C123"}})}))
+          schedule-list-response
+          (http/request
+           (merge
+            events-request-base
+            {:body
+             (json/generate-string
+              {:event
+               {:text "<@U001> schedule list"
+                :ts "1640250011.000100"
+                :team "T123"
+                :channel "C123"}})}))
+          schedule-delete-who-response
+          (http/request
+           (merge
+            events-request-base
+            {:body
+             (json/generate-string
+              {:event
+               {:text "<@U001> schedule delete \"who my-rota\""
+                :ts "1640250011.000100"
+                :team "T123"
+                :channel "C123"}})}))
+          schedule-delete-rotate-response
+          (http/request
+           (merge
+            events-request-base
+            {:body
+             (json/generate-string
+              {:event
+               {:text "<@U001> schedule delete \"rotate my-rota\""
+                :ts "1640250011.000100"
+                :team "T123"
+                :channel "C123"}})}))
+          schedule-delete-non-existent-response
+          (http/request
+           (merge
+            events-request-base
+            {:body
+             (json/generate-string
+              {:event
+               {:text "<@U001> schedule delete \"shout my-rota\""
+                :ts "1640250011.000100"
+                :team "T123"
+                :channel "C123"}})}))
+          schedule-list-empty-response
+          (http/request
+           (merge
+            events-request-base
+            {:body
+             (json/generate-string
+              {:event
+               {:text "<@U001> schedule list"
+                :ts "1640250011.000100"
+                :team "T123"
+                :channel "C123"}})}))]
+      ;; create `rotate my-rota`
+      (is (= 200 (:status schedule-create-rotate-response)))
+      (is (=
+           {:channel "C123"
+            :text "Executable `rotate my-rota` successfully scheduled with `5 0 * * Mon-Fri`"}
+           (-> schedule-create-rotate-response
+               :body
+               (json/parse-string true))))
+
+      ;; duplicate: unique chanel-executable index violation
+      (is (= 200 (:status schedule-create-duplicate-response)))
+      (is (=
+           {:channel "C123"
+            :text "Duplicate schedule for `rotate my-rota` in the channel"}
+           (-> schedule-create-duplicate-response
+               :body
+               (json/parse-string true))))
+
+      ;; create `who my-rota`
+      (is (= 200 (:status schedule-create-who-response)))
+      (is (=
+           {:channel "C123"
+            :text "Executable `who my-rota` successfully scheduled with `0 9 * * Mon-Fri`"}
+           (-> schedule-create-who-response
+               :body
+               (json/parse-string true))))
+
+      ;; list schedules
+      (is (= 200 (:status schedule-list-response)))
+      (is (=
+           {:channel "C123"
+            :text "- `rotate my-rota` with `5 0 * * Mon-Fri`\n- `who my-rota` with `0 9 * * Mon-Fri`"}
+           (-> schedule-list-response
+               :body
+               (json/parse-string true))))
+
+      ;; delete who
+      (is (= 200 (:status schedule-delete-who-response)))
+      (is (=
+           {:channel "C123"
+            :text "Scheduling for `who my-rota` successfully deleted"}
+           (-> schedule-delete-who-response
+               :body
+               (json/parse-string true))))
+
+      ;; delete rotate
+      (is (= 200 (:status schedule-delete-rotate-response)))
+      (is (=
+           {:channel "C123"
+            :text "Scheduling for `rotate my-rota` successfully deleted"}
+           (-> schedule-delete-rotate-response
+               :body
+               (json/parse-string true))))
+
+      ;; delete non-existent
+      (is (= 200 (:status schedule-delete-non-existent-response)))
+      (is (=
+           {:channel "C123"
+            :text "Schedule not found for params: {:channel \"C123\", :executable \"shout my-rota\", :crontab nil, :run_at nil}"}
+           (-> schedule-delete-non-existent-response
+               :body
+               (json/parse-string true))))
+
+      ;; list is empty
+      (is (= 200 (:status schedule-list-empty-response)))
+      (is (=
+           {:channel "C123"
+            :text "No schedules found in the channel"}
+           (-> schedule-list-empty-response
+               :body
+               (json/parse-string true)))))))
