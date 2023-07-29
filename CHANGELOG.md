@@ -6,6 +6,12 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
+## [1.0.83] - 2023-07-29
+
+### Fixed
+
+- Log entries duplicating removed
+
 ## [1.0.82] - 2023-07-23
 
 ### Changed
@@ -224,7 +230,8 @@ documentation website added. Project has made it to the version 1.0.0!
 ### Added
 - Bot app MVP
 
-[Unreleased]: https://github.com/pilosus/dienstplan/compare/1.0.82...HEAD
+[Unreleased]: https://github.com/pilosus/dienstplan/compare/1.0.83...HEAD
+[1.0.83]: https://github.com/pilosus/dienstplan/compare/1.0.82...1.0.83
 [1.0.82]: https://github.com/pilosus/dienstplan/compare/1.0.81...1.0.82
 [1.0.81]: https://github.com/pilosus/dienstplan/compare/1.0.0...1.0.81
 [1.0.0]: https://github.com/pilosus/dienstplan/compare/0.5.0...1.0.0
