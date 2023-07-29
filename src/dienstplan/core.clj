@@ -24,6 +24,7 @@
    [dienstplan.endpoints :as endpoints]
    [dienstplan.logging :as logging]
    [dienstplan.middlewares :as middlewares]
+   [dienstplan.schedule :as schedule]
    [mount.core :as mount :refer [defstate]]
    [ring.adapter.jetty :refer [run-jetty]]
    [ring.middleware.cookies :refer [wrap-cookies]]
@@ -133,4 +134,5 @@
       (case mode
         :server (mount/start)
         :migrate (db/migrate nil)
-        :rollback (db/rollback nil)))))
+        :rollback (db/rollback nil)
+        :schedule (schedule/run)))))

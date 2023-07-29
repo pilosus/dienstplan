@@ -1,40 +1,96 @@
+;; Copyright (c) Vitaly Samigullin and contributors. All rights reserved.
+;;
+;; This program and the accompanying materials are made available under the
+;; terms of the Eclipse Public License 2.0 which is available at
+;; http://www.eclipse.org/legal/epl-2.0.
+;;
+;; This Source Code may also be made available under the following Secondary
+;; Licenses when the conditions for such availability set forth in the Eclipse
+;; Public License, v. 2.0 are satisfied: GNU General Public License as published by
+;; the Free Software Foundation, either version 2 of the License, or (at your
+;; option) any later version, with the GNU Classpath Exception which is available
+;; at https://www.gnu.org/software/classpath/license.html.
+;;
+;; SPDX-License-Identifier: EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0
+
 (ns dienstplan.schedule
   (:require
-   [dienstplan.db :as db]
    [clojure.tools.logging :as log]
-   [org.pilosus.kairos :as kairos]
-   [next.jdbc :as jdbc]))
+   [dienstplan.db :as db]
+   [dienstplan.helpers :as helpers]
+   [dienstplan.commands :as commands]
+   [next.jdbc :as jdbc]
+   [org.pilosus.kairos :as kairos]))
 
-;; TODO
-;; fn-get-schedules - db/get-schedules
-;; fn-update-schedule - db/update-schedule
-;; fn-process-command - ???
-(defn process-scheduled-commands
+(defn- next-run-ts
+  "Given crontab line, return the next timestamp in JDBC compatible format"
+  [schedule-row]
+  (-> schedule-row
+      :schedule/crontab
+      (kairos/get-dt-seq)
+      first
+      .toInstant
+      java.sql.Timestamp/from))
+
+(defn- schedule-update-map
+  [schedule-row]
+  {:schedule/id (:schedule/id schedule-row)
+   :schedule/run_at (next-run-ts schedule-row)})
+
+(defn- exec-command-map
+  "Get a request hashmap to run the bot command with"
+  [schedule-row]
+  {:params
+   {:event
+    ;; we need a placeholder in place of a bot mention to match the regex
+    {:text (format "<@PLACEHOLDER> %s" (:schedule/executable schedule-row)),
+     :ts (-> (helpers/now-ts-seconds)
+             float
+             str)
+     :channel (:schedule/channel schedule-row)}}})
+
+(defn process-rows
+  "Iterate over rows from `schedule` table, process them, return number of processed rows"
+  [rows fn-process-command fn-update-schedule]
+  (loop [events (seq rows)
+         processed 0]
+    (if events
+      (let [event (first events)
+            command-map (exec-command-map event)
+            query-map (schedule-update-map event)]
+        (log/debug "Start processing event" event)
+
+        ;; If outter transaction rolls back, it doesn't affect the nested one
+        (jdbc/with-transaction [nested-trx db/db]
+          (try
+            (log/debug "Process scheduled command" command-map)
+            (fn-process-command command-map)
+
+            (log/debug "Update processed row in schedule table" query-map)
+            (fn-update-schedule nested-trx query-map)
+
+            (catch Exception e
+              (log/errorf e "Couldn't process row %s: %s" event (.getMessage e))
+              (.rollback nested-trx))))
+
+        (log/debug "Event processed")
+        (recur (next events) (inc processed)))
+      processed)))
+
+(defn process-events
+  "Process scheduled events, return number of processed events"
   [fn-get-schedules fn-process-command fn-update-schedule]
   (jdbc/with-transaction [conn db/db]
-    (let [now (new java.sql.Timestamp (System/currentTimeMillis))
-          rows (fn-get-schedules conn now)]
-      (loop [events (seq rows)]
-        (let [event (first events)
-              next-run-at (-> event
-                              :schedule/crontab
-                              (kairos/get-dt-seq)
-                              first
-                              .toInstant
-                              java.sql.Timestamp/from)]
-          ;; If outter transaction rolls back, it doesn't affect nested one
-          (jdbc/with-transaction [nested-trx db/db]
-            (try
-              (fn-process-command (:schedule/channel event)
-                                  (:schedule/command event))
-              (fn-update-schedule
-               nested-trx
-               {:schedule/id (:schedule/command event)
-                :schedule/run_at next-run-at})
-              (catch Exception e
-                (log/error "Couldn't process command for event"
-                           event
-                           (.getMessage e))
-                (.rollback nested-trx))))
-          (when events
-            (recur (next events))))))))
+    (log/info "Start processing scheduled events")
+    (let [rows (fn-get-schedules conn (helpers/now-ts-sql))
+          processed (process-rows rows fn-process-command fn-update-schedule)]
+      (if (> processed 0)
+        (do (log/infof "Processed %s event(s)" processed) processed)
+        (do (log/info "No scheduled events found") 0)))))
+
+(defn run
+  "Schedule processing entrypoint"
+  []
+  (process-events db/schedules-get
+                  commands/send-command-response!
+                  db/schedule-update!))

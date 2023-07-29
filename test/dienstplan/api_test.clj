@@ -21,12 +21,25 @@
    [dienstplan.commands :as cmd]
    [dienstplan.core]
    [dienstplan.db :as db]
+   [dienstplan.fixture :as fix]
    [dienstplan.helpers :as helpers]
-   [dienstplan.fixture :as fix]))
+   [dienstplan.schedule :as schedule]
+   [next.jdbc :as jdbc])
+  (:import (java.time ZonedDateTime ZoneId)))
 
-;; Const
+;; Const & Helpers
 
+(def dt-before "2020-02-15T10:30:59.123000000-00:00")
 (def dt-now "2021-02-15T10:30:59.123000000-00:00")
+(def dt-after "2022-02-15T10:30:59.123000000-00:00")
+
+(defn zoned-dt
+  [dt-str]
+  (ZonedDateTime/parse dt-str))
+
+(defn inst->zoned-dt
+  [inst]
+  (.atZone inst (ZoneId/of "UTC")))
 
 (def events-request-base
   {:method :post
@@ -167,7 +180,7 @@
 (deftest ^:integration test-update-rota-ok
   (testing "Update existing rota, show details about rota"
     (with-redefs
-     [cmd/get-now-ts
+     [helpers/now-ts-sql
       (constantly (-> dt-now clojure.instant/read-instant-timestamp))]
       (let [create-response (http/request events-request-create)
             update-response
@@ -475,7 +488,7 @@
 (deftest ^:integration test-list-rota-ok
   (testing "List rota"
     (with-redefs
-     [cmd/get-now-ts
+     [helpers/now-ts-sql
       (constantly (-> dt-now clojure.instant/read-instant-timestamp))]
       (let [create-response-1 (http/request events-request-create)
             create-response-2
@@ -758,3 +771,48 @@
            (-> schedule-list-empty-response
                :body
                (json/parse-string true)))))))
+
+(deftest ^:integration test-schedule-runner-ok
+  (testing "Test background task for schedule processing"
+    (with-redefs
+      ;; `get-current-dt` used for parsing crontab when generating dt sequence
+     [org.pilosus.kairos/get-current-dt (constantly (zoned-dt dt-before))
+       ;; `now-ts-sql` used for `db/schedules-get` when selecting events
+      helpers/now-ts-sql (constantly (clojure.instant/read-instant-timestamp dt-now))]
+      (let [executable-str "rotate my-rota"
+            crontab-str "59 23 31 12 *"
+            command (format "<@U001> schedule create \"%s\" %s" executable-str crontab-str)
+            processed-events-before-scheduling (schedule/run)
+            _ (http/request events-request-create)
+            _ (http/request
+               (merge
+                events-request-base
+                {:body
+                 (json/generate-string
+                  {:event
+                   {:text command
+                    :ts "1640250011.000100"
+                    :team "T123"
+                    :channel "C123"}})}))
+            events (jdbc/with-transaction [conn db/db]
+                     (db/schedules-get
+                      conn
+                      (-> dt-after clojure.instant/read-instant-timestamp)))
+            processed-events-after-scheduling (schedule/run)]
+        (is (= 0 processed-events-before-scheduling))
+        (is (= 1 processed-events-after-scheduling))
+        (is (= 1 (count events)))
+        (let [{:keys [schedule/run_at
+                      schedule/crontab
+                      schedule/executable]} (first events)
+              zoned-run-at (inst->zoned-dt run_at)]
+          (is (= crontab-str crontab))
+          (is (= executable-str executable))
+          (is (= 59 (.getMinute zoned-run-at)))
+          (is (= 23 (.getHour zoned-run-at)))
+          (is (= 31 (.getDayOfMonth zoned-run-at)))
+          ;; extract int from the Month enum
+          (is (= 12 (-> zoned-run-at
+                        .getMonth
+                        .getValue)))
+          (is (= 2020 (.getYear zoned-run-at))))))))

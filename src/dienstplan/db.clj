@@ -347,7 +347,7 @@
         (update-users conn assigned ts))
       assigned)))
 
-(defn executable-schedules
+(defn schedules-get
   "Get scheduled events that are ready to be executed"
   [conn now]
   (jdbc/execute!
@@ -365,16 +365,19 @@
 
 (defn schedule-update!
   [conn params]
-  (sql/update!
-   conn
-   :schedule
-   {:run_at (:schedule/run_at params)}
-   ["id = ?" (:schedule/id params)]))
+  (let [updated (:next.jdbc/update-count
+                 (sql/update!
+                  conn
+                  :schedule
+                  {:run_at (:schedule/run_at params)}
+                  ["id = ?" (:schedule/id params)]))]
+    (log/debugf "Schedule row updated: %s with params: %s" updated params)))
 
 (defn schedule-insert!
   [params]
   (jdbc/with-transaction [conn db]
     (try (let [inserted (sql/insert! conn :schedule params)]
+           (log/debugf "Schedule inserted: %s" inserted)
            {:result (when (-> inserted :schedule/id int?)
                       (format "Executable `%s` successfully scheduled with `%s`"
                               (:executable params) (:crontab params)))})

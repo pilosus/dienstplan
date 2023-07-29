@@ -111,7 +111,7 @@
           (let [sentry-context (get-sentry-context request)
                 sentry-error {:message "Something has gone wrong!" :throwable e}
                 sentry-event (merge sentry-error sentry-context)]
-            (log/error e (format "Request failed: %s with error: %s" request e))
+            (log/errorf e "Request failed: %s with error: %s" request e)
             (sentry/send-event sentry-event)
             ;; For some reason cannot move the response to finally,
             ;; the block executed, but never returned from the endpoint

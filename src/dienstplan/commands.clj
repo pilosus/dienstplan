@@ -308,10 +308,6 @@ Caveats:
         (into (hash-map) (remove (fn [[_ v]] (nil? v)) context))]
     result))
 
-(defn get-now-ts
-  []
-  (new java.sql.Timestamp (System/currentTimeMillis)))
-
 ;; Parse app mention response
 
 (s/fdef parse-command
@@ -527,7 +523,7 @@ Caveats:
     text))
 
 (defmethod command-exec! :create [command-map]
-  (let [now (get-now-ts)
+  (let [now (helpers/now-ts-sql)
         {:keys [channel rotation]} (get-channel-rotation command-map)
         channel-formatted (slack-mention-channel channel)
         users (get-in command-map [:args :users])
@@ -563,7 +559,7 @@ Caveats:
     result))
 
 (defmethod command-exec! :update [command-map]
-  (let [now (get-now-ts)
+  (let [now (helpers/now-ts-sql)
         {:keys [channel rotation]} (get-channel-rotation command-map)
         channel-formatted (slack-mention-channel channel)
         users (get-in command-map [:args :users])
@@ -606,10 +602,9 @@ Caveats:
   (let [{:keys [channel rotation]} (get-channel-rotation command-map)
         channel-formatted (slack-mention-channel channel)
         {:keys [users-count users-updated prev-duty current-duty]}
-        (db/rotate-duty! channel rotation (get-now-ts))
-        _ (log/info
-           (format "Updated %s/%s for rotation %s of channel %s"
-                   users-updated users-count rotation channel))
+        (db/rotate-duty! channel rotation (helpers/now-ts-sql))
+        _ (log/infof "Updated %s/%s for rotation %s of channel %s"
+                     users-updated users-count rotation channel)
         duties (map slack/get-user-name [prev-duty current-duty])
         text
         (cond
@@ -629,7 +624,7 @@ Caveats:
   (let [{:keys [channel rotation]} (get-channel-rotation command-map)
         channel-formatted (slack-mention-channel channel)
         name (get-in command-map [:args :user])
-        assigned (db/assign! channel rotation name (get-now-ts))
+        assigned (db/assign! channel rotation name (helpers/now-ts-sql))
         text
         (if (= assigned :user-not-found)
           (format "User %s is not found in rotation `%s` of channel %s"
@@ -742,10 +737,10 @@ Caveats:
 
 (defn send-command-response!
   [request]
+  (log/info "Request to Slack API")
   (let [body-map (get-command-response request)
         body (json/generate-string body-map)
-        {:keys [status data]}
-        (slack/slack-api-request {:method :chat.postMessage :body body})
-        _ (log/info
-           (format "Post message to Slack: status %s body %s" status data))]
+        {:keys [status data]} (slack/slack-api-request
+                               {:method :chat.postMessage :body body})]
+    (log/infof "Response from Slack API: status %s body %s" status data)
     body-map))
