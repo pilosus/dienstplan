@@ -50,7 +50,8 @@
      :channel (:schedule/channel schedule-row)}}})
 
 (defn process-rows
-  "Iterate over rows from `schedule` table, process them, return number of processed rows"
+  "Iterate over rows from `schedule` table, process them, return number
+  of processed rows"
   [rows fn-process-command fn-update-schedule]
   (loop [events (seq rows)
          processed 0]

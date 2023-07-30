@@ -41,6 +41,9 @@
   [inst]
   (.atZone inst (ZoneId/of "UTC")))
 
+(defn boom! [& _]
+  (throw (ex-info "Boom!" {:data nil})))
+
 (def events-request-base
   {:method :post
    :url "http://localhost:8080/api/events"
@@ -586,8 +589,7 @@
 (deftest ^:integration test-api-unhandled-exception
   (testing "API unhandled exception"
     (with-redefs
-     [helpers/text-trim (fn [& _]
-                          (throw (ex-info "Boom!" {:data nil})))]
+     [helpers/text-trim boom!]
       (let [request
             (merge
              events-request-base
@@ -816,3 +818,136 @@
                         .getMonth
                         .getValue)))
           (is (= 2020 (.getYear zoned-run-at))))))))
+
+(deftest ^:integration test-schedule-runner-exception
+  (testing "Schedule processing failed"
+    (with-redefs
+     [db/schedule-update! boom!
+      org.pilosus.kairos/get-current-dt (constantly (zoned-dt dt-before))
+      helpers/now-ts-sql (constantly (clojure.instant/read-instant-timestamp dt-now))]
+      (let [command "<@U001> schedule create \"rotate my-rota\" 59 23 31 12 *"
+            response (http/request
+                      (merge
+                       events-request-base
+                       {:body
+                        (json/generate-string
+                         {:event
+                          {:text command
+                           :ts "1640250011.000100"
+                           :team "T123"
+                           :channel "C123"}})}))
+            events-before-processing
+            (jdbc/with-transaction [conn db/db]
+              (db/schedules-get
+               conn
+               (-> dt-after
+                   clojure.instant/read-instant-timestamp)))
+            processed-events (schedule/run)
+            events-after-processing
+            (jdbc/with-transaction [conn db/db]
+              (db/schedules-get
+               conn
+               (-> dt-after
+                   clojure.instant/read-instant-timestamp)))]
+        (is (= 1 (count events-before-processing)))
+        (is (= 1 processed-events))
+        (is (= 1 (count events-after-processing)))
+        (let [event-before (first events-before-processing)
+              event-after (first events-after-processing)]
+          (is (= event-before event-after)))))))
+
+(def schedule-invalid-args "Invalid arguments for `schedule` command: %s")
+
+(def params-schedule-command-invalid-args
+  [["<@U001> schedule create who my rota 0 9 * * Mon-Fri"
+    :executable
+    "Invalid executable, double quotes omitted"]
+   ["<@U001> schedule create \"who my rota\" Mon-Fri"
+    :crontab
+    "Invalid crontab"]])
+
+(deftest ^:integration test-schedule-command-invalid-args
+  (testing "Invalid `schedule` command arguments: "
+    (doseq [[command invalid-arg description] params-schedule-command-invalid-args]
+      (testing description
+        (let [response (http/request
+                        (merge
+                         events-request-base
+                         {:body
+                          (json/generate-string
+                           {:event
+                            {:text command
+                             :ts "1640250011.000100"
+                             :team "T123"
+                             :channel "C123"}})}))
+              actual (-> response
+                         :body
+                         (json/parse-string true)
+                         :text)
+              expected (cmd/fmt-schedule-invalid-arg invalid-arg)]
+          (is (= expected actual)))))))
+
+(deftest ^:integration test-schedule-command-duplicate
+  (testing "Duplicate schedule"
+    (let [executable "rotate my-rota"
+          crontab "0 9 * * Mon-Fri"
+          command (format "<@U001> schedule create \"%s\" %s"
+                          executable
+                          crontab)
+          request (merge
+                   events-request-base
+                   {:body
+                    (json/generate-string
+                     {:event
+                      {:text command
+                       :ts "1640250011.000100"
+                       :team "T123"
+                       :channel "C123"}})})
+          create-response (http/request request)
+          duplicate-response (http/request request)
+          created (-> create-response
+                      :body
+                      (json/parse-string true)
+                      :text)
+          duplicate (-> duplicate-response
+                        :body
+                        (json/parse-string true)
+                        :text)]
+      (is (= created (format "Executable `%s` successfully scheduled with `%s`"
+                             executable crontab)))
+      (is (= duplicate (format "Duplicate schedule for `%s` in the channel"
+                               executable))))))
+
+(def params-schedule-command-db-exceptions
+  [["<@U001> schedule create \"rotate my-rota\" 0 9 * * Mon-Fri"
+    "Boom!"
+    "Error on schedule insert"]
+   ["<@U001> schedule delete \"rotate my-rota\""
+    "Boom!"
+    "Error on schedule delete"]
+   ["<@U001> schedule list"
+    "Boom!"
+    "Error on listing schedules"]])
+
+(deftest ^:integration test-schedule-command-db-exceptions
+  (testing "DB exception for schedule subcommand: "
+    (with-redefs [next.jdbc.sql/insert! boom!
+                  next.jdbc.sql/delete! boom!
+                  next.jdbc/execute! boom!]
+      (doseq [[command expected description] params-schedule-command-db-exceptions]
+        (testing description
+          (let [request (merge
+                         events-request-base
+                         {:body
+                          (json/generate-string
+                           {:event
+                            {:text command
+                             :ts "1640250011.000100"
+                             :team "T123"
+                             :channel "C123"}})})
+                response (http/request request)
+                actual (-> response
+                           :body
+                           (json/parse-string true)
+                           :text)]
+            (is (= expected actual))))))))

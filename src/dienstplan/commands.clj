@@ -225,18 +225,18 @@ Example:
 
 where <subcommand> is one of: [create, delete, list]
       \"<executalbe>\" is a command for a bot to run on schedule
-      <crontab> is a crontab file line, e.g. `9 0 * * Mon-Fri`
+      <crontab> is a crontab file line, e.g. `0 9 * * Mon-Fri`
 
 Example:
 
 ```
-@dienstplan schedule create \"rotate my-rota\" 7 0 * * Mon-Fri
+@dienstplan schedule create \"rotate my-rota\" 0 7 * * Mon-Fri
 @dienstplan schedule delete \"rotate my-rota\"
 @dienstplan schedule list
 ```
 
 Caveats:
-\"<executable>\" must be enclosed into double quotation marks
+\"<executable>\" must be enclosed in the double quotation marks
 ")
 
 (def help-cmd-help
@@ -633,7 +633,7 @@ Caveats:
                   name rotation channel-formatted))]
     text))
 
-(defn schedule-args-valid?
+(defn schedule-args-validation
   [command-map]
   (let [{:keys [subcommand executable crontab]} (get command-map :args)
         subcommand-ok? (contains? #{"create" "delete" "list"} subcommand)
@@ -647,9 +647,11 @@ Caveats:
                         (-> crontab
                             kairos/parse-cron
                             some?))]
-    (and subcommand-ok?
-         executable-ok?
-         crontab-ok?)))
+    (cond
+      (not subcommand-ok?) :subcommand
+      (not executable-ok?) :executable
+      (not crontab-ok?) :crontab
+      :else :valid)))
 
 (defn get-run-at
   "Return java.sql.Timestamp for the next run for a given crontab string"
@@ -661,21 +663,28 @@ Caveats:
            java.sql.Timestamp/from)
        (catch Exception _ nil)))
 
+(defn fmt-schedule-invalid-arg
+  [invalid-arg]
+  (format "Invalid <%s> argument for `schedule` command\n\n%s"
+          (name invalid-arg)
+          help-cmd-schedule))
+
 (defmethod command-exec! :schedule [command-map]
-  (if (schedule-args-valid? command-map)
-    (let [crontab (get-in command-map [:args :crontab])
-          query-params {:channel (get-in command-map [:context :channel])
-                        :executable (get-in command-map [:args :executable])
-                        :crontab crontab
-                        :run_at (get-run-at crontab)}
-          {:keys [result error]}
-          (case (keyword (get-in command-map [:args :subcommand]))
-            :create (db/schedule-insert! query-params)
-            :delete (db/schedule-delete! query-params)
-            :list (db/schedule-list query-params))
-          message (or result (:message error))]
-      message)
-    (format "Invalid arguments for `schedule` command: %s" (:args command-map))))
+  (let [args-validation (schedule-args-validation command-map)]
+    (if (= args-validation :valid)
+      (let [crontab (get-in command-map [:args :crontab])
+            query-params {:channel (get-in command-map [:context :channel])
+                          :executable (get-in command-map [:args :executable])
+                          :crontab crontab
+                          :run_at (get-run-at crontab)}
+            {:keys [result error]}
+            (case (keyword (get-in command-map [:args :subcommand]))
+              :create (db/schedule-insert! query-params)
+              :delete (db/schedule-delete! query-params)
+              :list (db/schedule-list query-params))
+            message (or result (:message error))]
+        message)
+      (fmt-schedule-invalid-arg args-validation))))
 
 (defn get-help-message []
   (let [version (get-in config [:application :version])]
