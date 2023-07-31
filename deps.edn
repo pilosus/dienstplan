@@ -149,11 +149,9 @@
   ;; clojure -M:dev:eastwood
   :eastwood
   {:main-opts ["-m"
-               "eastwood.lint"
-               ;; FIXME improve reflection usage
-               {:exclude-linters [:reflection]}]}
+               "eastwood.lint"]}
 
-  ;; Code formatting
+  ;; code formatting
   ;; clojure -X:dev:cljfmtfix
   :cljfmtfix
   {:exec-fn cljfmt.tool/fix

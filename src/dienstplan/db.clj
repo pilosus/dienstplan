@@ -42,7 +42,7 @@
 (defstate db
   :start (connection/->pool HikariDataSource (:db config))
   ;; FIXME reflection warning
-  :stop (-> db ^HikariDataSource .close))
+  :stop (-> ^HikariDataSource db .close))
 
 ;; For REPL-driven-development
 ;; Assuming that you run DB with `docker compose up postgres`
@@ -278,7 +278,7 @@
     (mapv #(assoc % :mention/duty (= % next-duty)) users)))
 
 (defn rotate-users
-  [users]
+  [^clojure.lang.PersistentVector users]
   (let [current-duty (first (filter #(:mention/duty %) users))]
     (if (not current-duty)
       users
@@ -377,7 +377,7 @@
 
 (defn schedule-insert!
   [params]
-  (jdbc/with-transaction [conn db]
+  (jdbc/with-transaction [^java.sql.Connection conn db]
     (try (let [inserted (sql/insert! conn :schedule params)]
            (log/debugf "Schedule inserted: %s" inserted)
            {:result (when (-> inserted :schedule/id int?)

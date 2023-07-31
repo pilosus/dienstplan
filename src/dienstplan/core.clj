@@ -32,7 +32,7 @@
     "--mode MODE"
     "Run app in the mode specified"
     :default :server
-    :parse-fn #(keyword (.toLowerCase %))
+    :parse-fn #(keyword (.toLowerCase ^String %))
     :validate [#(contains? run-modes %) (format "App run modes: %s" run-modes)]]
    ["-h" "--help" "Print this help message"]])
 

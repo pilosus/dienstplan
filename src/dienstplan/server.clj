@@ -28,7 +28,8 @@
    [ring.middleware.json :refer [wrap-json-response wrap-json-params]]
    [ring.middleware.keyword-params :refer [wrap-keyword-params]]
    [ring.middleware.params :refer [wrap-params]]
-   [ring.middleware.session :refer [wrap-session]]))
+   [ring.middleware.session :refer [wrap-session]])
+  (:import (org.eclipse.jetty.server Server)))
 
 (defn wrap-handler
   [handler]
@@ -60,7 +61,7 @@
   (let [port (get-in config [:server :port])
         join? (get-in config [:server :block-thread])]
     (run-jetty app {:port port :join? join?}))
-  :stop (.stop server))
+  :stop (.stop ^Server server))
 
 ;; Entrypoint
 

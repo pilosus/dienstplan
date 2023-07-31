@@ -25,7 +25,8 @@
    [dienstplan.helpers :as helpers]
    [dienstplan.slack :as slack]
    [dienstplan.spec :as spec]
-   [org.pilosus.kairos :as kairos]))
+   [org.pilosus.kairos :as kairos])
+  (:import (java.time ZonedDateTime)))
 
 ;; Const
 
@@ -665,7 +666,7 @@ Caveats:
   [crontab]
   (try (-> crontab
            (kairos/get-dt-seq)
-           first
+           ^ZonedDateTime first
            .toInstant
            java.sql.Timestamp/from)
        (catch Exception _ nil)))

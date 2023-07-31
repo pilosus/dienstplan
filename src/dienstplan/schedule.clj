@@ -21,7 +21,8 @@
    [dienstplan.helpers :as helpers]
    [mount.core :as mount]
    [next.jdbc :as jdbc]
-   [org.pilosus.kairos :as kairos]))
+   [org.pilosus.kairos :as kairos])
+  (:import (java.time ZonedDateTime)))
 
 (defn- next-run-ts
   "Given crontab line, return the next timestamp in JDBC compatible format"
@@ -29,7 +30,7 @@
   (-> schedule-row
       :schedule/crontab
       (kairos/get-dt-seq)
-      first
+      ^ZonedDateTime first
       .toInstant
       java.sql.Timestamp/from))
 
@@ -53,7 +54,7 @@
 (defn process-rows
   "Iterate over rows from `schedule` table, process them, return number
   of processed rows"
-  [conn rows fn-process-command fn-update-schedule]
+  [^java.sql.Connection conn rows fn-process-command fn-update-schedule]
   (loop [events (seq rows)
          processed 0]
     (if events
