@@ -17,7 +17,8 @@
   (:gen-class)
   (:require
    [clojure.instant :refer [read-instant-date]]
-   [clojure.spec.alpha :as s]))
+   [clojure.spec.alpha :as s])
+  (:import (java.sql Timestamp)))
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Conform helpers ;;
@@ -34,7 +35,7 @@
 
 (def ->bool
   (with-conformer [val]
-    (boolean (Boolean/valueOf val))))
+    (boolean (Boolean/valueOf ^String val))))
 
 (s/def ::->bool ->bool)
 
@@ -73,7 +74,7 @@
   (read-instant-date "3000-01-01T00:00:00.000"))
 
 (defn instant-in?
-  [from to instant]
+  [^Timestamp from ^Timestamp to ^Timestamp instant]
   (and (.after instant from)
        (.before instant to)))
 

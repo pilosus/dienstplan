@@ -16,83 +16,23 @@
 (ns dienstplan.core
   (:gen-class)
   (:require
-   [bidi.bidi :as bidi]
    [clojure.string :as string]
    [clojure.tools.cli :refer [parse-opts]]
-   [dienstplan.config :refer [config]]
+   [dienstplan.server :as server]
    [dienstplan.db :as db]
-   [dienstplan.endpoints :as endpoints]
-   [dienstplan.logging :as logging]
-   [dienstplan.middlewares :as middlewares]
    [dienstplan.schedule :as schedule]
-   [mount.core :as mount :refer [defstate]]
-   [ring.adapter.jetty :refer [run-jetty]]
-   [ring.middleware.cookies :refer [wrap-cookies]]
-   [ring.middleware.json :refer [wrap-json-response wrap-json-params]]
-   [ring.middleware.keyword-params :refer [wrap-keyword-params]]
-   [ring.middleware.params :refer [wrap-params]]
-   [ring.middleware.session :refer [wrap-session]]
-   [sentry-clj.core :as sentry]))
-
-(defn wrap-handler
-  [handler]
-  (fn [request]
-    (let [{:keys [uri] :or {uri "/"}} request
-          request* (bidi/match-route* endpoints/routes uri request)]
-      (handler request*))))
-
-(def app-raw (wrap-handler endpoints/multi-handler))
-
-(def wrap-params+ (comp wrap-keyword-params wrap-params))
-
-(def app
-  (-> app-raw
-      middlewares/wrap-headers-kw
-      wrap-params+
-      wrap-json-params
-      wrap-session
-      wrap-cookies
-      middlewares/wrap-exception-validation
-      middlewares/wrap-exception-fallback
-      middlewares/wrap-request-id
-      middlewares/wrap-access-log
-      wrap-json-response
-      middlewares/wrap-raw-body))
-
-;; System config
-
-(defstate logs
-  :start (logging/override-logging))
-
-(defstate alerts
-  :start
-  (let [dsn (get-in config [:alerts :sentry])
-        debug (get-in config [:application :debug])
-        env (get-in config [:application :env])
-        app-name (get-in config [:application :name])
-        version (get-in config [:application :version])
-        release (format "%s:%s" app-name version)]
-    (when (not debug)
-      (sentry/init! dsn {:environment env :debug debug :release release})))
-  :stop (sentry/close!))
-
-(defstate server
-  :start
-  (let [port (get-in config [:server :port])
-        join? (get-in config [:server :block-thread])]
-    (run-jetty app {:port port :join? join?}))
-  :stop (.stop server))
+   [mount.core :as mount]))
 
 ;; CLI opts
 
-(def run-modes #{:server :migrate :rollback})
+(def run-modes #{:server :migrate :rollback :schedule})
 
 (def cli-options
   [["-m"
     "--mode MODE"
     "Run app in the mode specified"
     :default :server
-    :parse-fn #(keyword (.toLowerCase %))
+    :parse-fn #(keyword (.toLowerCase ^String %))
     :validate [#(contains? run-modes %) (format "App run modes: %s" run-modes)]]
    ["-h" "--help" "Print this help message"]])
 
@@ -132,7 +72,7 @@
     (if exit-message
       (exit (if ok? 0 1) exit-message)
       (case mode
-        :server (mount/start)
+        :server (server/run nil)
         :migrate (db/migrate nil)
         :rollback (db/rollback nil)
         :schedule (schedule/run nil)))))

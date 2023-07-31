@@ -20,18 +20,14 @@
    [dienstplan.db :as db]
    [dienstplan.helpers :as helpers]
    [mount.core :as mount]
-   [next.jdbc :as jdbc]
-   [org.pilosus.kairos :as kairos]))
+   [next.jdbc :as jdbc]))
 
 (defn- next-run-ts
   "Given crontab line, return the next timestamp in JDBC compatible format"
   [schedule-row]
   (-> schedule-row
       :schedule/crontab
-      (kairos/get-dt-seq)
-      first
-      .toInstant
-      java.sql.Timestamp/from))
+      (helpers/next-run-at)))
 
 (defn- schedule-update-map
   [schedule-row]
@@ -53,7 +49,7 @@
 (defn process-rows
   "Iterate over rows from `schedule` table, process them, return number
   of processed rows"
-  [conn rows fn-process-command fn-update-schedule]
+  [^java.sql.Connection conn rows fn-process-command fn-update-schedule]
   (loop [events (seq rows)
          processed 0]
     (if events
@@ -91,7 +87,10 @@
 (defn run
   "Schedule processing entrypoint"
   [_]
-  (mount/start)
+  (mount/start
+   #'dienstplan.config/config
+   #'dienstplan.db/db
+   #'dienstplan.alerts/alerts)
   (process-events db/schedules-get
                   commands/send-command-response!
                   db/schedule-update!))

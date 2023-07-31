@@ -15,7 +15,10 @@
 
 (ns dienstplan.helpers
   "Common helper functions shared across namespaces"
-  (:require [clojure.string :as string]))
+  (:require [clojure.string :as string]
+            [org.pilosus.kairos :as kairos])
+  (:import (java.time ZonedDateTime)
+           (java.sql Timestamp)))
 
 (defn now-ts-sql
   "Get current timestamp in JDBC API compatible format"
@@ -48,3 +51,20 @@
   (-> s
       (string/replace #"[,!?\-\.]*$" "")
       string/trim))
+
+(defn next-run-at
+  "Return java.sql.Timestamp for the next run for a given crontab string"
+  ^Timestamp [crontab]
+  (try (-> crontab
+           (kairos/get-dt-seq)
+           ^ZonedDateTime first
+           .toInstant
+           java.sql.Timestamp/from)
+       (catch Exception _ nil)))
+
+(defn cron-valid?
+  "Return true if crontab is valid"
+  [crontab]
+  (-> crontab
+      kairos/parse-cron
+      some?))

@@ -17,7 +17,8 @@
   (:gen-class)
   (:require
    [clojure.pprint]
-   [clojure.tools.logging :as log]))
+   [clojure.tools.logging :as log]
+   [mount.core :as mount :refer [defstate]]))
 
 (defn ex-chain
   "Build exceptions chain from original one to the root"
@@ -49,3 +50,6 @@
                message* (str message \newline ex-out)]
            (log* logger level nil message*))
          (log* logger level throwable message))))))
+
+(defstate logs
+  :start (override-logging))

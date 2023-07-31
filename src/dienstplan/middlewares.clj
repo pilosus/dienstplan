@@ -28,7 +28,7 @@
 (defn string->stream
   "Convert string to InputStream"
   ([s] (string->stream s "UTF-8"))
-  ([s encoding]
+  ([^String s ^String encoding]
    (-> s
        (.getBytes encoding)
        (java.io.ByteArrayInputStream.))))
