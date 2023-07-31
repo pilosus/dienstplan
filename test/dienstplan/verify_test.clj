@@ -17,7 +17,8 @@
   (:require
    [clojure.test :refer [deftest is testing]]
    [clojure.spec.test.alpha :refer [instrument]]
-   [dienstplan.verify :as verify]))
+   [dienstplan.verify :as verify]
+   [dienstplan.helpers :as helpers]))
 
 (instrument `verify/request-verified?)
 
@@ -80,7 +81,7 @@
       (testing description
         (with-redefs
          [verify/calculate-signature (constantly calculated-sig)
-          verify/get-current-ts (constantly current-ts)]
+          helpers/now-ts-seconds (constantly current-ts)]
           (is
            (= expected
               (verify/request-verified? request "key1"))))))))

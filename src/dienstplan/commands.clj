@@ -22,8 +22,10 @@
    [clojure.tools.logging :as log]
    [dienstplan.config :refer [config]]
    [dienstplan.db :as db]
+   [dienstplan.helpers :as helpers]
    [dienstplan.slack :as slack]
-   [dienstplan.spec :as spec]))
+   [dienstplan.spec :as spec]
+   [org.pilosus.kairos :as kairos]))
 
 ;; Const
 
@@ -112,6 +114,13 @@ Let's also show a current duty engineer with a reminder:
 
 ```
 /remind #my-channel to \"@dienstplan who my-rota\" every Monday, Tuesday, Wednesday, Thursday, Friday at 10AM UTC
+```
+
+Alternatively, use `schedule` command for reminders:
+
+```
+@dienstplan schedule create \"rotate my-rota\" 0 9 * * Mon
+@dienstplan schedule create \"who my-rota\" 0 10 * * Mon-Fri
 ```
 ")
 
@@ -215,6 +224,28 @@ Example:
 @dienstplan list
 ```")
 
+(def help-cmd-schedule
+  "Usage:
+```
+@dienstplan schedule <subcommand> \"<executable>\" <crontab>
+```
+
+where <subcommand> is one of: [create, delete, list]
+      \"<executalbe>\" is a command for a bot to run on schedule
+      <crontab> is a crontab file line, e.g. `0 9 * * Mon-Fri`
+
+Example:
+
+```
+@dienstplan schedule create \"rotate my-rota\" 0 7 * * Mon-Fri
+@dienstplan schedule delete \"rotate my-rota\"
+@dienstplan schedule list
+```
+
+Caveats:
+\"<executable>\" must be enclosed in the double quotation marks
+")
+
 (def help-cmd-help
   "Usage:
 ```
@@ -228,6 +259,8 @@ Example:
 (def regex-app-mention
   "(?s) is a pattern flag for dot matching all symbols including newlines"
   #"^[^<@]*(?s)(?<userid><@[^>]+>)[\u00A0|\u2007|\u202F|\s]+(?<command>\w+)[\u00A0|\u2007|\u202F|\s]*(?<rest>.*)")
+
+(def regex-schedule #"(?s)\b(?<subcommand>create|delete|list)[\u00A0|\u2007|\u202F|\s]*(?<enclosed>\"(?<executable>.*)\")?[\u00A0|\u2007|\u202F|\s]*(?<crontab>.*)?")
 
 (def commands->data
   {:create {:spec ::spec/bot-cmd-create-or-update
@@ -248,6 +281,8 @@ Example:
             :help help-cmd-delete}
    :list {:spec ::spec/bot-cmd-list
           :help help-cmd-list}
+   :schedule {:spec ::spec/bot-cmd-schedule
+              :help help-cmd-schedule}
    :help {:spec ::spec/bot-cmd-help
           :help help-cmd-help}})
 
@@ -256,29 +291,6 @@ Example:
 (defn keyword->command
   [kw]
   (if (get commands->data kw) kw nil))
-
-(defn nilify
-  [s]
-  (if (string/blank? s) nil s))
-
-(defn stringify
-  [s]
-  (or s ""))
-
-(defn str-trim
-  "Trim a string with extra three whitespace chars unsupported by Java regex"
-  [s]
-  (when (some? s)
-    (-> s
-        (string/replace #"^[\u00A0|\u2007|\u202F|\s|\.]*" "")
-        (string/replace #"[\u00A0|\u2007|\u202F|\s|\.]*$" ""))))
-
-(defn text-trim
-  ""
-  [s]
-  (-> s
-      (string/replace #"[,!?\-\.]*$" "")
-      string/trim))
 
 (defn slack-mention-channel
   "Make channel name formatted for Slack API"
@@ -303,10 +315,6 @@ Example:
         (into (hash-map) (remove (fn [[_ v]] (nil? v)) context))]
     result))
 
-(defn get-now-ts
-  []
-  (new java.sql.Timestamp (System/currentTimeMillis)))
-
 ;; Parse app mention response
 
 (s/fdef parse-command
@@ -320,18 +328,18 @@ Example:
   (let [text
         (->>
          raw-text
-         stringify
-         text-trim)
+         helpers/stringify
+         helpers/text-trim)
         matcher (re-matcher regex-app-mention text)
         result
         (if (.matches matcher)
           {:command
            (->>
             (.group matcher "command")
-            nilify
+            helpers/nilify
             keyword
             keyword->command)
-           :rest (->> (.group matcher "rest") nilify)}
+           :rest (->> (.group matcher "rest") helpers/nilify)}
           nil)]
     result))
 
@@ -341,7 +349,7 @@ Example:
   (let [text
         (->>
          raw-text
-         stringify
+         helpers/stringify
          string/trim)
         users (re-seq regex-user-mention text)
         result (if users (map #(second %) users) nil)]
@@ -357,7 +365,7 @@ Example:
   [command-parsed]
   (->>
    (get command-parsed :rest)
-   stringify
+   helpers/stringify
    string/trim))
 
 (s/fdef parse-args
@@ -374,16 +382,27 @@ Example:
         splitted (string/split args regex-user-mention)
         rotation (->
                   (first splitted)
-                  str-trim
-                  nilify)
+                  helpers/str-trim
+                  helpers/nilify)
         users (parse-user-mentions args)
         ;; without user mentions description will be erroneously
         ;; matched against rota name.
         ;; description without mentions doesn't make any sense
-        description (when users (->> (last splitted) str-trim))]
+        description (when users (->> (last splitted) helpers/str-trim))]
     {:rotation rotation
      :users users
      :description description}))
+
+(defn parse-args-schedule-cmd
+  [command-parsed]
+  (let [args (get-command-args command-parsed)
+        matcher (re-matcher regex-schedule args)
+        result (when (.matches matcher)
+                 {:subcommand (.group matcher "subcommand")
+                  :executable (.group matcher "executable")
+                  :crontab (-> (.group matcher "crontab")
+                               helpers/nilify)})]
+    result))
 
 (defmethod parse-args :create [command-parsed]
   (parse-args-create-or-update-cmd command-parsed))
@@ -396,8 +415,8 @@ Example:
         splitted (string/split args regex-user-mention)
         rotation (->
                   (first splitted)
-                  str-trim
-                  nilify)
+                  helpers/str-trim
+                  helpers/nilify)
         user (first (parse-user-mentions args))]
     {:rotation rotation
      :user user}))
@@ -405,8 +424,10 @@ Example:
 (defn- parse-args-default
   "Parse arguments for simple commands in the form: command <name>"
   [command-parsed]
-  (let [rotation (nilify (get-command-args command-parsed))
-        result (if name {:rotation rotation} nil)]
+  (let [rotation (-> command-parsed
+                     get-command-args
+                     helpers/nilify)
+        result (when rotation {:rotation rotation})]
     result))
 
 (defmethod parse-args :rotate [command-parsed]
@@ -423,6 +444,9 @@ Example:
 
 (defmethod parse-args :about [command-parsed]
   (parse-args-default command-parsed))
+
+(defmethod parse-args :schedule [command-parsed]
+  (parse-args-schedule-cmd command-parsed))
 
 (defmethod parse-args :help [_]
   {:description help-msg})
@@ -508,7 +532,7 @@ Example:
     text))
 
 (defmethod command-exec! :create [command-map]
-  (let [now (get-now-ts)
+  (let [now (helpers/now-ts-sql)
         {:keys [channel rotation]} (get-channel-rotation command-map)
         channel-formatted (slack-mention-channel channel)
         users (get-in command-map [:args :users])
@@ -544,7 +568,7 @@ Example:
     result))
 
 (defmethod command-exec! :update [command-map]
-  (let [now (get-now-ts)
+  (let [now (helpers/now-ts-sql)
         {:keys [channel rotation]} (get-channel-rotation command-map)
         channel-formatted (slack-mention-channel channel)
         users (get-in command-map [:args :users])
@@ -576,7 +600,7 @@ Example:
          rotations
          (map #(format "- `%s` [%s]" (:rota/name %) (:created_on %)))
          (string/join \newline)
-         nilify)
+         helpers/nilify)
         text
         (if rota-list
           (format "Rotations created in channel %s:\n%s" channel-formatted rota-list)
@@ -587,10 +611,9 @@ Example:
   (let [{:keys [channel rotation]} (get-channel-rotation command-map)
         channel-formatted (slack-mention-channel channel)
         {:keys [users-count users-updated prev-duty current-duty]}
-        (db/rotate-duty! channel rotation (get-now-ts))
-        _ (log/info
-           (format "Updated %s/%s for rotation %s of channel %s"
-                   users-updated users-count rotation channel))
+        (db/rotate-duty! channel rotation (helpers/now-ts-sql))
+        _ (log/infof "Updated %s/%s for rotation %s of channel %s"
+                     users-updated users-count rotation channel)
         duties (map slack/get-user-name [prev-duty current-duty])
         text
         (cond
@@ -610,7 +633,7 @@ Example:
   (let [{:keys [channel rotation]} (get-channel-rotation command-map)
         channel-formatted (slack-mention-channel channel)
         name (get-in command-map [:args :user])
-        assigned (db/assign! channel rotation name (get-now-ts))
+        assigned (db/assign! channel rotation name (helpers/now-ts-sql))
         text
         (if (= assigned :user-not-found)
           (format "User %s is not found in rotation `%s` of channel %s"
@@ -618,6 +641,57 @@ Example:
           (format "Assigned user %s in rotation `%s` of channel %s"
                   name rotation channel-formatted))]
     text))
+
+(defn schedule-args-validation
+  [command-map]
+  (let [{:keys [subcommand executable crontab]} (get command-map :args)
+        executable-ok? (or (= subcommand "list")
+                           (->> executable
+                                (format "<@placeholder> %s")
+                                parse-command
+                                :command
+                                some?))
+        crontab-ok? (or (contains? #{"delete" "list"} subcommand)
+                        (-> crontab
+                            kairos/parse-cron
+                            some?))]
+    (cond
+      (not executable-ok?) :executable
+      (not crontab-ok?) :crontab
+      :else :valid)))
+
+(defn get-run-at
+  "Return java.sql.Timestamp for the next run for a given crontab string"
+  [crontab]
+  (try (-> crontab
+           (kairos/get-dt-seq)
+           first
+           .toInstant
+           java.sql.Timestamp/from)
+       (catch Exception _ nil)))
+
+(defn fmt-schedule-invalid-arg
+  [invalid-arg]
+  (format "Invalid <%s> argument for `schedule` command\n\n%s"
+          (name invalid-arg)
+          help-cmd-schedule))
+
+(defmethod command-exec! :schedule [command-map]
+  (let [args-validation (schedule-args-validation command-map)]
+    (if (= args-validation :valid)
+      (let [crontab (get-in command-map [:args :crontab])
+            query-params {:channel (get-in command-map [:context :channel])
+                          :executable (get-in command-map [:args :executable])
+                          :crontab crontab
+                          :run_at (get-run-at crontab)}
+            {:keys [result error]}
+            (case (keyword (get-in command-map [:args :subcommand]))
+              :create (db/schedule-insert! query-params)
+              :delete (db/schedule-delete! query-params)
+              :list (db/schedule-list query-params))
+            message (or result (:message error))]
+        message)
+      (fmt-schedule-invalid-arg args-validation))))
 
 (defn get-help-message []
   (let [version (get-in config [:application :version])]
@@ -679,10 +753,11 @@ Example:
 
 (defn send-command-response!
   [request]
+  (log/info "Request to Slack API")
   (let [body-map (get-command-response request)
         body (json/generate-string body-map)
-        {:keys [ok? status data]}
-        (slack/slack-api-request {:method :chat.postMessage :body body})
-        _ (log/info
-           (format "Post message to Slack: status %s body %s" status data))]
+        {:keys [ok? status data]} (slack/slack-api-request
+                                   {:method :chat.postMessage :body body})
+        log-level (if ok? :info :error)]
+    (log/logf log-level "Response from Slack API: status %s body %s" status data)
     body-map))

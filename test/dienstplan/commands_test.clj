@@ -43,6 +43,9 @@
    ["<@U001>\u00a0create backend rotation\u00a0<@U123>\u00a0<@U456>\u00a0<@U789>\u00a0On-call backend engineer's duty:\n- Check support questions\n- Check alerts\n- Check metrics"
     {:command :create :rest "backend rotation\u00a0<@U123>\u00a0<@U456>\u00a0<@U789>\u00a0On-call backend engineer's duty:\n- Check support questions\n- Check alerts\n- Check metrics"}
     "Unicode whitespaces"]
+   ["<@U02HXENLLPN> schedule create \"rotate my-rota\" 9 0 * * Mon-Fri"
+    {:command :schedule :rest "create \"rotate my-rota\" 9 0 * * Mon-Fri"}
+    "Schedule command parsed"]
    ["<@U02HXENLLPN> create rota"
     {:command :create :rest "rota"}
     "Create command with no mentions and no description"]
@@ -109,6 +112,21 @@
      :users ["<@U123>" "<@U456>" "<@U789>"]
      :description "On-call backend engineer's duty:\n- Check support questions\n- Check alerts\n- Check metrics"}
     "Unicode whitespaces"]
+   ["<@U02HXENLLPN> schedule create \"rotate my-rota\" 9 0 * * Mon-Fri"
+    {:subcommand "create"
+     :executable "rotate my-rota"
+     :crontab "9 0 * * Mon-Fri"}
+    "Schedule create"]
+   ["<@U02HXENLLPN> schedule delete \"rotate my-rota\""
+    {:subcommand "delete"
+     :executable "rotate my-rota"
+     :crontab nil}
+    "Schedule delete"]
+   ["<@U02HXENLLPN> schedule list"
+    {:subcommand "list"
+     :executable nil
+     :crontab nil}
+    "Schedules list"]
    ["<@U02HXENLLPN> help"
     {:description cmd/help-msg}
     "Help"]
@@ -354,6 +372,19 @@
      :command :list
      :args nil}
     "List command"]
+   [{:params {:event {:text "<@UNX01> schedule create \"rotate my-rota\" 9 0 * * Mon-Fri"
+                      :ts "1640250011.000100"
+                      :team "T123"
+                      :channel "C123"}}}
+    {:context
+     {:ts "1640250011.000100"
+      :team "T123"
+      :channel "C123"}
+     :command :schedule
+     :args {:subcommand "create"
+            :executable "rotate my-rota"
+            :crontab "9 0 * * Mon-Fri"}}
+    "Schedule create"]
    [{:params {:event {:text "  <@UNX01> unrecognized-command some args go here"
                       :ts "1640250011.000100"
                       :team "T123"
@@ -373,7 +404,7 @@
       :team "T123"
       :channel "C123"}
      :command :who
-     :args {:rotation nil}
+     :args nil
      :error cmd/help-cmd-who}
     "No args provided for who command"]
    [{:params {:event {:text "<@UNX01> assign my-rota"
@@ -438,11 +469,10 @@
                              :text (:error expected)}
                             {:channel (get-in expected [:context :channel])
                              :text "okay"})]
-            (do
-              (is (= expected'
-                     (cmd/get-command-response request)))
-              (is (= expected'
-                     (cmd/send-command-response! request))))))))))
+            (is (= expected'
+                   (cmd/get-command-response request)))
+            (is (= expected'
+                   (cmd/send-command-response! request)))))))))
 
 (def params-slack-mention-channel
   [["C123" "<#C123>" "Make channel name mentionable"]
@@ -629,6 +659,36 @@
         (with-redefs [db/assign! (constantly assigned)]
           (is (= expected (cmd/command-exec! command))))))))
 
+(def params-command-exec!-schedule
+  [[{:context {:channel "channel" :ts "1640250011.000100"}
+     :command :schedule
+     :args {:subcommand "create" :executable "rotate my-rota" :crontab "9 0 * * Mon-Fri"}}
+    {:result "Executable `rotate my-rota` successfully scheduled with `9 0 * * Mon-Fri`"}
+    "Executable `rotate my-rota` successfully scheduled with `9 0 * * Mon-Fri`"
+    "Create successful"]
+   [{:context {:channel "channel" :ts "1640250011.000100"}
+     :command :schedule
+     :args {:subcommand "delete" :executable "rotate my-rota" :crontab nil}}
+    {:result "Scheduling for `rotate my-rota` successfully deleted"}
+    "Scheduling for `rotate my-rota` successfully deleted"
+    "Deleted successful"]
+   [{:context {:channel "channel" :ts "1640250011.000100"}
+     :command :schedule
+     :args {:subcommand "list" :executable nil :crontab nil}}
+    {:result "- `rotate my-rota` with `9 0 * * Mon-Fri` (next run at: 2023-07-26 09:00:00)"}
+    "- `rotate my-rota` with `9 0 * * Mon-Fri` (next run at: 2023-07-26 09:00:00)"
+    "Listed successful"]])
+
+(deftest test-command-exec!-schedule-create
+  (testing "Test command-exec! create"
+    (doseq [[command fn-return expected description] params-command-exec!-schedule]
+
+      (testing description
+        (with-redefs [db/schedule-insert! (constantly fn-return)
+                      db/schedule-delete! (constantly fn-return)
+                      db/schedule-list (constantly fn-return)]
+          (is (= expected (cmd/command-exec! command))))))))
+
 (def params-command-exec!-default
   [[{:context {:channel "channel" :ts "1640250011.000100"} :command :help}
     (format cmd/help-intro "0.2.7" cmd/help-msg)
@@ -643,16 +703,3 @@
       (testing description
         (with-redefs [cmd/get-help-message (constantly expected)]
           (is (= expected (cmd/command-exec! command))))))))
-
-(def params-str-trim
-  [[nil nil "Nil"]
-   ["text" "text" "Nothing to change"]
-   ["text\u00A0" "text" "Right trim"]
-   ["\u2007text" "text" "Left trim"]
-   ["\u2007text\u202F" "text" "Full trim"]])
-
-(deftest test-str-trim
-  (testing "Test str-trim"
-    (doseq [[s expected description] params-str-trim]
-      (testing description
-        (is (= expected (cmd/str-trim s)))))))

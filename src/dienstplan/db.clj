@@ -17,16 +17,17 @@
   (:gen-class)
   (:require
    [cheshire.core :as json]
-   [next.jdbc :as jdbc]
-   [next.jdbc.prepare :as prepare]
-   [next.jdbc.sql :as sql]
-   [next.jdbc.connection :as connection]
-   [next.jdbc.result-set :as rs]
    [clojure.string :as string]
    [clojure.tools.logging :as log]
    [dienstplan.config :refer [config]]
+   [dienstplan.helpers :as helpers]
    [honey.sql :as h]
    [mount.core :as mount :refer [defstate]]
+   [next.jdbc :as jdbc]
+   [next.jdbc.connection :as connection]
+   [next.jdbc.prepare :as prepare]
+   [next.jdbc.result-set :as rs]
+   [next.jdbc.sql :as sql]
    [ragtime.next-jdbc :as ragtime-jdbc]
    [ragtime.repl :as ragtime-repl])
   (:import
@@ -41,6 +42,17 @@
   :start (connection/->pool HikariDataSource (:db config))
   ;; FIXME reflection warning
   :stop (-> db ^HikariDataSource .close))
+
+;; For REPL-driven-development
+;; Assuming that you run DB with `docker compose up postgres`
+(comment
+  (def ds (jdbc/get-datasource
+           {:dbtype "postgres"
+            :dbname "dienstplan"
+            :user "dienstplan"
+            :password "dienstplan"
+            :host "localhost"
+            :port 15432})))
 
 ;; Handling JSON/JSONB in PostgreSQL
 ;; https://github.com/seancorfield/next-jdbc/blob/develop/doc/tips-and-tricks.md#working-with-json-and-jsonb
@@ -299,12 +311,11 @@
               {:duty (:mention/duty user)}
               ["id = ?" (:mention/id user)]))) users))
         _ (log/info "Users updated" users-updated)
-        rota-updated
-        (when rota_id
-          (sql/update!
-           conn :rota
-           {:updated_on ts}
-           ["id = ?" rota_id]))
+        _ (when rota_id
+            (sql/update!
+             conn :rota
+             {:updated_on ts}
+             ["id = ?" rota_id]))
         _ (log/info "Rota updated on " ts)]
     users-updated))
 
@@ -332,6 +343,106 @@
     (let [users (rota-get conn channel rotation)
           assigned (assign-user users name)
           _ (log/info "Rota with a new duty assigned" assigned)]
-      (if (not= assigned :user-not-found)
+      (when (not= assigned :user-not-found)
         (update-users conn assigned ts))
       assigned)))
+
+(defn schedules-get
+  "Get scheduled events that are ready to be executed"
+  [conn now]
+  (jdbc/execute!
+   conn
+   (h/format
+    {:select [[:schedule/id]
+              [:schedule/channel]
+              [:schedule/executable]
+              [:schedule/crontab]
+              [:schedule/run_at]]
+     :from [[:schedule]]
+     :where [[:<= :schedule/run_at now]]
+     :for [:update]}
+    sql-params)))
+
+(defn schedule-update!
+  [conn params]
+  (let [updated (:next.jdbc/update-count
+                 (sql/update!
+                  conn
+                  :schedule
+                  {:run_at (:schedule/run_at params)}
+                  ["id = ?" (:schedule/id params)]))]
+    (log/debugf "Schedule row updated: %s with params: %s" updated params)))
+
+(defn schedule-insert!
+  [params]
+  (jdbc/with-transaction [conn db]
+    (try (let [inserted (sql/insert! conn :schedule params)]
+           (log/debugf "Schedule inserted: %s" inserted)
+           {:result (when (-> inserted :schedule/id int?)
+                      (format "Executable `%s` successfully scheduled with `%s`"
+                              (:executable params) (:crontab params)))})
+         (catch PSQLException e
+           (let [message (.getMessage e)
+                 duplicate? (string/includes? (.toLowerCase message) "duplicate key")
+                 reason (if duplicate? :duplicate :other)
+                 message-fmt (if duplicate?
+                               (format "Duplicate schedule for `%s` in the channel"
+                                       (:executable params))
+                               message)]
+             (.rollback conn)
+             (log/error message-fmt)
+             {:error {:reason reason :message message-fmt}}))
+         (catch Exception e
+           (.rollback conn)
+           (log/error "Error on schedule insert" e)
+           {:error {:reason :other :message (.getMessage e)}}))))
+
+(defn schedule-delete!
+  [params]
+  (jdbc/with-transaction [conn db]
+    (try
+      (let [deleted (sql/delete!
+                     conn :schedule
+                     {:channel (:channel params)
+                      :executable (:executable params)})
+            ok? (= (:next.jdbc/update-count deleted) 1)]
+        {:result (when ok?
+                   (format "Scheduling for `%s` successfully deleted"
+                           (:executable params)))
+         :error (when (not ok?)
+                  {:reason :not-found
+                   :message (format "Schedule not found for params: %s" params)})})
+      (catch Exception e
+        (.rollback conn)
+        (log/error "Error on schedule delete" e)
+        {:error {:reason :other :message (.getMessage e)}}))))
+
+(defn schedule-list
+  [params]
+  (jdbc/with-transaction [conn db]
+    (try
+      (let [schedules
+            (jdbc/execute!
+             conn
+             (h/format
+              {:select [[:schedule/executable]
+                        [:schedule/crontab]]
+               :from [[:schedule]]
+               :where [[:= :schedule/channel (:channel params)]]
+               :order-by [[:schedule/executable :asc]]
+               :limit 500}
+              sql-params))
+            result
+            (->>
+             schedules
+             (map #(format
+                    "- `%s` with `%s`"
+                    (:schedule/executable %)
+                    (:schedule/crontab %)))
+             (string/join \newline)
+             helpers/nilify)]
+        {:result (or result "No schedules found in the channel")})
+      (catch Exception e
+        (.rollback conn)
+        (log/error "Error on listing schedules" e)
+        {:error {:reason :other :message (.getMessage e)}}))))
