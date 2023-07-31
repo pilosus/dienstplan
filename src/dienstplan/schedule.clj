@@ -20,19 +20,14 @@
    [dienstplan.db :as db]
    [dienstplan.helpers :as helpers]
    [mount.core :as mount]
-   [next.jdbc :as jdbc]
-   [org.pilosus.kairos :as kairos])
-  (:import (java.time ZonedDateTime)))
+   [next.jdbc :as jdbc]))
 
 (defn- next-run-ts
   "Given crontab line, return the next timestamp in JDBC compatible format"
   [schedule-row]
   (-> schedule-row
       :schedule/crontab
-      (kairos/get-dt-seq)
-      ^ZonedDateTime first
-      .toInstant
-      java.sql.Timestamp/from))
+      (helpers/next-run-at)))
 
 (defn- schedule-update-map
   [schedule-row]

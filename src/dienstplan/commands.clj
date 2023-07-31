@@ -24,9 +24,7 @@
    [dienstplan.db :as db]
    [dienstplan.helpers :as helpers]
    [dienstplan.slack :as slack]
-   [dienstplan.spec :as spec]
-   [org.pilosus.kairos :as kairos])
-  (:import (java.time ZonedDateTime)))
+   [dienstplan.spec :as spec]))
 
 ;; Const
 
@@ -653,23 +651,11 @@ Caveats:
                                 :command
                                 some?))
         crontab-ok? (or (contains? #{"delete" "list"} subcommand)
-                        (-> crontab
-                            kairos/parse-cron
-                            some?))]
+                        (helpers/cron-valid? crontab))]
     (cond
       (not executable-ok?) :executable
       (not crontab-ok?) :crontab
       :else :valid)))
-
-(defn get-run-at
-  "Return java.sql.Timestamp for the next run for a given crontab string"
-  [crontab]
-  (try (-> crontab
-           (kairos/get-dt-seq)
-           ^ZonedDateTime first
-           .toInstant
-           java.sql.Timestamp/from)
-       (catch Exception _ nil)))
 
 (defn fmt-schedule-invalid-arg
   [invalid-arg]
@@ -684,7 +670,7 @@ Caveats:
             query-params {:channel (get-in command-map [:context :channel])
                           :executable (get-in command-map [:args :executable])
                           :crontab crontab
-                          :run_at (get-run-at crontab)}
+                          :run_at (helpers/next-run-at crontab)}
             {:keys [result error]}
             (case (keyword (get-in command-map [:args :subcommand]))
               :create (db/schedule-insert! query-params)
