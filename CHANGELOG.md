@@ -6,9 +6,17 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
+## [1.1.93] - 2023-07-31
+
 ### Fixed
 
 - Jetty server excluded from the schedule runner
+- Reflection warnings fixed
+
+### Changed
+
+- Mount states moved to separate namespaces
+- Dependencies bumped
 
 ## [1.1.86] - 2023-07-31
 
@@ -247,7 +255,8 @@ documentation website added. Project has made it to the version 1.0.0!
 ### Added
 - Bot app MVP
 
-[Unreleased]: https://github.com/pilosus/dienstplan/compare/1.1.86...HEAD
+[Unreleased]: https://github.com/pilosus/dienstplan/compare/1.1.93...HEAD
+[1.1.93]: https://github.com/pilosus/dienstplan/compare/1.0.86...1.1.93
 [1.1.86]: https://github.com/pilosus/dienstplan/compare/1.0.83...1.1.86
 [1.0.83]: https://github.com/pilosus/dienstplan/compare/1.0.82...1.0.83
 [1.0.82]: https://github.com/pilosus/dienstplan/compare/1.0.81...1.0.82
