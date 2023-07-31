@@ -6,7 +6,7 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
-## [1.1.89] - 2023-07-31
+## [1.1.86] - 2023-07-31
 
 ### Added
 
@@ -243,8 +243,8 @@ documentation website added. Project has made it to the version 1.0.0!
 ### Added
 - Bot app MVP
 
-[Unreleased]: https://github.com/pilosus/dienstplan/compare/1.1.89...HEAD
-[1.1.89]: https://github.com/pilosus/dienstplan/compare/1.0.83...1.1.89
+[Unreleased]: https://github.com/pilosus/dienstplan/compare/1.1.86...HEAD
+[1.1.86]: https://github.com/pilosus/dienstplan/compare/1.0.83...1.1.86
 [1.0.83]: https://github.com/pilosus/dienstplan/compare/1.0.82...1.0.83
 [1.0.82]: https://github.com/pilosus/dienstplan/compare/1.0.81...1.0.82
 [1.0.81]: https://github.com/pilosus/dienstplan/compare/1.0.0...1.0.81
