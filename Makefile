@@ -68,3 +68,5 @@ clean:
 
 revcount:
 	@git rev-list HEAD --count
+docs:
+	mkdocs serve

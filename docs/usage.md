@@ -12,11 +12,17 @@ a command and its arguments as follows:
 `Rotation`, or `rota` - a named duty with a duties description and a
 list of user mentions in the order of their duty schedule.
 
-`Duty`, or `on-call person`, or `duty person` - a user who is currently an on-call person, i.e. on duty.
+`Duty`, or `on-call person`, or `duty person` - a user who is
+currently an on-call person, i.e. on duty.
 
 `Mention` - a user tagged in Slack (username prepended with the `@`
 character). Used interchargably with a word `User` or a phrase `User
 mention`.
+
+`Schedule` - a scheduled event that has an `executable` (a text
+command as if it were sent by a user to the Slack bot) and a `crontab`
+string (scheduling in the
+[crontab](https://en.wikipedia.org/wiki/Cron) file format).
 
 ## Commands
 
@@ -127,6 +133,54 @@ current channel:
 ```
 
 Watch out! The list is limited to 500 rotations.
+
+### Schedule
+
+A meta-command to create, delete or list schedules.
+
+```
+@dienstplan schedule <subcommand> "<executable>" <crontab>
+```
+
+where:
+
+- `<subcommand>` is one of: `[create, delete, list]`
+- `"<executalbe>"` is a command for a bot to run on schedule
+- `<crontab>` is a crontab file line in
+  [vixie-cron](https://man7.org/linux/man-pages/man5/crontab.5.html)
+  format, e.g. `0 9 * * Mon-Fri`
+
+caveats:
+
+`"<executable>"` must be enclosed in the double quotation marks!
+
+#### Create
+
+Create a new schedule in the channel:
+
+```
+@dienstplan schedule create "rotate my-rota" 0 7 * * Mon-Fri
+```
+
+Schedules are unique within a channel, i.e. there could be only a
+single `rotate my-rota` in `my-channel`, no matter what `crontab` is
+used for the schedule.
+
+#### Delete
+
+Delete a schedule in the channel:
+
+```
+@dienstplan schedule delete "rotate my-rota"
+```
+
+#### List
+
+List all the schedules in the channel:
+
+```
+@dienstplan schedule list
+```
 
 ### Help
 

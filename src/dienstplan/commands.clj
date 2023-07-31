@@ -115,6 +115,13 @@ Let's also show a current duty engineer with a reminder:
 ```
 /remind #my-channel to \"@dienstplan who my-rota\" every Monday, Tuesday, Wednesday, Thursday, Friday at 10AM UTC
 ```
+
+Alternatively, use `schedule` command for reminders:
+
+```
+@dienstplan schedule create \"rotate my-rota\" 0 9 * * Mon
+@dienstplan schedule create \"who my-rota\" 0 10 * * Mon-Fri
+```
 ")
 
 (def help-cmd-create

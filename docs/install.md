@@ -71,6 +71,10 @@ For database migrations and rollbacks instead of `java -jar app.jar
 - `java -jar app.jar --mode migrate`
 - `java -jar app.jar --mode rollback`
 
+For schedules processing use:
+
+- `java -jar app.jar --mode schedule`
+
 It's recommended to use a SemVer tag matching the [latest
 release](https://github.com/pilosus/dienstplan/releases) for a Docker
 image (e.g. `pilosus/dienstplan:X.Y.Z`). Do not rely on the
@@ -103,6 +107,10 @@ For database migrations and rollbacks instead of `java -jar dienstplan-X.Y.Z-sta
 - `java -jar dienstplan-X.Y.Z-standalone.jar --mode migrate`
 - `java -jar dienstplan-X.Y.Z-standalone.jar --mode rollback`
 
+For schedules processing use:
+
+- `java -jar dienstplan-X.Y.Z-standalone.jar --mode schedule`
+
 ### Ansible Playbook
 
 You can get a full set of installation scripts needed to:
@@ -131,6 +139,18 @@ Another way to run the app is with Clojure CLI:
 
 ```bash
 clojure M:run
+```
+
+Schedules processing can be done:
+
+```bash
+make schedule
+```
+
+or
+
+```bash
+clojure -X:schedule
 ```
 
 Don't forget to use envs to configure the app properly.
