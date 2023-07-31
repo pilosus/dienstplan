@@ -19,6 +19,7 @@
    [cheshire.core :as json]
    [clojure.string :as string]
    [clojure.tools.logging :as log]
+   [dienstplan.alerts :refer [alerts]]
    [dienstplan.config :refer [config]]
    [dienstplan.helpers :as helpers]
    [honey.sql :as h]
@@ -121,7 +122,8 @@
 (defn get-migration-config []
   (mount/start
    #'dienstplan.config/config
-   #'dienstplan.db/db)
+   #'dienstplan.db/db
+   #'dienstplan.alerts/alerts)
   {:datastore  (ragtime-jdbc/sql-database db)
    :migrations (ragtime-jdbc/load-resources "migrations")})
 

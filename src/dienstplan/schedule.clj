@@ -93,7 +93,8 @@
   [_]
   (mount/start
    #'dienstplan.config/config
-   #'dienstplan.db/db)
+   #'dienstplan.db/db
+   #'dienstplan.alerts/alerts)
   (process-events db/schedules-get
                   commands/send-command-response!
                   db/schedule-update!))
