@@ -16,9 +16,10 @@
 (ns dienstplan.schedule
   (:require
    [clojure.tools.logging :as log]
+   [dienstplan.commands :as commands]
    [dienstplan.db :as db]
    [dienstplan.helpers :as helpers]
-   [dienstplan.commands :as commands]
+   [mount.core :as mount]
    [next.jdbc :as jdbc]
    [org.pilosus.kairos :as kairos]))
 
@@ -52,7 +53,7 @@
 (defn process-rows
   "Iterate over rows from `schedule` table, process them, return number
   of processed rows"
-  [rows fn-process-command fn-update-schedule]
+  [conn rows fn-process-command fn-update-schedule]
   (loop [events (seq rows)
          processed 0]
     (if events
@@ -61,18 +62,16 @@
             query-map (schedule-update-map event)]
         (log/debug "Start processing event" event)
 
-        ;; If outter transaction rolls back, it doesn't affect the nested one
-        (jdbc/with-transaction [nested-trx db/db]
-          (try
-            (log/debug "Process scheduled command" command-map)
-            (fn-process-command command-map)
+        (try
+          (log/debug "Process scheduled command" command-map)
+          (fn-process-command command-map)
 
-            (log/debug "Update processed row in schedule table" query-map)
-            (fn-update-schedule nested-trx query-map)
+          (log/debug "Update processed row in schedule table" query-map)
+          (fn-update-schedule conn query-map)
 
-            (catch Exception e
-              (log/errorf e "Couldn't process row %s: %s" event (.getMessage e))
-              (.rollback nested-trx))))
+          (catch Exception e
+            (log/errorf e "Couldn't process row %s: %s" event (.getMessage e))
+            (.rollback conn)))
 
         (log/debug "Event processed")
         (recur (next events) (inc processed)))
@@ -84,14 +83,15 @@
   (jdbc/with-transaction [conn db/db]
     (log/info "Start processing scheduled events")
     (let [rows (fn-get-schedules conn (helpers/now-ts-sql))
-          processed (process-rows rows fn-process-command fn-update-schedule)]
+          processed (process-rows conn rows fn-process-command fn-update-schedule)]
       (if (> processed 0)
         (do (log/infof "Processed %s event(s)" processed) processed)
         (do (log/info "No scheduled events found") 0)))))
 
 (defn run
   "Schedule processing entrypoint"
-  []
+  [_]
+  (mount/start)
   (process-events db/schedules-get
                   commands/send-command-response!
                   db/schedule-update!))

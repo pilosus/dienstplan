@@ -449,12 +449,15 @@
 
 (s/def ::command-response-text ::nillable-str)
 
+(s/def :command-response/channel :request-context/channel)
+(s/def :command-response/text ::command-response-text)
+
 (s/def ::command-response
   (s/nilable
    (s/keys
     :req-un
-    [:request-context/channel
-     ::command-response-text])))
+    [:command-response/channel
+     :command-response/text])))
 
 ;;;;;;;;;;;;;;;;;;;;;
 ;; Database Tables ;;

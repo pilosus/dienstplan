@@ -48,6 +48,9 @@ migrate:
 rollback:
 	docker compose run --rm --no-deps dienstplan clojure -X:rollback
 
+schedule:
+	docker compose run --rm --no-deps dienstplan clojure -X:schedule
+
 depscheck:
 	clojure -T:outdated
 

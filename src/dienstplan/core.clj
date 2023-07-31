@@ -135,4 +135,4 @@
         :server (mount/start)
         :migrate (db/migrate nil)
         :rollback (db/rollback nil)
-        :schedule (schedule/run)))))
+        :schedule (schedule/run nil)))))

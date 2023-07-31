@@ -404,7 +404,7 @@
       :team "T123"
       :channel "C123"}
      :command :who
-     :args {:rotation nil}
+     :args nil
      :error cmd/help-cmd-who}
     "No args provided for who command"]
    [{:params {:event {:text "<@UNX01> assign my-rota"

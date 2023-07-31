@@ -784,7 +784,7 @@
       (let [executable-str "rotate my-rota"
             crontab-str "59 23 31 12 *"
             command (format "<@U001> schedule create \"%s\" %s" executable-str crontab-str)
-            processed-events-before-scheduling (schedule/run)
+            processed-events-before-scheduling (schedule/run nil)
             _ (http/request events-request-create)
             _ (http/request
                (merge
@@ -800,7 +800,7 @@
                      (db/schedules-get
                       conn
                       (-> dt-after clojure.instant/read-instant-timestamp)))
-            processed-events-after-scheduling (schedule/run)]
+            processed-events-after-scheduling (schedule/run nil)]
         (is (= 0 processed-events-before-scheduling))
         (is (= 1 processed-events-after-scheduling))
         (is (= 1 (count events)))
@@ -842,7 +842,7 @@
                conn
                (-> dt-after
                    clojure.instant/read-instant-timestamp)))
-            processed-events (schedule/run)
+            processed-events (schedule/run nil)
             events-after-processing
             (jdbc/with-transaction [conn db/db]
               (db/schedules-get

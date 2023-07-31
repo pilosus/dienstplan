@@ -67,6 +67,10 @@
    ;; See other logging configs under resources/logback.*.xml
    :jvm-opts ["-Dlogback.configurationFile=resources/logback.xml"]}
 
+  ;; clojure -X:schedule
+  :schedule
+  {:exec-fn dienstplan.schedule/run}
+
   ;; Dev
   :dev
   {:extra-deps

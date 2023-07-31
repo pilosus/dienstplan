@@ -417,8 +417,10 @@ Caveats:
 (defn- parse-args-default
   "Parse arguments for simple commands in the form: command <name>"
   [command-parsed]
-  (let [rotation (helpers/nilify (get-command-args command-parsed))
-        result (if name {:rotation rotation} nil)]
+  (let [rotation (-> command-parsed
+                     get-command-args
+                     helpers/nilify)
+        result (when rotation {:rotation rotation})]
     result))
 
 (defmethod parse-args :rotate [command-parsed]
@@ -636,7 +638,6 @@ Caveats:
 (defn schedule-args-validation
   [command-map]
   (let [{:keys [subcommand executable crontab]} (get command-map :args)
-        subcommand-ok? (contains? #{"create" "delete" "list"} subcommand)
         executable-ok? (or (= subcommand "list")
                            (->> executable
                                 (format "<@placeholder> %s")
@@ -648,7 +649,6 @@ Caveats:
                             kairos/parse-cron
                             some?))]
     (cond
-      (not subcommand-ok?) :subcommand
       (not executable-ok?) :executable
       (not crontab-ok?) :crontab
       :else :valid)))
@@ -749,7 +749,8 @@ Caveats:
   (log/info "Request to Slack API")
   (let [body-map (get-command-response request)
         body (json/generate-string body-map)
-        {:keys [status data]} (slack/slack-api-request
-                               {:method :chat.postMessage :body body})]
-    (log/infof "Response from Slack API: status %s body %s" status data)
+        {:keys [ok? status data]} (slack/slack-api-request
+                                   {:method :chat.postMessage :body body})
+        log-level (if ok? :info :error)]
+    (log/logf log-level "Response from Slack API: status %s body %s" status data)
     body-map))
