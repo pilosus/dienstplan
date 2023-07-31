@@ -6,6 +6,10 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
+### Fixed
+
+- Jetty server excluded from the schedule runner
+
 ## [1.1.86] - 2023-07-31
 
 ### Added

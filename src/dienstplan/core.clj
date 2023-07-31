@@ -85,7 +85,7 @@
 
 ;; CLI opts
 
-(def run-modes #{:server :migrate :rollback})
+(def run-modes #{:server :migrate :rollback :schedule})
 
 (def cli-options
   [["-m"

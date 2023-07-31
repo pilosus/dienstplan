@@ -91,7 +91,9 @@
 (defn run
   "Schedule processing entrypoint"
   [_]
-  (mount/start)
+  (mount/start
+   #'dienstplan.config/config
+   #'dienstplan.db/db)
   (process-events db/schedules-get
                   commands/send-command-response!
                   db/schedule-update!))
