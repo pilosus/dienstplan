@@ -16,11 +16,24 @@
 (ns dienstplan.schedule
   (:require
    [clojure.tools.logging :as log]
+   [clojure.string :as s]
    [dienstplan.commands :as commands]
    [dienstplan.db :as db]
    [dienstplan.helpers :as helpers]
    [mount.core :as mount]
    [next.jdbc :as jdbc]))
+
+(defmacro with-timer
+  "Return a map with function evaluation results and time elapsed"
+  [body]
+  `(let [text# (new java.io.StringWriter)]
+     (binding [*out* text#]
+       (let [result# (time ~body)
+             elapsed# (-> text#
+                          str
+                          (s/replace #"\"(.*)\"\n" "$1"))]
+         {:result result#
+          :time elapsed#}))))
 
 (defn- request-map
   "Get a request hashmap to run the bot command with"
@@ -65,10 +78,10 @@
     (log/info "Start processing scheduled events")
     (let [fn-get-schedules (get fns :fn-get-schedules)
           rows (fn-get-schedules conn nil)
-          processed (process-rows conn rows fns)]
-      (if (> processed 0)
-        (do (log/infof "Processed %s event(s)" processed) processed)
-        (do (log/info "No scheduled events found") 0)))))
+          {:keys [result time]} (with-timer (process-rows conn rows fns))]
+      (if (> result 0)
+        (do (log/infof "Processed: %s event(s). %s" result time) result)
+        (do (log/infof "No scheduled events found. %s" time) 0)))))
 
 ;; Wrappers
 ;; We need a <@PLACEHOLDER> in place of a bot mention to match the regex
