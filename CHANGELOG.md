@@ -6,6 +6,19 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
+## [1.1.90] - 2023-08-03
+
+### Added
+
+- Explicit schedule execution: scheduling worker sends an extra
+  message saying explicitly what command is going to be executed
+  ([#97](https://github.com/pilosus/dienstplan/issues/97))
+
+### Changed
+
+- Stop reloading default logging config every 30 seconds
+  ([#98](https://github.com/pilosus/dienstplan/issues/98))
+
 ## [1.1.89] - 2023-07-31
 
 ### Fixed
@@ -255,7 +268,8 @@ documentation website added. Project has made it to the version 1.0.0!
 ### Added
 - Bot app MVP
 
-[Unreleased]: https://github.com/pilosus/dienstplan/compare/1.1.89...HEAD
+[Unreleased]: https://github.com/pilosus/dienstplan/compare/1.1.90...HEAD
+[1.1.90]: https://github.com/pilosus/dienstplan/compare/1.0.89...1.1.90
 [1.1.89]: https://github.com/pilosus/dienstplan/compare/1.0.86...1.1.89
 [1.1.86]: https://github.com/pilosus/dienstplan/compare/1.0.83...1.1.86
 [1.0.83]: https://github.com/pilosus/dienstplan/compare/1.0.82...1.0.83

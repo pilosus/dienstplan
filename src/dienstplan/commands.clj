@@ -259,7 +259,7 @@ Caveats:
   "(?s) is a pattern flag for dot matching all symbols including newlines"
   #"^[^<@]*(?s)(?<userid><@[^>]+>)[\u00A0|\u2007|\u202F|\s]+(?<command>\w+)[\u00A0|\u2007|\u202F|\s]*(?<rest>.*)")
 
-(def regex-schedule #"(?s)\b(?<subcommand>create|delete|list)[\u00A0|\u2007|\u202F|\s]*(?<enclosed>\"(?<executable>.*)\")?[\u00A0|\u2007|\u202F|\s]*(?<crontab>.*)?")
+(def regex-schedule #"(?s)\b(?<subcommand>create|delete|list|shout)[\u00A0|\u2007|\u202F|\s]*(?<enclosed>\"(?<executable>.*)\")?[\u00A0|\u2007|\u202F|\s]*(?<crontab>.*)?")
 
 (def commands->data
   {:create {:spec ::spec/bot-cmd-create-or-update
@@ -650,7 +650,7 @@ Caveats:
                                 parse-command
                                 :command
                                 some?))
-        crontab-ok? (or (contains? #{"delete" "list"} subcommand)
+        crontab-ok? (or (contains? #{"delete" "list" "shout"} subcommand)
                         (helpers/cron-valid? crontab))]
     (cond
       (not executable-ok?) :executable
@@ -662,6 +662,12 @@ Caveats:
   (format "Invalid <%s> argument for `schedule` command\n\n%s"
           (name invalid-arg)
           help-cmd-schedule))
+
+(defn schedule-shout
+  [query-params]
+  (let [{:keys [executable crontab]} query-params
+        text (format "Executing `%s` with schedule `%s`" executable crontab)]
+    {:result text}))
 
 (defmethod command-exec! :schedule [command-map]
   (let [args-validation (schedule-args-validation command-map)]
@@ -675,7 +681,8 @@ Caveats:
             (case (keyword (get-in command-map [:args :subcommand]))
               :create (db/schedule-insert! query-params)
               :delete (db/schedule-delete! query-params)
-              :list (db/schedule-list query-params))
+              :list (db/schedule-list query-params)
+              :shout (schedule-shout query-params))
             message (or result (:message error))]
         message)
       (fmt-schedule-invalid-arg args-validation))))

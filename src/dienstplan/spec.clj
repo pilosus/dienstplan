@@ -271,7 +271,7 @@
     :bot-cmd-common/command
     :bot-cmd-create-or-update/args]))
 
-(s/def :bot-schedule-args/subcommand #{"create" "delete" "list"})
+(s/def :bot-schedule-args/subcommand #{"create" "delete" "list" "shout"})
 (s/def :bot-schedule-args/executable ::nillable-str)
 (s/def :bot-schedule-args/crontab ::nillable-str)
 

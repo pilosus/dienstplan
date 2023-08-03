@@ -22,67 +22,91 @@
    [mount.core :as mount]
    [next.jdbc :as jdbc]))
 
-(defn- next-run-ts
-  "Given crontab line, return the next timestamp in JDBC compatible format"
-  [schedule-row]
-  (-> schedule-row
-      :schedule/crontab
-      (helpers/next-run-at)))
-
-(defn- schedule-update-map
-  [schedule-row]
-  {:schedule/id (:schedule/id schedule-row)
-   :schedule/run_at (next-run-ts schedule-row)})
-
-(defn- exec-command-map
+(defn- request-map
   "Get a request hashmap to run the bot command with"
-  [schedule-row]
+  [channel text]
   {:params
    {:event
-    ;; we need a placeholder in place of a bot mention to match the regex
-    {:text (format "<@PLACEHOLDER> %s" (:schedule/executable schedule-row)),
-     :ts (-> (helpers/now-ts-seconds)
-             float
-             str)
-     :channel (:schedule/channel schedule-row)}}})
+    {:channel channel
+     :text text
+     :ts (-> (helpers/now-ts-seconds) float str)}}})
 
 (defn process-rows
   "Iterate over rows from `schedule` table, process them, return number
   of processed rows"
-  [^java.sql.Connection conn rows fn-process-command fn-update-schedule]
-  (loop [events (seq rows)
-         processed 0]
-    (if events
-      (let [event (first events)
-            command-map (exec-command-map event)
-            query-map (schedule-update-map event)]
-        (log/debug "Start processing event" event)
+  [^java.sql.Connection conn rows fns]
+  (let [{:keys
+         [fn-shout-executable
+          fn-process-executable
+          fn-update-schedule]} fns]
+    (loop [events (seq rows)
+           processed 0]
+      (if events
+        (let [event (first events)]
+          (log/debug "Start processing event" event)
 
-        (try
-          (log/debug "Process scheduled command" command-map)
-          (fn-process-command command-map)
+          (try
+            (fn-shout-executable conn event)
+            (fn-process-executable conn event)
+            (fn-update-schedule conn event)
 
-          (log/debug "Update processed row in schedule table" query-map)
-          (fn-update-schedule conn query-map)
+            (catch Exception e
+              (log/errorf e "Couldn't process row %s: %s" event (.getMessage e))
+              (.rollback conn)))
 
-          (catch Exception e
-            (log/errorf e "Couldn't process row %s: %s" event (.getMessage e))
-            (.rollback conn)))
-
-        (log/debug "Event processed")
-        (recur (next events) (inc processed)))
-      processed)))
+          (log/debug "Event processed")
+          (recur (next events) (inc processed)))
+        processed))))
 
 (defn process-events
   "Process scheduled events, return number of processed events"
-  [fn-get-schedules fn-process-command fn-update-schedule]
+  [fns]
   (jdbc/with-transaction [conn db/db]
     (log/info "Start processing scheduled events")
-    (let [rows (fn-get-schedules conn (helpers/now-ts-sql))
-          processed (process-rows conn rows fn-process-command fn-update-schedule)]
+    (let [fn-get-schedules (get fns :fn-get-schedules)
+          rows (fn-get-schedules conn nil)
+          processed (process-rows conn rows fns)]
       (if (> processed 0)
         (do (log/infof "Processed %s event(s)" processed) processed)
         (do (log/info "No scheduled events found") 0)))))
+
+;; Wrappers
+;; We need a <@PLACEHOLDER> in place of a bot mention to match the regex
+
+(defn wrap-get-schedules
+  [conn _]
+  (db/schedules-get conn (helpers/now-ts-sql)))
+
+(defn wrap-shout-executable
+  [_ schedule-row]
+  (let [{:keys [schedule/channel
+                schedule/executable
+                schedule/crontab]} schedule-row
+        text (format "<@PLACEHOLDER> schedule shout \"%s\" %s" executable crontab)
+        request (request-map channel text)]
+    (log/debug "Notify about executing of schedule")
+    (commands/send-command-response! request)))
+
+(defn wrap-process-executable
+  [_ schedule-row]
+  (let [{:keys [schedule/channel
+                schedule/executable]} schedule-row
+        text (format "<@PLACEHOLDER> %s" executable)
+        request (request-map channel text)]
+    (log/debug "Process scheduled executable" request)
+    (commands/send-command-response! request)))
+
+(defn wrap-update-schedule
+  [conn schedule-row]
+  (let [next-ts (-> schedule-row
+                    :schedule/crontab
+                    (helpers/next-run-at))
+        query {:schedule/id (:schedule/id schedule-row)
+               :schedule/run_at next-ts}]
+    (log/debug "Update processed row in schedule table" query)
+    (db/schedule-update! conn query)))
+
+;; Entrypoint
 
 (defn run
   "Schedule processing entrypoint"
@@ -91,6 +115,8 @@
    #'dienstplan.config/config
    #'dienstplan.db/db
    #'dienstplan.alerts/alerts)
-  (process-events db/schedules-get
-                  commands/send-command-response!
-                  db/schedule-update!))
+  (process-events
+   {:fn-get-schedules wrap-get-schedules
+    :fn-shout-executable wrap-shout-executable
+    :fn-process-executable wrap-process-executable
+    :fn-update-schedule wrap-update-schedule}))
