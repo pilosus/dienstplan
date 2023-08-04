@@ -10,6 +10,7 @@ Slack bot for duty rotations.
 - Dead simple: a few commands to manage on-call duty rotations in your team's Slack channels
 - Follows the rule "Do One Thing and Do It Well"
 - Plays nicely with Slack [reminders](https://slack.com/resources/using-slack/how-to-use-reminders-in-slack) and [workflows](https://slack.com/features/workflow-automation)
+- Supports [crontab](https://man7.org/linux/man-pages/man5/crontab.5.html) for scheduling
 
 ## Quick example
 
@@ -61,6 +62,14 @@ Second, remind duties to a current on-call person:
 
 ```
 /remind #my-channel to "@dienstplan who my-rota" every Monday, Tuesday, Wednesday, Thursday, Friday at 10AM UTC
+```
+
+If you prefer [crontab](https://en.wikipedia.org/wiki/Cron) format for
+schedule description, use `schedule` command instead of `/remind`:
+
+```
+@dienstplan schedule create "rotate my-rota" 0 9 * * Mon
+@dienstplan schedule create "who my-rota" 0 10 * * Mon-Fri
 ```
 
 ## Help
