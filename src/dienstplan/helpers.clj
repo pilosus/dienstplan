@@ -56,7 +56,7 @@
   "Return java.sql.Timestamp for the next run for a given crontab string"
   ^Timestamp [crontab]
   (try (-> crontab
-           (kairos/get-dt-seq)
+           (kairos/cron->dt)
            ^ZonedDateTime first
            .toInstant
            java.sql.Timestamp/from)
@@ -66,5 +66,5 @@
   "Return true if crontab is valid"
   [crontab]
   (-> crontab
-      kairos/parse-cron
+      kairos/cron->map
       some?))
