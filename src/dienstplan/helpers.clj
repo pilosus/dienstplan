@@ -62,17 +62,12 @@
            java.sql.Timestamp/from)
        (catch Exception _ nil)))
 
-(defn cron-valid?
-  "Return true if crontab is valid"
-  [crontab]
-  (kairos/cron-valid? crontab))
-
 (defn cron-validation
   "Return crontab validation result"
   [crontab]
   (kairos/cron-validate crontab))
 
-(defn cron-explain
+(defn cron->text
   "Explain crontab in plain English"
   [crontab]
   (kairos/cron->text crontab))

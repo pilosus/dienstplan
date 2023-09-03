@@ -381,7 +381,7 @@
     (try (let [inserted (sql/insert! conn :schedule params)
                explain (-> params
                            :crontab
-                           helpers/cron-explain)]
+                           helpers/cron->text)]
            (log/debugf "Schedule inserted: %s" inserted)
            {:result (when (-> inserted :schedule/id int?)
                       (format "Executable `%s` successfully scheduled with `%s` (%s)"
