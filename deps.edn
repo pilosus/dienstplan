@@ -18,13 +18,13 @@
 
   ;; Logging
   org.clojure/tools.logging {:mvn/version "1.2.4"}
-  ch.qos.logback/logback-classic {:mvn/version "1.4.8"}
+  ch.qos.logback/logback-classic {:mvn/version "1.4.11"}
   ch.qos.logback.contrib/logback-json-classic {:mvn/version "0.1.5"}
   ch.qos.logback.contrib/logback-jackson {:mvn/version "0.1.5"}
   com.fasterxml.jackson.core/jackson-databind {:mvn/version "2.15.2"}
 
   ;; Alerts
-  io.sentry/sentry-clj {:mvn/version "6.26.199"}
+  io.sentry/sentry-clj {:mvn/version "6.28.200"}
 
   ;; Validation
   expound/expound {:mvn/version "0.9.0"}
@@ -44,10 +44,10 @@
   org.postgresql/postgresql {:mvn/version "42.6.0"}
   com.zaxxer/HikariCP {:mvn/version "5.0.1"}
   dev.weavejester/ragtime {:mvn/version "0.9.3"}
-  com.github.seancorfield/honeysql {:mvn/version "2.4.1045"}
+  com.github.seancorfield/honeysql {:mvn/version "2.4.1066"}
 
   ;; Cron
-  org.pilosus/kairos {:mvn/version "0.1.14"}
+  org.pilosus/kairos {:mvn/version "0.2.22"}
 
   ;; Cryptography
   buddy/buddy-core {:mvn/version "1.11.423"}}
@@ -56,7 +56,7 @@
   ;; Building
   ;; clojure -T:build (clean|jar|uberjar)
   :build
-  {:replace-deps {io.github.clojure/tools.build {:git/tag "v0.9.4" :git/sha "76b78fe"}}
+  {:replace-deps {io.github.clojure/tools.build {:git/tag "v0.9.5" :git/sha "24f2894"}}
    :ns-default build}
 
   ;; Running
@@ -77,10 +77,10 @@
    {io.github.athos/clj-check {:git/tag "0.1.0" :git/sha "0ca84df"}
     cloverage/cloverage {:mvn/version "1.2.4"}
     jonase/eastwood {:mvn/version "1.4.0"}
-    io.github.weavejester/cljfmt {:git/tag "0.11.1" :git/sha "0882f99"}
+    io.github.weavejester/cljfmt {:git/tag "0.11.2" :git/sha "fb26b22"}
     io.github.cognitect-labs/test-runner {:git/tag "v0.5.1" :git/sha "dfb30dd"}
     nrepl/nrepl {:mvn/version "1.0.0"}
-    cider/cider-nrepl {:mvn/version "0.32.0"}
+    cider/cider-nrepl {:mvn/version "0.37.0"}
     com.bhauman/rebel-readline {:mvn/version "0.1.4"}
     org.clojure/test.check {:mvn/version "1.1.1"}}}
 
@@ -167,7 +167,7 @@
   ;; clojure -T:outdated :upgrade true :force true
   :outdated
   {:replace-paths ["."]
-   :replace-deps  {com.github.liquidz/antq {:mvn/version "2.5.1095"}
+   :replace-deps  {com.github.liquidz/antq {:mvn/version "2.5.1109"}
                    org.slf4j/slf4j-nop {:mvn/version "2.0.7"}}
    :exec-fn antq.tool/outdated
    :exec-args {:directory ["."] ;; default

@@ -47,7 +47,6 @@ make all
 
 5. Update current tag mentions in `README.md`:
 
-- Docker version
 - Usage examples
 
 6. After release preparation, add a tag with `git tag X.Y.Z`

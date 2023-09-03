@@ -229,7 +229,7 @@ Example:
 @dienstplan schedule <subcommand> \"<executable>\" <crontab>
 ```
 
-where <subcommand> is one of: [create, delete, list]
+where <subcommand> is one of: [create, delete, list, explain]
       \"<executalbe>\" is a command for a bot to run on schedule
       <crontab> is a crontab file line, e.g. `0 9 * * Mon-Fri`
 
@@ -239,6 +239,7 @@ Example:
 @dienstplan schedule create \"rotate my-rota\" 0 7 * * Mon-Fri
 @dienstplan schedule delete \"rotate my-rota\"
 @dienstplan schedule list
+@dienstplan schedule explain 0 6,10-18/2,22 * * Mon-Fri
 ```
 
 Caveats:
@@ -259,7 +260,7 @@ Caveats:
   "(?s) is a pattern flag for dot matching all symbols including newlines"
   #"^[^<@]*(?s)(?<userid><@[^>]+>)[\u00A0|\u2007|\u202F|\s]+(?<command>\w+)[\u00A0|\u2007|\u202F|\s]*(?<rest>.*)")
 
-(def regex-schedule #"(?s)\b(?<subcommand>create|delete|list|shout)[\u00A0|\u2007|\u202F|\s]*(?<enclosed>\"(?<executable>.*)\")?[\u00A0|\u2007|\u202F|\s]*(?<crontab>.*)?")
+(def regex-schedule #"(?s)\b(?<subcommand>create|delete|list|shout|explain)[\u00A0|\u2007|\u202F|\s]*(?<enclosed>\"(?<executable>.*)\")?[\u00A0|\u2007|\u202F|\s]*(?<crontab>.*)?")
 
 (def commands->data
   {:create {:spec ::spec/bot-cmd-create-or-update
@@ -644,34 +645,50 @@ Caveats:
 (defn schedule-args-validation
   [command-map]
   (let [{:keys [subcommand executable crontab]} (get command-map :args)
-        executable-ok? (or (= subcommand "list")
+        executable-ok? (or (contains? #{"explain" "list"} subcommand)
                            (->> executable
                                 (format "<@placeholder> %s")
                                 parse-command
                                 :command
                                 some?))
+        crontab-validation (helpers/cron-validation crontab)
         crontab-ok? (or (contains? #{"delete" "list" "shout"} subcommand)
-                        (helpers/cron-valid? crontab))]
+                        (:ok? crontab-validation))]
     (cond
-      (not executable-ok?) :executable
-      (not crontab-ok?) :crontab
-      :else :valid)))
+      (not executable-ok?)
+      {:ok? false :error "`<executable>` cannot be parsed"}
+      (not crontab-ok?)
+      {:ok? false :error (format "`<crontab>` error: %s"
+                                 (:error crontab-validation))}
+      :else
+      {:ok? true})))
 
 (defn fmt-schedule-invalid-arg
   [invalid-arg]
-  (format "Invalid <%s> argument for `schedule` command\n\n%s"
-          (name invalid-arg)
-          help-cmd-schedule))
+  (let [{:keys [error]} invalid-arg]
+    (format "`schedule` command failed: %s\n\n%s"
+            error
+            help-cmd-schedule)))
 
 (defn schedule-shout
   [query-params]
-  (let [{:keys [executable crontab]} query-params
-        text (format "Executing `%s` with schedule `%s`" executable crontab)]
+  (let [{:keys [executable crontab explain]} query-params
+        text (format "Executing `%s` with schedule `%s` (%s)"
+                     executable
+                     crontab
+                     explain)]
+    {:result text}))
+
+(defn schedule-explain
+  "Return text description of a given crontab"
+  [crontab]
+  (let [explain (helpers/cron->text crontab)
+        text (format "Crontab `%s` means the executable will be run %s" crontab explain)]
     {:result text}))
 
 (defmethod command-exec! :schedule [command-map]
   (let [args-validation (schedule-args-validation command-map)]
-    (if (= args-validation :valid)
+    (if (= (:ok? args-validation) true)
       (let [crontab (get-in command-map [:args :crontab])
             query-params {:channel (get-in command-map [:context :channel])
                           :executable (get-in command-map [:args :executable])
@@ -682,7 +699,8 @@ Caveats:
               :create (db/schedule-insert! query-params)
               :delete (db/schedule-delete! query-params)
               :list (db/schedule-list query-params)
-              :shout (schedule-shout query-params))
+              :shout (schedule-shout query-params)
+              :explain (schedule-explain crontab))
             message (or result (:message error))]
         message)
       (fmt-schedule-invalid-arg args-validation))))

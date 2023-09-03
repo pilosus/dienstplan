@@ -144,7 +144,7 @@ A meta-command to create, delete or list schedules.
 
 where:
 
-- `<subcommand>` is one of: `[create, delete, list]`
+- `<subcommand>` is one of: `[create, delete, list, explain]`
 - `"<executalbe>"` is a command for a bot to run on schedule
 - `<crontab>` is a crontab file line in
   [vixie-cron](https://man7.org/linux/man-pages/man5/crontab.5.html)
@@ -180,6 +180,20 @@ List all the schedules in the channel:
 
 ```
 @dienstplan schedule list
+```
+
+#### Explain
+
+Explain a given `crontab` in plain English, e.g.:
+
+```
+@dienstplan schedule explain 0 22 * */2 Mon-Fri
+```
+
+returns:
+
+```
+Crontab `0 22 * */2 Mon-Fri` means the executable will be run at minute 0, past hour 22, on every day of week from Monday through Friday, in every 2nd month
 ```
 
 ### Help
