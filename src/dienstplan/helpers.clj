@@ -65,6 +65,14 @@
 (defn cron-valid?
   "Return true if crontab is valid"
   [crontab]
-  (-> crontab
-      kairos/cron->map
-      some?))
+  (kairos/cron-valid? crontab))
+
+(defn cron-validation
+  "Return crontab validation result"
+  [crontab]
+  (kairos/cron-validate crontab))
+
+(defn cron-explain
+  "Explain crontab in plain English"
+  [crontab]
+  (kairos/cron->text crontab))

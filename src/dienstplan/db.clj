@@ -378,11 +378,16 @@
 (defn schedule-insert!
   [params]
   (jdbc/with-transaction [^java.sql.Connection conn db]
-    (try (let [inserted (sql/insert! conn :schedule params)]
+    (try (let [inserted (sql/insert! conn :schedule params)
+               explain (-> params
+                           :crontab
+                           helpers/cron-explain)]
            (log/debugf "Schedule inserted: %s" inserted)
            {:result (when (-> inserted :schedule/id int?)
-                      (format "Executable `%s` successfully scheduled with `%s`"
-                              (:executable params) (:crontab params)))})
+                      (format "Executable `%s` successfully scheduled with `%s` (%s)"
+                              (:executable params)
+                              (:crontab params)
+                              explain))})
          (catch PSQLException e
            (let [message (.getMessage e)
                  duplicate? (string/includes? (.toLowerCase message) "duplicate key")

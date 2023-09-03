@@ -706,7 +706,7 @@
       (is (= 200 (:status schedule-create-rotate-response)))
       (is (=
            {:channel "C123"
-            :text "Executable `rotate my-rota` successfully scheduled with `5 0 * * Mon-Fri`"}
+            :text "Executable `rotate my-rota` successfully scheduled with `5 0 * * Mon-Fri` (at minute 5, past hour 0, on every day of week from Monday through Friday, in every month)"}
            (-> schedule-create-rotate-response
                :body
                (json/parse-string true))))
@@ -724,7 +724,7 @@
       (is (= 200 (:status schedule-create-who-response)))
       (is (=
            {:channel "C123"
-            :text "Executable `who my-rota` successfully scheduled with `0 9 * * Mon-Fri`"}
+            :text "Executable `who my-rota` successfully scheduled with `0 9 * * Mon-Fri` (at minute 0, past hour 9, on every day of week from Monday through Friday, in every month)"}
            (-> schedule-create-who-response
                :body
                (json/parse-string true))))
@@ -856,14 +856,12 @@
               event-after (first events-after-processing)]
           (is (= event-before event-after)))))))
 
-(def schedule-invalid-args "Invalid arguments for `schedule` command: %s")
-
 (def params-schedule-command-invalid-args
-  [["<@U001> schedule create who my rota 0 9 * * Mon-Fri"
-    :executable
+  [["<@u001> schedule create who my rota 0 9 * * Mon-Fri"
+    {:ok? false :error "`<executable>` cannot be parsed"}
     "Invalid executable, double quotes omitted"]
-   ["<@U001> schedule create \"who my rota\" Mon-Fri"
-    :crontab
+   ["<@u001> schedule create \"who my rota\" Mon-Fri"
+    {:ok? false :error "`<crontab>` cannot be parsed. Invalid crontab format"}
     "Invalid crontab"]])
 
 (deftest ^:integration test-schedule-command-invalid-args
@@ -891,6 +889,7 @@
   (testing "Duplicate schedule"
     (let [executable "rotate my-rota"
           crontab "0 9 * * Mon-Fri"
+          explain "at minute 0, past hour 9, on every day of week from Monday through Friday, in every month"
           command (format "<@U001> schedule create \"%s\" %s"
                           executable
                           crontab)
@@ -913,8 +912,8 @@
                         :body
                         (json/parse-string true)
                         :text)]
-      (is (= created (format "Executable `%s` successfully scheduled with `%s`"
-                             executable crontab)))
+      (is (= created (format "Executable `%s` successfully scheduled with `%s` (%s)"
+                             executable crontab explain)))
       (is (= duplicate (format "Duplicate schedule for `%s` in the channel"
                                executable))))))
 

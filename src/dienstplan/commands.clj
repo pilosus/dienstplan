@@ -650,28 +650,37 @@ Caveats:
                                 parse-command
                                 :command
                                 some?))
+        crontab-validation (helpers/cron-validation crontab)
         crontab-ok? (or (contains? #{"delete" "list" "shout"} subcommand)
-                        (helpers/cron-valid? crontab))]
+                        (:ok? crontab-validation))]
     (cond
-      (not executable-ok?) :executable
-      (not crontab-ok?) :crontab
-      :else :valid)))
+      (not executable-ok?)
+      {:ok? false :error "`<executable>` cannot be parsed"}
+      (not crontab-ok?)
+      {:ok? false :error (format "`<crontab>` cannot be parsed. %s"
+                                 (:error crontab-validation))}
+      :else
+      {:ok? true})))
 
 (defn fmt-schedule-invalid-arg
   [invalid-arg]
-  (format "Invalid <%s> argument for `schedule` command\n\n%s"
-          (name invalid-arg)
-          help-cmd-schedule))
+  (let [{:keys [error]} invalid-arg]
+    (format "`schedule` command failed: %s\n\n%s"
+            error
+            help-cmd-schedule)))
 
 (defn schedule-shout
   [query-params]
-  (let [{:keys [executable crontab]} query-params
-        text (format "Executing `%s` with schedule `%s`" executable crontab)]
+  (let [{:keys [executable crontab explain]} query-params
+        text (format "Executing `%s` with schedule `%s` (%s)"
+                     executable
+                     crontab
+                     explain)]
     {:result text}))
 
 (defmethod command-exec! :schedule [command-map]
   (let [args-validation (schedule-args-validation command-map)]
-    (if (= args-validation :valid)
+    (if (= (:ok? args-validation) true)
       (let [crontab (get-in command-map [:args :crontab])
             query-params {:channel (get-in command-map [:context :channel])
                           :executable (get-in command-map [:args :executable])
