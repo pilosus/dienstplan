@@ -6,6 +6,10 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
+Nothing here yet.
+
+## [1.1.94] - 2023-09-03
+
 ### Added
 
 - Subcommand `schedule explain <crontab>` to explain a given `crontab`
@@ -274,7 +278,8 @@ documentation website added. Project has made it to the version 1.0.0!
 ### Added
 - Bot app MVP
 
-[Unreleased]: https://github.com/pilosus/dienstplan/compare/1.1.90...HEAD
+[Unreleased]: https://github.com/pilosus/dienstplan/compare/1.1.94...HEAD
+[1.1.94]: https://github.com/pilosus/dienstplan/compare/1.0.90...1.1.94
 [1.1.90]: https://github.com/pilosus/dienstplan/compare/1.0.89...1.1.90
 [1.1.89]: https://github.com/pilosus/dienstplan/compare/1.0.86...1.1.89
 [1.1.86]: https://github.com/pilosus/dienstplan/compare/1.0.83...1.1.86
