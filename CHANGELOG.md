@@ -6,6 +6,12 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
+### Added
+
+- Subcommand `schedule explain <crontab>` to explain a given `crontab`
+  in plain English
+  ([#102](https://github.com/pilosus/dienstplan/issues/102))
+
 ## [1.1.90] - 2023-08-03
 
 ### Added
