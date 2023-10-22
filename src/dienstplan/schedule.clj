@@ -148,10 +148,10 @@
 (defn run-forever
   "Process events infinitely with the delay"
   []
-  (while true
-    (process-schedules)
-    (let [delay ^java.lang.Long (* 1000 (get-in config [:daemon :delay]))]
-      (Thread/sleep delay))))
+  (let [delay-ms ^java.lang.Long (* 1000 (get-in config [:daemon :delay]))]
+    (while true
+      (process-schedules)
+      (Thread/sleep delay-ms))))
 
 (defn daemonize
   "Schedule processing daemon. Used as a background worker"
