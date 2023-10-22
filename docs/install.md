@@ -21,6 +21,7 @@ The app relies on the following environment variables (envs) to operate:
 - `SERVER__LOGLEVEL` [default `INFO`] - App log level (`dienstplan` logger only)
 - `SERVER__ROOTLEVEL` [default `INFO`] - Root log level (all loggers, including DB, Jetty server, etc.)
 - `SERVER__ACCESS_LOG` [default `true`] - Enable access logging? Access logs have `INFO` level.
+- `DAEMON__DELAY` [default `60`] - Delay in seconds for checks in the schedule daemon
 - `DB__SERVER_NAME` [default `localhost`] - PostgreSQL server host name
 - `DB__PORT_NUMBER` [default `5432`] - PostgreSQL server port number
 - `DB__DATABASE_NAME` [default `dienstplan`] - PostgreSQL server database name
@@ -71,9 +72,13 @@ For database migrations and rollbacks instead of `java -jar app.jar
 - `java -jar app.jar --mode migrate`
 - `java -jar app.jar --mode rollback`
 
-For schedules processing use:
+For schedules processing as one-time job use:
 
 - `java -jar app.jar --mode schedule`
+
+For schedules processing as a background running worker (daemon) use:
+
+- `java -jar app.jar --mode schedule-daemon`
 
 It's recommended to use a SemVer tag matching the [latest
 release](https://github.com/pilosus/dienstplan/releases) for a Docker
@@ -107,9 +112,13 @@ For database migrations and rollbacks instead of `java -jar dienstplan-X.Y.Z-sta
 - `java -jar dienstplan-X.Y.Z-standalone.jar --mode migrate`
 - `java -jar dienstplan-X.Y.Z-standalone.jar --mode rollback`
 
-For schedules processing use:
+For schedules processing as one-time job use:
 
 - `java -jar dienstplan-X.Y.Z-standalone.jar --mode schedule`
+
+For schedules processing as a daemon use:
+
+- `java -jar dienstplan-X.Y.Z-standalone.jar --mode schedule-daemon`
 
 ### Ansible Playbook
 
@@ -141,7 +150,7 @@ Another way to run the app is with Clojure CLI:
 clojure M:run
 ```
 
-Schedules processing can be done:
+Schedules processing as a one-time job can be done:
 
 ```bash
 make schedule
@@ -151,6 +160,18 @@ or
 
 ```bash
 clojure -X:schedule
+```
+
+Scheduling processing as a daemon (background worker) can be done:
+
+```bash
+make daemon
+```
+
+or
+
+```bash
+clojure -X:schedule-daemon
 ```
 
 Don't forget to use envs to configure the app properly.

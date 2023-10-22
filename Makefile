@@ -1,4 +1,4 @@
-.PHONY: all build up down cljfmtfix cljfmtcheck eastwood check test cloverage migrate rollback depscheck depsbump vuln deps clean revcount
+.PHONY: all build up down cljfmtfix cljfmtcheck eastwood check test cloverage migrate rollback depscheck depsbump vuln deps clean revcount docs
 
 lint: eastwood cljfmtfix
 all: build up migrate lint cloverage
@@ -50,6 +50,9 @@ rollback:
 
 schedule:
 	docker compose run --rm --no-deps dienstplan clojure -X:schedule
+
+daemon:
+	docker compose run --rm --no-deps dienstplan clojure -X:schedule-daemon
 
 depscheck:
 	clojure -T:outdated
