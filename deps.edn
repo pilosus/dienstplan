@@ -21,10 +21,10 @@
   ch.qos.logback/logback-classic {:mvn/version "1.4.11"}
   ch.qos.logback.contrib/logback-json-classic {:mvn/version "0.1.5"}
   ch.qos.logback.contrib/logback-jackson {:mvn/version "0.1.5"}
-  com.fasterxml.jackson.core/jackson-databind {:mvn/version "2.15.2"}
+  com.fasterxml.jackson.core/jackson-databind {:mvn/version "2.15.3"}
 
   ;; Alerts
-  io.sentry/sentry-clj {:mvn/version "6.28.200"}
+  io.sentry/sentry-clj {:mvn/version "6.29.202"}
 
   ;; Validation
   expound/expound {:mvn/version "0.9.0"}
@@ -37,17 +37,17 @@
   clj-http/clj-http {:mvn/version "3.12.3"}
 
   ;; JSON parsing
-  cheshire/cheshire {:mvn/version "5.11.0"}
+  cheshire/cheshire {:mvn/version "5.12.0"}
 
   ;; DB
-  com.github.seancorfield/next.jdbc {:mvn/version "1.3.883"}
+  com.github.seancorfield/next.jdbc {:mvn/version "1.3.894"}
   org.postgresql/postgresql {:mvn/version "42.6.0"}
   com.zaxxer/HikariCP {:mvn/version "5.0.1"}
   dev.weavejester/ragtime {:mvn/version "0.9.3"}
-  com.github.seancorfield/honeysql {:mvn/version "2.4.1066"}
+  com.github.seancorfield/honeysql {:mvn/version "2.4.1078"}
 
   ;; Cron
-  org.pilosus/kairos {:mvn/version "0.2.22"}
+  org.pilosus/kairos {:mvn/version "0.2.26"}
 
   ;; Cryptography
   buddy/buddy-core {:mvn/version "1.11.423"}}
@@ -56,7 +56,7 @@
   ;; Building
   ;; clojure -T:build (clean|jar|uberjar)
   :build
-  {:replace-deps {io.github.clojure/tools.build {:git/tag "v0.9.5" :git/sha "24f2894"}}
+  {:replace-deps {io.github.clojure/tools.build {:git/tag "v0.9.6" :git/sha "8e78bcc"}}
    :ns-default build}
 
   ;; Running
@@ -84,7 +84,7 @@
     io.github.weavejester/cljfmt {:git/tag "0.11.2" :git/sha "fb26b22"}
     io.github.cognitect-labs/test-runner {:git/tag "v0.5.1" :git/sha "dfb30dd"}
     nrepl/nrepl {:mvn/version "1.0.0"}
-    cider/cider-nrepl {:mvn/version "0.37.0"}
+    cider/cider-nrepl {:mvn/version "0.40.0"}
     com.bhauman/rebel-readline {:mvn/version "0.1.4"}
     org.clojure/test.check {:mvn/version "1.1.1"}}}
 
@@ -171,8 +171,8 @@
   ;; clojure -T:outdated :upgrade true :force true
   :outdated
   {:replace-paths ["."]
-   :replace-deps  {com.github.liquidz/antq {:mvn/version "2.5.1109"}
-                   org.slf4j/slf4j-nop {:mvn/version "2.0.7"}}
+   :replace-deps  {com.github.liquidz/antq {:mvn/version "2.7.1133"}
+                   org.slf4j/slf4j-nop {:mvn/version "2.0.9"}}
    :exec-fn antq.tool/outdated
    :exec-args {:directory ["."] ;; default
                :exclude ["org.clojure/tools.deps.alpha"]
