@@ -6,7 +6,10 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
-Nothing here yet.
+### Added
+
+- Entrypoint to process schedules as a daemon (background running worker)
+  ([#105](https://github.com/pilosus/dienstplan/issues/105))
 
 ## [1.1.94] - 2023-09-03
 

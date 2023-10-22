@@ -15,9 +15,10 @@
 
 (ns dienstplan.schedule
   (:require
-   [clojure.tools.logging :as log]
    [clojure.string :as s]
+   [clojure.tools.logging :as log]
    [dienstplan.commands :as commands]
+   [dienstplan.config :refer [config]]
    [dienstplan.db :as db]
    [dienstplan.helpers :as helpers]
    [mount.core :as mount]
@@ -121,15 +122,40 @@
 
 ;; Entrypoint
 
-(defn run
-  "Schedule processing entrypoint"
-  [_]
+(defn start-system
+  []
   (mount/start
    #'dienstplan.config/config
    #'dienstplan.db/db
-   #'dienstplan.alerts/alerts)
+   #'dienstplan.alerts/alerts))
+
+(defn- process-schedules
+  []
   (process-events
    {:fn-get-schedules wrap-get-schedules
     :fn-shout-executable wrap-shout-executable
     :fn-process-executable wrap-process-executable
     :fn-update-schedule wrap-update-schedule}))
+
+(defn run
+  "Schedule processing entrypoint. Used for one-time jobs"
+  [_]
+  (start-system)
+  (process-schedules))
+
+;; Daemon
+
+(defn run-forever
+  "Process events infinitely with the delay"
+  []
+  (while true
+    (process-schedules)
+    (Thread/sleep (* 1000 (get-in config [:daemon :delay])))))
+
+(defn daemonize
+  "Schedule processing daemon. Used as a background worker"
+  [_]
+  (start-system)
+  (->
+   (Thread. ^java.lang.Runnable run-forever)
+   .start))

@@ -71,6 +71,10 @@
   :schedule
   {:exec-fn dienstplan.schedule/run}
 
+  ;; clojure -X:schedule-daemon
+  :schedule-daemon
+  {:exec-fn dienstplan.schedule/daemonize}
+
   ;; Dev
   :dev
   {:extra-deps
