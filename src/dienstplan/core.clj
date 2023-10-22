@@ -25,7 +25,7 @@
 
 ;; CLI opts
 
-(def run-modes #{:server :migrate :rollback :schedule})
+(def run-modes #{:server :migrate :rollback :schedule :schedule-daemon})
 
 (def cli-options
   [["-m"
