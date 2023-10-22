@@ -150,7 +150,8 @@
   []
   (while true
     (process-schedules)
-    (Thread/sleep (* 1000 (get-in config [:daemon :delay])))))
+    (let [delay ^java.lang.Long (* 1000 (get-in config [:daemon :delay]))]
+      (Thread/sleep delay))))
 
 (defn daemonize
   "Schedule processing daemon. Used as a background worker"
