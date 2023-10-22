@@ -75,4 +75,5 @@
         :server (server/run nil)
         :migrate (db/migrate nil)
         :rollback (db/rollback nil)
-        :schedule (schedule/run nil)))))
+        :schedule (schedule/run nil)
+        :schedule-daemon (schedule/daemonize nil)))))

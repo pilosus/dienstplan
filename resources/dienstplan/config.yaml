@@ -11,6 +11,9 @@ server:
   access-log: !envvar [SERVER__ACCESS_LOG, true]
   block-thread: !envvar [SERVER__BLOCK_THREAD, true]
 
+daemon:
+  delay: !envvar [DAEMON__DELAY, 60]
+
 slack:
   token: !envvar [SLACK__TOKEN, "Token"]
   sign: !envvar [SLACK__SIGN, "Secret"]

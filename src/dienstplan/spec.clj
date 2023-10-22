@@ -124,7 +124,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (s/def ::application-config
-  (s/keys :req-un [::application ::server ::slack ::alerts ::db]))
+  (s/keys :req-un [::application ::server ::daemon ::slack ::alerts ::db]))
 
 ;; Application
 
@@ -159,6 +159,15 @@
     :server/rootlevel
     :server/access-log
     :server/block-thread]))
+
+;; Daemon
+
+(s/def :daemon/delay ::->int)
+
+(s/def ::daemon
+  (s/keys
+   :req-un
+   [:daemon/delay]))
 
 ;; Slack
 
