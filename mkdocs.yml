@@ -9,8 +9,18 @@ repo_name: GitHub
 strict: true
 
 theme:
-  name: readthedocs
-  locale: en
+  name: material
+  language: en
+
+plugins:
+  - search:
+      lang: en
+
+extra:
+  alternate:
+    - name: English
+      link: /
+      lang: en
 
 nav:
   - Getting started: index.md
