@@ -1,6 +1,6 @@
 site_name: dienstplan
 site_description: Slack bot app for duty rotations
-site_url: https://dienstplan.readthedocs.io/
+site_url: https://dienstplan-slack.pilosus.org/
 copyright: Copyright © Vitaly Samigullin and contributors
 
 repo_url: https://github.com/pilosus/dienstplan/

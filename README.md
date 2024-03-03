@@ -74,7 +74,7 @@ schedule description, use `schedule` command instead of `/remind`:
 
 ## Help
 
-See [documentation](https://dienstplan.readthedocs.io/) for more details on
+See [documentation](https://dienstplan-slack.pilosus.org/) for more details on
 installation and usage.
 
 ## Contributing
