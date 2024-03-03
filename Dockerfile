@@ -10,7 +10,7 @@
 ### Build stage ###
 ###################
 
-FROM clojure:temurin-21-tools-deps-alpine AS build
+FROM clojure:temurin-21-tools-deps-bookworm-slim AS build
 
 # Create a working directory
 RUN mkdir -p /usr/src/app

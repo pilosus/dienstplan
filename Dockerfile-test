@@ -1,4 +1,4 @@
-FROM clojure:temurin-21-tools-deps-alpine
+FROM clojure:temurin-21-tools-deps-bookworm-slim
 RUN mkdir -p /usr/src/app
 COPY deps.edn /usr/src/app/
 WORKDIR /usr/src/app

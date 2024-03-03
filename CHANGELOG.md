@@ -8,6 +8,11 @@ file. This change log follows the conventions of
 
 Nothing here yet.
 
+### Added
+
+- Support `arm64` platform in Docker images
+  ([#111](https://github.com/pilosus/dienstplan/issues/111))
+
 ## [1.1.98] - 2023-10-22
 
 ### Added
