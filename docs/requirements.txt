@@ -1,1 +1,2 @@
-mkdocs==1.4
+mkdocs<2
+mkdocs-material<10
