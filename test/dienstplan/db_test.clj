@@ -206,11 +206,10 @@
   (testing "Update rota"
     (doseq [[before after expected description] params-rota-update!]
       (testing description
-        (jdbc/with-transaction [conn db/db]
-          (let [_ (db/rota-insert! before)
-                _ (db/rota-update! after)
-                rota (db/duty-get rota-channel rota-name)]
-            (is (= expected (dissoc rota :rota/id)))))))))
+        (let [_ (db/rota-insert! before)
+              _ (db/rota-update! after)
+              rota (db/duty-get rota-channel rota-name)]
+          (is (= expected (dissoc rota :rota/id))))))))
 
 ;; DB schema
 
