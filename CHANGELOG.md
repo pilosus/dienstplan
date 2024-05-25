@@ -6,12 +6,17 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
-- Support user groups
-  ([#115](https://github.com/pilosus/dienstplan/issues/115)) so that
-  they can be used in rotations just like normal users.
+## [Unreleased]
+
+Nothing here yet.
+
+## [1.1.109] - 2024-05-25
 
 ### Added
 
+- Support user groups
+  ([#115](https://github.com/pilosus/dienstplan/issues/115)) so that
+  they can be used in rotations just like normal users.
 - Support `arm64` platform in Docker images
   ([#111](https://github.com/pilosus/dienstplan/issues/111))
 
@@ -298,6 +303,7 @@ documentation website added. Project has made it to the version 1.0.0!
 - Bot app MVP
 
 [Unreleased]: https://github.com/pilosus/dienstplan/compare/1.1.98...HEAD
+[1.1.109]: https://github.com/pilosus/dienstplan/compare/1.1.98...1.1.109
 [1.1.98]: https://github.com/pilosus/dienstplan/compare/1.0.94...1.1.98
 [1.1.94]: https://github.com/pilosus/dienstplan/compare/1.0.90...1.1.94
 [1.1.90]: https://github.com/pilosus/dienstplan/compare/1.0.89...1.1.90
