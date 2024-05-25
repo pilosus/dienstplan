@@ -252,7 +252,7 @@ Caveats:
 @dienstplan help
 ```")
 
-(def regex-user-mention #"(?s)(?<userid>\<@[A-Z0-9]+\>)")
+(def regex-user-mention #"(?s)(\<@[A-Z0-9]+\>)|(\<!subteam\^.*?\>)")
 
 (def regex-channel-mention #"(?s)(?<channelid>\<#[A-Z0-9]+\>)")
 
@@ -352,7 +352,7 @@ Caveats:
          helpers/stringify
          string/trim)
         users (re-seq regex-user-mention text)
-        result (if users (map #(second %) users) nil)]
+        result (if users (map #(first %) users) nil)]
     result))
 
 ;; Parse command arguments
@@ -485,7 +485,7 @@ Caveats:
         text
         (if duty
           (format
-           "Hey %s, you are an on-call person for `%s` rotation.\n%s"
+           "Hey %s, you are an on-call for `%s` rotation.\n%s"
            duty rotation description)
           (format
            "Rotation `%s` not found in channel %s"

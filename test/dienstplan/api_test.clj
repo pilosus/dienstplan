@@ -136,7 +136,7 @@
       (is (= 200 (:status who-response)))
       (is (=
            {:channel "C123"
-            :text "Hey <@U123>, you are an on-call person for `my-rota` rotation.\nDo what thou wilt shall be the whole of the Law"}
+            :text "Hey <@U123>, you are an on-call for `my-rota` rotation.\nDo what thou wilt shall be the whole of the Law"}
            (-> who-response
                :body
                (json/parse-string true))))
@@ -343,7 +343,7 @@
       (is (= 200 (:status who-response)))
       (is (=
            {:channel "C123"
-            :text "Hey <@U789>, you are an on-call person for `my-rota` rotation.\nDo what thou wilt shall be the whole of the Law"}
+            :text "Hey <@U789>, you are an on-call for `my-rota` rotation.\nDo what thou wilt shall be the whole of the Law"}
            (-> who-response
                :body
                (json/parse-string true)))))))

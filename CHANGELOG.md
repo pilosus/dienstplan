@@ -6,7 +6,9 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
-Nothing here yet.
+- Support user groups
+  ([#115](https://github.com/pilosus/dienstplan/issues/115)) so that
+  they can be used in rotations just like normal users.
 
 ## [1.1.98] - 2023-10-22
 

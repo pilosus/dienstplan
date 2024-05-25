@@ -72,6 +72,12 @@
    ["run command for users <@U123>, <@U345> and <@U678> please"
     ["<@U123>" "<@U345>" "<@U678>"]
     "Multiple users mentioned"]
+   ["user group <!subteam^S075SU084QG|@compliance-team> mentioned"
+    ["<!subteam^S075SU084QG|@compliance-team>"]
+    "User group"]
+   ["user group <!subteam^S075SU084QG|@zdravstvuy-товарищ-bürgermeister> mentioned"
+    ["<!subteam^S075SU084QG|@zdravstvuy-товарищ-bürgermeister>"]
+    "Unicode characters"]
    [nil nil "Nil"]
    ["" nil "Blank string"]])
 
@@ -500,7 +506,7 @@
 (def params-command-exec!-who
   [[{:context {:channel "channel" :ts "1640250011.000100"} :command :who :args {:rotation "rota"}}
     {:mention/duty "user1" :rota/description "Do what thou wilt shall be the whole of the Law"}
-    "Hey user1, you are an on-call person for `rota` rotation.\nDo what thou wilt shall be the whole of the Law"
+    "Hey user1, you are an on-call for `rota` rotation.\nDo what thou wilt shall be the whole of the Law"
     "Rota found"]
    [{:context {:channel "channel" :ts "1640250011.000100"} :command :who :args {:rotation "rota"}}
     []
