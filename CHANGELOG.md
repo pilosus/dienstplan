@@ -6,9 +6,15 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
-## [Unreleased]
-
 Nothing here yet.
+
+## [1.1.112] - 2024-09-25
+
+### Added
+
+- Support for typographic quotes in schedules
+  ([#119](https://github.com/pilosus/dienstplan/issues/119)) by
+  [zvymazal](https://github.com/zvymazal)
 
 ## [1.1.109] - 2024-05-25
 
@@ -302,7 +308,8 @@ documentation website added. Project has made it to the version 1.0.0!
 ### Added
 - Bot app MVP
 
-[Unreleased]: https://github.com/pilosus/dienstplan/compare/1.1.109...HEAD
+[Unreleased]: https://github.com/pilosus/dienstplan/compare/1.1.112...HEAD
+[1.1.112]: https://github.com/pilosus/dienstplan/compare/1.1.109...1.1.112
 [1.1.109]: https://github.com/pilosus/dienstplan/compare/1.1.98...1.1.109
 [1.1.98]: https://github.com/pilosus/dienstplan/compare/1.0.94...1.1.98
 [1.1.94]: https://github.com/pilosus/dienstplan/compare/1.0.90...1.1.94
