@@ -123,6 +123,31 @@
      :executable "rotate my-rota"
      :crontab "9 0 * * Mon-Fri"}
     "Schedule create"]
+   ["<@U02HXENLLPN> schedule create \u201Crotate my-rota\u201D 9 0 * * Mon-Fri"
+    {:subcommand "create"
+     :executable "rotate my-rota"
+     :crontab "9 0 * * Mon-Fri"}
+    "Schedule create with typographic quotes i"]
+   ["<@U02HXENLLPN> schedule create \u00ABrotate my-rota\u00BB 9 0 * * Mon-Fri"
+    {:subcommand "create"
+     :executable "rotate my-rota"
+     :crontab "9 0 * * Mon-Fri"}
+    "Schedule create with typographic quotes ii"]
+   ["<@U02HXENLLPN> schedule create \u201Erotate my-rota\u201F 9 0 * * Mon-Fri"
+    {:subcommand "create"
+     :executable "rotate my-rota"
+     :crontab "9 0 * * Mon-Fri"}
+    "Schedule create with typographic quotes iii"]
+   ["<@U02HXENLLPN> schedule create \u2039rotate my-rota\u203A 9 0 * * Mon-Fri"
+    {:subcommand "create"
+     :executable "rotate my-rota"
+     :crontab "9 0 * * Mon-Fri"}
+    "Schedule create with typographic quotes iv"]
+   ["<@U02HXENLLPN> schedule create \u275Drotate my-rota\u275E 9 0 * * Mon-Fri"
+    {:subcommand "create"
+     :executable "rotate my-rota"
+     :crontab "9 0 * * Mon-Fri"}
+    "Schedule create with typographic quotes v"]
    ["<@U02HXENLLPN> schedule delete \"rotate my-rota\""
     {:subcommand "delete"
      :executable "rotate my-rota"

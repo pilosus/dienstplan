@@ -396,7 +396,8 @@ Caveats:
 (defn parse-args-schedule-cmd
   [command-parsed]
   (let [args (get-command-args command-parsed)
-        matcher (re-matcher regex-schedule args)
+        args' (string/replace args #"[\u201C\u201D\u00AB\u00BB\u201E\u201F\u2039\u203A\u275D\u275E]" "\"")
+        matcher (re-matcher regex-schedule args')
         result (when (.matches matcher)
                  {:subcommand (.group matcher "subcommand")
                   :executable (.group matcher "executable")
