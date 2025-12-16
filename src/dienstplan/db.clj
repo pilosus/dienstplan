@@ -37,6 +37,8 @@
    (org.postgresql.util PGobject
                         PSQLException)))
 
+(def pg-exception-insufficient-privilege "42501")
+
 ;; System component
 
 (defstate db
@@ -125,13 +127,60 @@
    #'dienstplan.db/db
    #'dienstplan.alerts/alerts)
   {:datastore  (ragtime-jdbc/sql-database db)
-   :migrations (ragtime-jdbc/load-resources "migrations")})
+   :migrations (ragtime-jdbc/load-resources "migrations")
+   :reporter    (fn [_ op id]
+                  (case op
+                    :up   (log/infof "Applying migration %s" id)
+                    :down (log/infof "Rolling back migration %s" id)
+                    (log/infof "Migration op=%s id=%s" op id)))})
+
+(defn- stop-migration-components! []
+  (mount/stop
+   #'dienstplan.db/db
+   #'dienstplan.alerts/alerts
+   #'dienstplan.config/config))
 
 (defn migrate [_]
-  (ragtime-repl/migrate (get-migration-config)))
+  (let [cfg (get-migration-config)]
+    (try
+      (ragtime-repl/migrate cfg)
+      (log/info "DB migrations completed successfully")
+      (catch PSQLException e
+        (let [sqlstate (.getSQLState e)]
+          (log/error
+           e
+           (if (= sqlstate pg-exception-insufficient-privilege)
+             "DB migration failed: insufficient privileges for DDL (grant CREATE/ALTER or use a migration role)"
+             "DB migration failed (PostgreSQL error)")))
+        (throw e))
+      (catch Exception e
+        (log/error e "DB migration failed")
+        (throw e))
+      (finally
+        (stop-migration-components!)))))
 
-(defn rollback [_]
-  (ragtime-repl/rollback (get-migration-config)))
+(defn rollback
+  [_]
+  (let [cfg (get-migration-config)]
+    (try
+      (ragtime-repl/rollback cfg)
+      (log/info "DB rollback completed successfully")
+      (catch PSQLException e
+        (let [sqlstate (.getSQLState e)]
+          (log/error
+           e
+           (if (= sqlstate pg-exception-insufficient-privilege)
+             "DB rollback failed: insufficient privileges for DDL (down migrations need DROP/ALTER/etc.)"
+             "DB rollback failed (PostgreSQL error)")))
+        (throw e))
+      (catch IllegalArgumentException e
+        (log/error e "DB rollback failed (invalid rollback target)")
+        (throw e))
+      (catch Exception e
+        (log/error e "DB rollback failed")
+        (throw e))
+      (finally
+        (stop-migration-components!)))))
 
 ;; Business layer
 
