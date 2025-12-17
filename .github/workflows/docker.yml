@@ -38,7 +38,6 @@ jobs:
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=ref,event=tag
-            type=sha,format=short
 
       - name: Build (and push on main/tags)
         uses: docker/build-push-action@v6
