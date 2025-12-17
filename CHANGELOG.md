@@ -8,6 +8,10 @@ file. This change log follows the conventions of
 
 Nothing here yet.
 
+### Changed
+
+- Dependencies versions have been bumped
+
 ### Added
 
 - Exception handling and logging added to DB migrate/rollback commands
