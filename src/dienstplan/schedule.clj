@@ -22,7 +22,9 @@
    [dienstplan.db :as db]
    [dienstplan.helpers :as helpers]
    [mount.core :as mount]
-   [next.jdbc :as jdbc]))
+   [next.jdbc :as jdbc])
+  (:import
+   [java.util.concurrent Executors ScheduledExecutorService TimeUnit]))
 
 (defmacro with-timer
   "Return a map with function evaluation results and time elapsed"
@@ -145,18 +147,46 @@
 
 ;; Daemon
 
-(defn run-forever
-  "Process events infinitely with the delay"
+(defn- create-scheduled-task
+  "Create a runnable task with exception handling"
   []
-  (let [delay-ms ^java.lang.Long (* 1000 (get-in config [:daemon :delay]))]
-    (while true
+  (fn []
+    (try
       (process-schedules)
-      (Thread/sleep delay-ms))))
+      (catch Exception e
+        (log/error e "Schedule processing failed" (.getMessage e))))))
+
+(defn start-executor
+  "Start a scheduled executor that runs process-schedules with a fixed delay.
+   Returns the executor for lifecycle management."
+  ^ScheduledExecutorService []
+  (let [delay-s (get-in config [:daemon :delay])
+        executor (Executors/newSingleThreadScheduledExecutor)]
+    (log/info "Starting schedule executor with delay" delay-s "seconds")
+    (.scheduleWithFixedDelay executor
+                             (create-scheduled-task)
+                             0
+                             delay-s
+                             TimeUnit/SECONDS)
+    executor))
+
+(defn stop-executor
+  "Gracefully stop the scheduled executor"
+  [^ScheduledExecutorService executor]
+  (when executor
+    (log/info "Stopping schedule executor")
+    (.shutdown executor)
+    (when-not (.awaitTermination executor 30 TimeUnit/SECONDS)
+      (log/warn "Executor did not terminate in time, forcing shutdown")
+      (.shutdownNow executor))))
 
 (defn daemonize
-  "Schedule processing daemon. Used as a background worker"
+  "Schedule processing daemon. Used as a background worker.
+   Blocks the main thread to keep the daemon running."
   [_]
   (start-system)
-  (->
-   (Thread. ^java.lang.Runnable run-forever)
-   .start))
+  (let [executor (start-executor)]
+    (.addShutdownHook (Runtime/getRuntime)
+                      (Thread. ^Runnable #(stop-executor executor)))
+    ;; Block until executor terminates (keeps daemon alive)
+    (.awaitTermination executor Long/MAX_VALUE TimeUnit/DAYS)))
