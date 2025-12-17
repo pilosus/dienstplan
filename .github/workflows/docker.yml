@@ -34,7 +34,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.DOCKERHUB_USERNAME }}/dienstplan
+          images: ${{ secrets.DOCKER_USERNAME }}/dienstplan
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=ref,event=tag
@@ -54,6 +54,6 @@ jobs:
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@v3
         with:
-          subject-name: index.docker.io/${{ secrets.DOCKERHUB_USERNAME }}/dienstplan
+          subject-name: index.docker.io/${{ secrets.DOCKER_USERNAME }}/dienstplan
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: true
