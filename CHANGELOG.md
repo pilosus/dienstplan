@@ -8,14 +8,20 @@ file. This change log follows the conventions of
 
 Nothing here yet.
 
-### Changed
-
-- Dependencies versions have been bumped
+## [1.1.120] - 2025-12-17
 
 ### Added
 
 - Exception handling and logging added to DB migrate/rollback commands
   ([#117](https://github.com/pilosus/dienstplan/issues/117))
+- Exception handling and lifecycle management for the executor in
+  `schedule-daemon`
+  ([#122](https://github.com/pilosus/dienstplan/issues/122))
+
+### Changed
+
+- Dependencies versions have been bumped
+
 
 ## [1.1.112] - 2024-09-25
 
