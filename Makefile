@@ -60,8 +60,12 @@ depscheck:
 depsbump:
 	clojure -T:outdated :upgrade true :force true
 
+# Don't forget to install as a tool first
+# Set CLJ_WATSON_NVD_API_KEY,
+#     CLJ_WATSON_ANALYZER_OSSINDEX_USER,
+#     CLJ_WATSON_ANALYZER_OSSINDEX_PASSWORD
 vuln:
-	clojure -T:watson
+	clojure -Tclj-watson scan :deps-edn-path deps.edn
 
 deps:
 	clojure -X:deps prep
