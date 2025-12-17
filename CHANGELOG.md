@@ -8,6 +8,19 @@ file. This change log follows the conventions of
 
 Nothing here yet.
 
+## [1.1.128] - 2025-12-17
+
+### Fixed
+
+- Public Docker image builds and pushes to Docker Hub have been fixed
+  ([#124](https://github.com/pilosus/dienstplan/issues/124))
+
+### Changed
+
+- Base Docker images migrated to Temurin 25 JRE
+  ([#125](https://github.com/pilosus/dienstplan/issues/125))
+
+
 ## [1.1.120] - 2025-12-17
 
 ### Added
