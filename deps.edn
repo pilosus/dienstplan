@@ -185,7 +185,7 @@
 
   ;; Vulnerability scanner
   ;; software composition analysis (SCA) for Clojure deps
-  ;; clojure -T:watson
+  ;; clojure -M:watson -p deps.edn
   ;; https://github.com/clj-holmes/clj-watson
   :watson
   {:replace-paths ["."]
