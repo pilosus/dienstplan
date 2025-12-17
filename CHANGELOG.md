@@ -8,6 +8,11 @@ file. This change log follows the conventions of
 
 Nothing here yet.
 
+### Added
+
+- Exception handling and logging added to DB migrate/rollback commands
+  ([#117](https://github.com/pilosus/dienstplan/issues/117))
+
 ## [1.1.112] - 2024-09-25
 
 ### Added
@@ -32,7 +37,7 @@ Nothing here yet.
 
 - Entrypoint to process schedules as a daemon (background running worker)
   ([#105](https://github.com/pilosus/dienstplan/issues/105))
-  
+
 ### Changed
 
 - Java in Docker image updated to Eclipse Temurin 21 JRE
