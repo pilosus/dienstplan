@@ -65,7 +65,7 @@ depsbump:
 #     CLJ_WATSON_ANALYZER_OSSINDEX_USER,
 #     CLJ_WATSON_ANALYZER_OSSINDEX_PASSWORD
 vuln:
-	clojure -Tclj-watson scan :deps-edn-path deps.edn
+	clojure -M:watson -p deps.edn
 
 deps:
 	clojure -X:deps prep

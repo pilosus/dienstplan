@@ -1,0 +1,33 @@
+name: Check for vulnerable dependencies
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Once a month, 03:00 UTC on the 1st day
+    - cron: "0 3 1 * *"
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    # Scheduled workflows run on the default branch; this guard avoids surprises.
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Setup Clojure CLI
+        uses: DeLaGuardo/setup-clojure@v13
+        with:
+          cli: "latest"
+
+      - name: Run clj-watson scan
+        run: clojure -M:watson -p deps.edn
