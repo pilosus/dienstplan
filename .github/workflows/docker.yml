@@ -30,12 +30,6 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: my-docker-hub-namespace/my-docker-hub-repository
-
       - name: Extract metadata (tags/labels)
         id: meta
         uses: docker/metadata-action@v5
