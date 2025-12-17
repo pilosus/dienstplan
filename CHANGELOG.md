@@ -336,7 +336,9 @@ documentation website added. Project has made it to the version 1.0.0!
 ### Added
 - Bot app MVP
 
-[Unreleased]: https://github.com/pilosus/dienstplan/compare/1.1.112...HEAD
+[Unreleased]: https://github.com/pilosus/dienstplan/compare/1.1.128...HEAD
+[1.1.128]: https://github.com/pilosus/dienstplan/compare/1.1.120...1.1.128
+[1.1.120]: https://github.com/pilosus/dienstplan/compare/1.1.112...1.1.120
 [1.1.112]: https://github.com/pilosus/dienstplan/compare/1.1.109...1.1.112
 [1.1.109]: https://github.com/pilosus/dienstplan/compare/1.1.98...1.1.109
 [1.1.98]: https://github.com/pilosus/dienstplan/compare/1.0.94...1.1.98
