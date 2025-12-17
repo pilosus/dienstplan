@@ -10,7 +10,7 @@
 ### Build stage ###
 ###################
 
-FROM clojure:temurin-21-tools-deps-bookworm-slim AS build
+FROM clojure:temurin-25-tools-deps-bookworm-slim AS build
 
 # Create a working directory
 RUN mkdir -p /usr/src/app
@@ -27,7 +27,7 @@ RUN clojure -T:build uberjar :uber-file '"app.jar"'
 ### Run stage ###
 #################
 
-FROM eclipse-temurin:21-jre-alpine AS run
+FROM eclipse-temurin:25-jre-alpine AS run
 
 # Create app directory for unpriviledged user
 RUN mkdir -p /usr/src/app
