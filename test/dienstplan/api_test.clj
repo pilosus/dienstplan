@@ -706,7 +706,7 @@
       (is (= 200 (:status schedule-create-rotate-response)))
       (is (=
            {:channel "C123"
-            :text "Executable `rotate my-rota` successfully scheduled with `5 0 * * Mon-Fri` (at minute 5, past hour 0, on every day of week from Monday through Friday, in every month)"}
+            :text "Executable `rotate my-rota` successfully scheduled with `5 0 * * Mon-Fri` (every weekday at 0:05)"}
            (-> schedule-create-rotate-response
                :body
                (json/parse-string true))))
@@ -724,7 +724,7 @@
       (is (= 200 (:status schedule-create-who-response)))
       (is (=
            {:channel "C123"
-            :text "Executable `who my-rota` successfully scheduled with `0 9 * * Mon-Fri` (at minute 0, past hour 9, on every day of week from Monday through Friday, in every month)"}
+            :text "Executable `who my-rota` successfully scheduled with `0 9 * * Mon-Fri` (every weekday at 9:00)"}
            (-> schedule-create-who-response
                :body
                (json/parse-string true))))
@@ -776,13 +776,13 @@
 
 (def params-test-schedule-explain
   [["0 22 * * *"
-    "Crontab `0 22 * * *` means the executable will be run at minute 0, past hour 22, on every day, in every month"
+    "Crontab `0 22 * * *` means the executable will be run every day at 22:00"
     "ok"]
    ["67 22 * * *"
     (format "`schedule` command failed: `<crontab>` error: Value error in 'minute' field. Given value: [67, 68). Expected: [0, 60)\n\n%s" cmd/help-cmd-schedule)
     "Wrong value"]
    ["Mon-Fri"
-    (format "`schedule` command failed: `<crontab>` error: Invalid crontab format\n\n%s" cmd/help-cmd-schedule)
+    (format "`schedule` command failed: `<crontab>` error: Invalid cron entry format\n\n%s" cmd/help-cmd-schedule)
     "Parding error"]])
 
 (deftest ^:integration test-schedule-explain
@@ -893,7 +893,7 @@
     {:ok? false :error "`<executable>` cannot be parsed"}
     "Invalid executable, double quotes omitted"]
    ["<@u001> schedule create \"who my rota\" Mon-Fri"
-    {:ok? false :error "`<crontab>` error: Invalid crontab format"}
+    {:ok? false :error "`<crontab>` error: Invalid cron entry format"}
     "Invalid crontab"]])
 
 (deftest ^:integration test-schedule-command-invalid-args
@@ -921,7 +921,7 @@
   (testing "Duplicate schedule"
     (let [executable "rotate my-rota"
           crontab "0 9 * * Mon-Fri"
-          explain "at minute 0, past hour 9, on every day of week from Monday through Friday, in every month"
+          explain "every weekday at 9:00"
           command (format "<@U001> schedule create \"%s\" %s"
                           executable
                           crontab)
