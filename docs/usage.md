@@ -196,6 +196,31 @@ returns:
 Crontab `0 22 * */2 Mon-Fri` means the executable will be run at minute 0, past hour 22, on every day of week from Monday through Friday, in every 2nd month
 ```
 
+### Template
+
+Set a custom template for the `who` command response:
+
+```
+@dienstplan template <rotation name> "<template string>"
+```
+
+Available placeholders:
+
+- `{duty}` - current on-call person
+- `{rotation}` - rotation name
+- `{description}` - rotation duties description
+
+Example:
+
+```
+@dienstplan template my-rota "Hey {duty}, you are on-call for `{rotation}`!
+{description}"
+```
+
+If no custom template is set, the `who` command uses a default
+template. Only valid placeholders are accepted; unknown placeholders
+will be rejected.
+
 ### Help
 
 Show a help message for the bot:

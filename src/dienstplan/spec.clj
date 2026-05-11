@@ -305,6 +305,21 @@
     :bot-cmd-common/command
     :bot-cmd-assign/args]))
 
+(s/def :bot-cmd-args/template ::non-empty-str)
+
+(s/def :bot-cmd-template/args
+  (s/keys
+   :req-un
+   [:bot-cmd-args/rotation
+    :bot-cmd-args/template]))
+
+(s/def ::bot-cmd-template
+  (s/keys
+   :req-un
+   [:bot-cmd-common/context
+    :bot-cmd-common/command
+    :bot-cmd-template/args]))
+
 (s/def :bot-cmd-help/args
   (s/keys
    :req-un
@@ -430,6 +445,8 @@
 (s/def :args-parsed/users (s/nilable (s/coll-of ::non-empty-str)))
 (s/def :args-parsed/description ::str)
 
+(s/def :args-parsed/template ::non-empty-str)
+
 (s/def ::args-parsed
   (s/nilable
    (s/keys
@@ -437,7 +454,8 @@
     [:args-parsed/rotation
      :args-parsed/users
      :args-parsed/description
-     :args-parsed/user])))
+     :args-parsed/user
+     :args-parsed/template])))
 
 ;; TODO the spec is too complex,
 ;; command-map functions need to be simplified
