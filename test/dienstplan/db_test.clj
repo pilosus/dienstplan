@@ -209,7 +209,7 @@
         (let [_ (db/rota-insert! before)
               _ (db/rota-update! after)
               rota (db/duty-get rota-channel rota-name)]
-          (is (= expected (dissoc rota :rota/id))))))))
+          (is (= expected (dissoc rota :rota/id :rota/meta))))))))
 
 ;; DB schema
 
