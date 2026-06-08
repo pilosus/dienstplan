@@ -1,10 +1,10 @@
 services:
   postgres:
-    image: postgres:16.2-alpine3.19
+    image: postgres:18-alpine
     ports:
       - "15432:5432"
     volumes:
-      - "/tmp/diestplan-db-data:/var/lib/postgresql/data"
+      - "/tmp/dienstplan-db-data:/var/lib/postgresql"
     env_file:
       - .env
 
