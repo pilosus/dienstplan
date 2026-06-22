@@ -182,6 +182,14 @@
    ["<@U02HXENLLPN> shout backend-rota "
     {:rotation "backend-rota"}
     "Shout"]
+   ["<@U02HXENLLPN> template my-rota \"Hey {duty}, you are on-call for `{rotation}`!\""
+    {:rotation "my-rota"
+     :template "Hey {duty}, you are on-call for `{rotation}`!"}
+    "Template"]
+   ["<@U02HXENLLPN> template my-rota \u201CHey {duty}!\u201D"
+    {:rotation "my-rota"
+     :template "Hey {duty}!"}
+    "Template with typographic quotes"]
    ["<@U02HXENLLPN> something backend-rota "
     nil
     "Unrecognized command"]])
@@ -481,7 +489,31 @@
       :channel "C123"}
      :command :assign
      :args {:rotation "backend-rota" :user "<@U123>"}}
-    "Assign command"]])
+    "Assign command"]
+   [{:params {:event {:text "<@UNX01> template my-rota \"Hey {duty}, on-call for {rotation}!\""
+                      :ts "1640250011.000100"
+                      :team "T123"
+                      :channel "C123"}}}
+    {:context
+     {:ts "1640250011.000100"
+      :team "T123"
+      :channel "C123"}
+     :command :template
+     :args {:rotation "my-rota"
+            :template "Hey {duty}, on-call for {rotation}!"}}
+    "Template command"]
+   [{:params {:event {:text "<@UNX01> template my-rota"
+                      :ts "1640250011.000100"
+                      :team "T123"
+                      :channel "C123"}}}
+    {:context
+     {:ts "1640250011.000100"
+      :team "T123"
+      :channel "C123"}
+     :command :template
+     :args {:rotation nil :template nil}
+     :error cmd/help-cmd-template}
+    "Template command without template string"]])
 
 (deftest test-get-command
   (testing "Get parsed command map"
@@ -533,6 +565,10 @@
     {:mention/duty "user1" :rota/description "Do what thou wilt shall be the whole of the Law"}
     "Hey user1, you are an on-call for `rota` rotation.\nDo what thou wilt shall be the whole of the Law"
     "Rota found"]
+   [{:context {:channel "channel" :ts "1640250011.000100"} :command :who :args {:rotation "rota"}}
+    {:mention/duty "user1" :rota/description "My description" :rota/meta {:template "On-call: {duty} for {rotation}"}}
+    "On-call: user1 for rota"
+    "Rota found with custom template"]
    [{:context {:channel "channel" :ts "1640250011.000100"} :command :who :args {:rotation "rota"}}
     []
     "Rotation `rota` not found in channel <#channel>"
@@ -688,6 +724,46 @@
     (doseq [[command assigned expected description] params-command-exec!-assign]
       (testing description
         (with-redefs [db/assign! (constantly assigned)]
+          (is (= expected (cmd/command-exec! command))))))))
+
+(def params-validate-template-placeholders
+  [["Hey {duty}, on-call for {rotation}!\n{description}" nil "All valid placeholders"]
+   ["{duty}" nil "Single valid placeholder"]
+   ["No placeholders here" nil "No placeholders"]
+   ["Hey {duty}, {unknown}!" "Invalid placeholder(s): {unknown}. Valid placeholders: {description}, {duty}, {rotation}" "Invalid placeholder"]
+   ["{foo} and {bar}" "Invalid placeholder(s): {bar}, {foo}. Valid placeholders: {description}, {duty}, {rotation}" "Multiple invalid placeholders"]])
+
+(deftest test-validate-template-placeholders
+  (testing "Validate template placeholders"
+    (doseq [[template expected description] params-validate-template-placeholders]
+      (testing description
+        (is (= expected (cmd/validate-template-placeholders template)))))))
+
+(def params-command-exec!-template
+  [[{:context {:channel "channel" :ts "1640250011.000100"}
+     :command :template
+     :args {:rotation "rota" :template "Hey {duty}!"}}
+    {:ok true}
+    "Template for rotation `rota` in channel <#channel> updated successfully"
+    "Template set successfully"]
+   [{:context {:channel "channel" :ts "1640250011.000100"}
+     :command :template
+     :args {:rotation "rota" :template "Hey {duty}!"}}
+    {:ok false :error {:reason :not-found :message "Rotation 'rota' not found"}}
+    "Cannot set template for rotation `rota` in channel <#channel>: Rotation 'rota' not found"
+    "Rota not found"]
+   [{:context {:channel "channel" :ts "1640250011.000100"}
+     :command :template
+     :args {:rotation "rota" :template "Hey {invalid_key}!"}}
+    nil
+    "Cannot set template for rotation `rota`: Invalid placeholder(s): {invalid_key}. Valid placeholders: {description}, {duty}, {rotation}"
+    "Invalid placeholder"]])
+
+(deftest test-command-exec!-template
+  (testing "Test command-exec! template"
+    (doseq [[command db-return expected description] params-command-exec!-template]
+      (testing description
+        (with-redefs [db/template-set! (constantly db-return)]
           (is (= expected (cmd/command-exec! command))))))))
 
 (def params-command-exec!-schedule

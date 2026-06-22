@@ -17,6 +17,7 @@
   (:gen-class)
   (:require
    [cheshire.core :as json]
+   [clojure.set :as set]
    [clojure.spec.alpha :as s]
    [clojure.string :as string]
    [clojure.tools.logging :as log]
@@ -84,7 +85,12 @@ Commands:
 @dienstplan list
 ```
 
-10. Show a help message
+10. Set a custom template for the `who` command response
+```
+@dienstplan template <rotation name> \"<template string>\"
+```
+
+11. Show a help message
 ```
 @dienstplan help
 ```
@@ -246,6 +252,20 @@ Caveats:
 \"<executable>\" must be enclosed in the double quotation marks
 ")
 
+(def help-cmd-template
+  "Usage:
+```
+@dienstplan template <rotation name> \"<template string>\"
+```
+
+Available placeholders: `{duty}`, `{rotation}`, `{description}`
+
+Example:
+```
+@dienstplan template my-rota \"Hey {duty}, you are on-call for `{rotation}`!
+{description}\"
+```")
+
 (def help-cmd-help
   "Usage:
 ```
@@ -283,6 +303,8 @@ Caveats:
           :help help-cmd-list}
    :schedule {:spec ::spec/bot-cmd-schedule
               :help help-cmd-schedule}
+   :template {:spec ::spec/bot-cmd-template
+              :help help-cmd-template}
    :help {:spec ::spec/bot-cmd-help
           :help help-cmd-help}})
 
@@ -449,6 +471,21 @@ Caveats:
 (defmethod parse-args :schedule [command-parsed]
   (parse-args-schedule-cmd command-parsed))
 
+(defmethod parse-args :template [command-parsed]
+  (let [args (get-command-args command-parsed)
+        args' (string/replace args #"[\u201C\u201D\u00AB\u00BB\u201E\u201F\u2039\u203A\u275D\u275E]" "\"")
+        idx (string/index-of args' "\"")
+        rotation (when idx
+                   (-> (subs args' 0 idx)
+                       helpers/str-trim
+                       helpers/nilify))
+        template (when idx
+                   (let [closing (string/last-index-of args' "\"")]
+                     (when (> closing idx)
+                       (subs args' (inc idx) closing))))]
+    {:rotation rotation
+     :template template}))
+
 (defmethod parse-args :help [_]
   {:description help-msg})
 
@@ -478,16 +515,55 @@ Caveats:
         rotation (get-in command-map [:args :rotation])]
     {:channel channel :rotation rotation}))
 
+(defn render-template
+  [template vars]
+  (string/replace
+   template #"\{(\w+)\}"
+   (fn [[_ key]] (get vars key ""))))
+
+(def default-who-template
+  "Hey {duty}, you are an on-call for `{rotation}` rotation.\n{description}")
+
+(def valid-template-placeholders #{"duty" "rotation" "description"})
+
+(defn validate-template-placeholders
+  "Returns nil if valid, or a string describing invalid placeholders"
+  [template]
+  (let [used (set (map second (re-seq #"\{(\w+)\}" template)))
+        invalid (set/difference used valid-template-placeholders)]
+    (when (seq invalid)
+      (format "Invalid placeholder(s): %s. Valid placeholders: %s"
+              (string/join ", " (map #(str "{" % "}") (sort invalid)))
+              (string/join ", " (map #(str "{" % "}") (sort valid-template-placeholders)))))))
+
+(defmethod command-exec! :template [command-map]
+  (let [{:keys [channel rotation]} (get-channel-rotation command-map)
+        channel-fmt (slack-mention-channel channel)
+        template (get-in command-map [:args :template])
+        invalid-msg (validate-template-placeholders template)]
+    (if invalid-msg
+      (format "Cannot set template for rotation `%s`: %s" rotation invalid-msg)
+      (let [result (db/template-set! channel rotation template)]
+        (if (:ok result)
+          (format "Template for rotation `%s` in channel %s updated successfully"
+                  rotation channel-fmt)
+          (format "Cannot set template for rotation `%s` in channel %s: %s"
+                  rotation channel-fmt (get-in result [:error :message])))))))
+
 (defmethod command-exec! :who [command-map]
   (let [{:keys [channel rotation]} (get-channel-rotation command-map)
         rota (db/duty-get channel rotation)
         duty (get rota :mention/duty)
         description (get rota :rota/description)
+        custom-template (get-in rota [:rota/meta :template])
+        template (or custom-template default-who-template)
         text
         (if duty
-          (format
-           "Hey %s, you are an on-call for `%s` rotation.\n%s"
-           duty rotation description)
+          (render-template
+           template
+           {"duty" duty
+            "rotation" rotation
+            "description" description})
           (format
            "Rotation `%s` not found in channel %s"
            rotation (slack-mention-channel channel)))]

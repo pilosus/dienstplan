@@ -6,7 +6,18 @@ file. This change log follows the conventions of
 
 ## [Unreleased]
 
-Nothing here yet.
+### Added
+
+- `template` command to set a custom response template for the `who`
+  command per rotation, stored in the `meta` jsonb column of the `rota`
+  table ([#65](https://github.com/pilosus/dienstplan/issues/65))
+
+- `@yearly`, `@monthly`, `@daily`, `@hourly` aliases for cron
+  expressions supported
+
+## Changed
+
+- Shorter explanations for `schedule explain` for common cron patterns
 
 ## [1.1.128] - 2025-12-17
 

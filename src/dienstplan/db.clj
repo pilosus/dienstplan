@@ -195,6 +195,7 @@
      (h/format
       {:select [[:r/id]
                 :r/description
+                :r/meta
                 [:m/name :duty]]
        :from [[:rota :r]]
        :join [[:mention :m] [:= :m.rota_id :r.id]]
@@ -203,6 +204,33 @@
                [:= :r/channel channel]
                [:= :r/name rotation]]}
       sql-params))))
+
+(defn template-set!
+  "Set or update a template in the rota's meta jsonb column"
+  [channel rotation template]
+  (jdbc/with-transaction [conn db]
+    (try
+      (let [rota (jdbc/execute-one!
+                  conn
+                  (h/format
+                   {:select [[:r/id] :r/meta]
+                    :from [[:rota :r]]
+                    :where [:and
+                            [:= :r/channel channel]
+                            [:= :r/name rotation]]
+                    :for [:update]}
+                   sql-params))
+            rota-id (:rota/id rota)]
+        (if rota-id
+          (let [current-meta (or (:rota/meta rota) {})
+                new-meta (assoc current-meta :template template)]
+            (sql/update! conn :rota {:meta new-meta} ["id = ?" rota-id])
+            {:ok true})
+          {:ok false
+           :error {:reason :not-found
+                   :message (format "Rotation '%s' not found" rotation)}}))
+      (catch Exception e
+        {:ok false :error {:reason :other :message (.getMessage e)}}))))
 
 (defn rota-list-get
   "Get a list of rotation in the channel"
